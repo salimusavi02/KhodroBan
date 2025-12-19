@@ -1,0 +1,442 @@
+<script lang="ts">
+  import { onMount } from 'svelte';
+  import { Layout } from '../components/layout';
+  import { Card, Button, Input, Badge } from '../components/common';
+  import { authStore, currentUser, isPro, remindersStore, toastStore } from '../stores';
+  import { authService, reminderService } from '../services';
+  import { formatNumber } from '../utils/format';
+  import { REMINDER_CHANNEL_OPTIONS, FREE_TIER_LIMITS, PRO_TIER_FEATURES, APP_NAME } from '../utils/constants';
+  import type { ReminderSettings, ReminderChannel } from '../types';
+
+  let isLoading = $state(true);
+  let isSaving = $state(false);
+
+  let settings = $state<ReminderSettings>({
+    kmInterval: 5000,
+    timeIntervalMonths: 3,
+    alertDaysBefore: 7,
+    channels: ['inApp'],
+  });
+
+  let profile = $state({
+    name: '',
+    email: '',
+  });
+
+  onMount(async () => {
+    await loadSettings();
+  });
+
+  async function loadSettings() {
+    isLoading = true;
+    try {
+      const [settingsData, profileData] = await Promise.all([
+        reminderService.getSettings(),
+        authService.getProfile(),
+      ]);
+      settings = settingsData;
+      profile = {
+        name: profileData.name,
+        email: profileData.email,
+      };
+    } catch {
+      toastStore.error('خطا در بارگذاری تنظیمات');
+    } finally {
+      isLoading = false;
+    }
+  }
+
+  async function saveSettings() {
+    isSaving = true;
+    try {
+      await reminderService.updateSettings(settings);
+      remindersStore.setSettings(settings);
+      toastStore.success('تنظیمات ذخیره شد');
+    } catch {
+      toastStore.error('خطا در ذخیره تنظیمات');
+    } finally {
+      isSaving = false;
+    }
+  }
+
+  async function saveProfile() {
+    isSaving = true;
+    try {
+      const updated = await authService.updateProfile({ name: profile.name });
+      authStore.updateUser(updated);
+      toastStore.success('پروفایل به‌روزرسانی شد');
+    } catch {
+      toastStore.error('خطا در به‌روزرسانی پروفایل');
+    } finally {
+      isSaving = false;
+    }
+  }
+
+  function toggleChannel(channel: ReminderChannel) {
+    if (channel === 'sms' && !$isPro) {
+      toastStore.warning('یادآور پیامکی فقط برای کاربران Pro در دسترس است');
+      return;
+    }
+    
+    if (settings.channels.includes(channel)) {
+      settings.channels = settings.channels.filter(c => c !== channel);
+    } else {
+      settings.channels = [...settings.channels, channel];
+    }
+  }
+
+  async function handleUpgrade() {
+    try {
+      const { redirectUrl } = await authService.upgradeToPro();
+      // In production, redirect to payment gateway
+      toastStore.info('در حال انتقال به درگاه پرداخت...');
+      // window.location.href = redirectUrl;
+      
+      // For demo, just show a message
+      setTimeout(() => {
+        toastStore.success('این یک دمو است. در نسخه واقعی به درگاه پرداخت منتقل می‌شوید.');
+      }, 1000);
+    } catch {
+      toastStore.error('خطا در ارتباط با سرور');
+    }
+  }
+
+  function handleLogout() {
+    if (confirm('آیا می‌خواهید از حساب خود خارج شوید؟')) {
+      authStore.logout();
+      window.location.hash = '#/login';
+    }
+  }
+</script>
+
+<Layout headerTitle="تنظیمات">
+  <div class="page">
+    <!-- Profile Section -->
+    <Card variant="solid" padding="lg" title="پروفایل">
+      <div class="profile-header">
+        <div class="profile-avatar">
+          <span>👤</span>
+        </div>
+        <div class="profile-info">
+          <span class="profile-name">{$currentUser?.name || 'کاربر'}</span>
+          <span class="profile-email">{$currentUser?.email}</span>
+          <Badge variant={$isPro ? 'warning' : 'default'}>
+            {$isPro ? '✨ Pro' : 'رایگان'}
+          </Badge>
+        </div>
+      </div>
+
+      <form class="profile-form" onsubmit={(e) => { e.preventDefault(); saveProfile(); }}>
+        <Input
+          name="name"
+          label="نام"
+          bind:value={profile.name}
+        />
+        <Input
+          type="email"
+          name="email"
+          label="ایمیل"
+          value={profile.email}
+          disabled
+          hint="ایمیل قابل تغییر نیست"
+        />
+        <Button type="submit" variant="primary" loading={isSaving}>
+          ذخیره تغییرات
+        </Button>
+      </form>
+    </Card>
+
+    <!-- Reminder Settings -->
+    <Card variant="solid" padding="lg" title="تنظیمات یادآور">
+      <form class="settings-form" onsubmit={(e) => { e.preventDefault(); saveSettings(); }}>
+        <Input
+          type="number"
+          name="kmInterval"
+          label="فاصله کیلومتری سرویس"
+          hint="هر چند کیلومتر یادآور سرویس فعال شود"
+          bind:value={settings.kmInterval}
+          min={1000}
+          step={1000}
+        />
+
+        <Input
+          type="number"
+          name="timeInterval"
+          label="فاصله زمانی سرویس (ماه)"
+          hint="هر چند ماه یادآور سرویس فعال شود"
+          bind:value={settings.timeIntervalMonths}
+          min={1}
+          max={24}
+        />
+
+        <Input
+          type="number"
+          name="alertDays"
+          label="روزهای قبل از موعد"
+          hint="چند روز قبل از موعد هشدار داده شود"
+          bind:value={settings.alertDaysBefore}
+          min={1}
+          max={30}
+        />
+
+        <div class="channels-section">
+          <label class="section-label">کانال‌های یادآوری</label>
+          <div class="channels-list">
+            {#each REMINDER_CHANNEL_OPTIONS as channel}
+              <button
+                type="button"
+                class="channel-item"
+                class:active={settings.channels.includes(channel.value as ReminderChannel)}
+                class:disabled={channel.isPro && !$isPro}
+                onclick={() => toggleChannel(channel.value as ReminderChannel)}
+              >
+                <span class="channel-checkbox">
+                  {settings.channels.includes(channel.value as ReminderChannel) ? '✓' : ''}
+                </span>
+                <span class="channel-label">{channel.label}</span>
+                {#if channel.isPro && !$isPro}
+                  <Badge variant="warning" size="sm">Pro</Badge>
+                {/if}
+              </button>
+            {/each}
+          </div>
+        </div>
+
+        <Button type="submit" variant="primary" loading={isSaving}>
+          ذخیره تنظیمات
+        </Button>
+      </form>
+    </Card>
+
+    <!-- Pro Upgrade -->
+    {#if !$isPro}
+      <Card variant="solid" padding="lg" class="pro-card">
+        <div class="pro-header">
+          <span class="pro-icon">🌟</span>
+          <h3 class="pro-title">ارتقا به نسخه Pro</h3>
+        </div>
+        
+        <ul class="pro-features">
+          <li>✓ خودروهای نامحدود</li>
+          <li>✓ همگام‌سازی ابری</li>
+          <li>✓ خروجی PDF</li>
+          <li>✓ یادآور پیامکی</li>
+          <li>✓ گزارش‌های پیشرفته</li>
+        </ul>
+
+        <Button variant="primary" fullWidth onclick={handleUpgrade}>
+          ارتقا به Pro
+        </Button>
+      </Card>
+    {/if}
+
+    <!-- App Info -->
+    <Card variant="solid" padding="md">
+      <div class="app-info">
+        <div class="app-logo">
+          <span>🚗</span>
+          <span class="app-name">{APP_NAME}</span>
+        </div>
+        <span class="app-version">نسخه ۱.۰.۰</span>
+      </div>
+    </Card>
+
+    <!-- Logout -->
+    <Button variant="danger" fullWidth onclick={handleLogout}>
+      خروج از حساب
+    </Button>
+  </div>
+</Layout>
+
+<style>
+  .page {
+    padding: 1rem;
+    padding-bottom: calc(70px + 1rem);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  @media (min-width: 768px) {
+    .page {
+      padding: 1.5rem;
+      padding-bottom: 1.5rem;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+  }
+
+  /* Profile */
+  .profile-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  }
+
+  .profile-avatar {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-light));
+    color: white;
+    border-radius: 16px;
+    font-size: 2rem;
+  }
+
+  .profile-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .profile-name {
+    font-size: 1.125rem;
+    font-weight: 600;
+  }
+
+  .profile-email {
+    font-size: 0.875rem;
+    color: var(--color-text-light);
+  }
+
+  .profile-form,
+  .settings-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  /* Channels */
+  .section-label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-text);
+    margin-bottom: 0.5rem;
+  }
+
+  .channels-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .channel-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem;
+    background: rgba(0, 0, 0, 0.02);
+    border: 1px solid transparent;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: right;
+    font-family: inherit;
+    font-size: inherit;
+    color: var(--color-text);
+  }
+
+  .channel-item:hover {
+    background: rgba(0, 0, 0, 0.04);
+  }
+
+  .channel-item.active {
+    background: rgba(30, 58, 138, 0.1);
+    border-color: var(--color-primary);
+  }
+
+  .channel-item.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .channel-checkbox {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--color-text-muted);
+    border-radius: 4px;
+    font-size: 0.75rem;
+    transition: all 0.2s;
+  }
+
+  .channel-item.active .channel-checkbox {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: white;
+  }
+
+  .channel-label {
+    flex: 1;
+  }
+
+  /* Pro Card */
+  :global(.pro-card) {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(249, 115, 22, 0.1)) !important;
+    border-color: rgba(245, 158, 11, 0.3) !important;
+  }
+
+  .pro-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .pro-icon {
+    font-size: 2rem;
+  }
+
+  .pro-title {
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--color-warning);
+  }
+
+  .pro-features {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .pro-features li {
+    font-size: 0.9375rem;
+    color: var(--color-text);
+  }
+
+  /* App Info */
+  .app-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .app-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.25rem;
+  }
+
+  .app-name {
+    font-weight: 600;
+    color: var(--color-primary);
+  }
+
+  .app-version {
+    font-size: 0.8125rem;
+    color: var(--color-text-muted);
+  }
+</style>

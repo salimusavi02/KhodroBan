@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# اجرای lint-staged برای فایل‌های staged
+npx lint-staged
+
+# اجرای type checking
+npm run check
