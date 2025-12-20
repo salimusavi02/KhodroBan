@@ -400,6 +400,14 @@ hotfix/*          # urgent fixes
 
 ### 3. Pull Requests
 
+برای راهنمای کامل استفاده از Pull Request، به [راهنمای Pull Request](../tutorials/pull-request-guide.md) مراجعه کنید.
+
+**خلاصه**:
+- از branch های جداگانه برای هر feature استفاده کنید
+- PR description را کامل و واضح بنویسید
+- از template PR استفاده کنید (`.github/PULL_REQUEST_TEMPLATE.md`)
+- قبل از merge، PR را review کنید
+
 وقتی PR ایجاد می‌کنید، مشخص کنید کدام بخش‌ها تغییر کرده‌اند:
 
 ```markdown
