@@ -10,15 +10,25 @@ const config = {
     runes: true,
   },
   kit: {
-    adapter:
-      // اول Deno رو چک کن (چون Deno Deploy متغیر DENO_REGION یا DENO_DEPLOY رو داره)
-      typeof process !== 'undefined' && (process.env.DENO_REGION || process.env.DENO_DEPLOY)
-        ? adapterDeno()
-        // بعد Netlify رو چک کن (Netlify متغیر NETLIFY داره)
-        : typeof process !== 'undefined' && process.env.NETLIFY
-          ? adapterNetlify()
-          // fallback به adapter-auto (برای local و بقیه موارد)
-          : adapterAuto(),
+    adapter: (() => {
+      // در محیط‌های بدون process (مثل بعضی buildهای قدیمی) ایمن باش
+      if (typeof process === 'undefined') {
+        return adapterAuto();
+      }
+
+      // Deno Deploy: متغیرهای DENO_REGION یا DENO_DEPLOY همیشه وجود دارن
+      if (process.env.DENO_REGION || process.env.DENO_DEPLOY) {
+        return adapterDeno();
+      }
+
+      // Netlify: متغیر NETLIFY=true همیشه در build و runtime وجود داره
+      if (process.env.NETLIFY) {
+        return adapterNetlify();
+      }
+
+      // local development یا محیط‌های دیگه
+      return adapterAuto();
+    })(),
   },
 };
 
