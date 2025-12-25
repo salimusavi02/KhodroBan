@@ -3,7 +3,7 @@
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
   import { fade, fly } from 'svelte/transition';
-  import { authStore, currentUser, isPro, reminderStats } from '../../stores';
+  import { currentUser, isPro, reminderStats } from '../../stores';
   import { MENU_ITEMS, APP_NAME } from '../../utils/constants';
   import { navigateTo } from '../../utils/navigation';
   import { getBasePath } from '../../utils/config';
@@ -23,11 +23,6 @@
     dispatch('close');
   }
 
-  async function handleLogout() {
-    authStore.logout();
-    await navigateTo('/login');
-    close();
-  }
 
   async function handleNavigation(path: string) {
     console.log('Sidebar navigation:', path);
@@ -95,19 +90,6 @@
     {/each}
   </nav>
 
-  <div class="sidebar-footer">
-    {#if !$isPro}
-      <button class="upgrade-btn" onclick={() => handleNavigation('/settings')} type="button">
-        <span>🌟</span>
-        <span>ارتقا به Pro</span>
-      </button>
-    {/if}
-    
-    <button class="logout-btn" onclick={handleLogout}>
-      <span>🚪</span>
-      <span>خروج</span>
-    </button>
-  </div>
 </aside>
 
 <style>

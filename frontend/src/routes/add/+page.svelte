@@ -12,10 +12,7 @@
   import type { ServiceFormData, ExpenseFormData, SelectOption } from '$lib/types';
 
   // Parse query params
-  let initialTab = $derived($page.url.searchParams.get('tab') || 'service');
-  let initialVehicle = $derived($page.url.searchParams.get('vehicle') || '');
-
-  let activeTab = $state(initialTab);
+  let activeTab = $state('service');
   let isLoading = $state(true);
   let isSubmitting = $state(false);
   let vehicleOptions = $state<SelectOption[]>([]);
@@ -28,7 +25,7 @@
 
   // Service form
   let serviceForm = $state<ServiceFormData>({
-    vehicleId: initialVehicle,
+    vehicleId: '',
     date: getCurrentJalaliDate(),
     km: 0,
     cost: 0,
@@ -38,7 +35,7 @@
 
   // Expense form
   let expenseForm = $state<ExpenseFormData>({
-    vehicleId: initialVehicle,
+    vehicleId: '',
     date: getCurrentJalaliDate(),
     amount: 0,
     category: 'fuel',
@@ -182,17 +179,18 @@
 
 <Layout headerTitle="ثبت جدید" showBack={true}>
   <div class="page-container">
-    <Card variant="solid" padding="lg">
-      <Tabs {tabs} bind:activeTab on:change={handleTabChange} />
+    <div class="add-content">
+      <Card variant="solid" padding="lg">
+        <Tabs {tabs} bind:activeTab on:change={handleTabChange} />
 
-      {#if vehicleOptions.length === 0 && !isLoading}
-        <div class="no-vehicles">
-          <p>ابتدا یک خودرو اضافه کنید</p>
-          <Button variant="primary" onclick={() => goto('/vehicles')}>
-            افزودن خودرو
-          </Button>
-        </div>
-      {:else if activeTab === 'service'}
+        {#if vehicleOptions.length === 0 && !isLoading}
+          <div class="no-vehicles">
+            <p>ابتدا یک خودرو اضافه کنید</p>
+            <Button variant="primary" onclick={() => goto('/vehicles')}>
+              افزودن خودرو
+            </Button>
+          </div>
+        {:else if activeTab === 'service'}
         <form class="form" onsubmit={submitService}>
           <Select
             name="vehicleId"
@@ -248,6 +246,7 @@
             label="یادداشت (اختیاری)"
             placeholder="توضیحات بیشتر..."
             bind:value={serviceForm.note}
+            class="field-full-width"
           />
 
           <div class="form-actions">
@@ -313,6 +312,7 @@
             label="یادداشت (اختیاری)"
             placeholder="توضیحات بیشتر..."
             bind:value={expenseForm.note}
+            class="field-full-width"
           />
 
           <div class="form-actions">
@@ -325,19 +325,90 @@
           </div>
         </form>
       {/if}
-    </Card>
+      </Card>
+    </div>
   </div>
 </Layout>
 
 <style>
   /* Add page specific styles */
 
+  /* Page container */
+  .page-container {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 0 var(--space-lg);
+    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+  }
+
+  @media (min-width: 768px) {
+    .page-container {
+      max-width: 900px;
+      padding: 0 var(--space-xl);
+      padding-bottom: calc(90px + env(safe-area-inset-bottom, 0px));
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .page-container {
+      max-width: 1000px;
+      padding: 0 var(--space-xl);
+      padding-bottom: var(--space-xl);
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .page-container {
+      max-width: 1200px;
+    }
+  }
+
+  /* Add content wrapper */
+  .add-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+  }
+
+  @media (min-width: 768px) {
+    .add-content {
+      gap: var(--space-xl);
+    }
+  }
+
+
+  /* Form responsive */
   .form {
     display: flex;
     flex-direction: column;
     gap: var(--space-lg);
   }
 
+  @media (min-width: 768px) {
+    .form {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--space-lg) var(--space-md);
+      column-gap: var(--space-lg);
+    }
+
+    /* Full width fields - note field and form actions */
+    .form :global(.field-full-width),
+    .form :global(.input-group.field-full-width),
+    .form :global(.select-group.field-full-width),
+    .form-actions {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .form {
+      gap: var(--space-xl) var(--space-lg);
+      column-gap: var(--space-xl);
+    }
+  }
+
+  /* Form actions responsive */
   .form-actions {
     display: flex;
     gap: var(--space-md);
@@ -350,18 +421,105 @@
   @media (min-width: 480px) {
     .form-actions {
       flex-direction: row;
+      justify-content: space-between;
     }
   }
 
+  @media (min-width: 768px) {
+    .form-actions {
+      gap: var(--space-lg);
+      margin-top: var(--space-xl);
+      padding-top: var(--space-xl);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .form-actions {
+      grid-column: 1 / -1;
+      margin-top: var(--space-2xl);
+      padding-top: var(--space-2xl);
+      gap: var(--space-xl);
+    }
+  }
+
+  /* No vehicles section responsive */
   .no-vehicles {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 4rem var(--space-2xl);
+    padding: 3rem var(--space-xl);
     gap: var(--space-lg);
     color: var(--color-text-light);
     text-align: center;
+  }
+
+  @media (min-width: 768px) {
+    .no-vehicles {
+      padding: 4rem var(--space-2xl);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .no-vehicles {
+      padding: 5rem var(--space-3xl);
+    }
+  }
+
+  /* Form fields spacing for larger screens */
+  .form :global(.field) {
+    margin-bottom: var(--space-md);
+  }
+
+  @media (min-width: 768px) {
+    .form :global(.field) {
+      margin-bottom: 0;
+    }
+  }
+
+  /* Better spacing for form sections */
+  .form :global(.field-group) {
+    margin-bottom: var(--space-md);
+  }
+
+  @media (min-width: 768px) {
+    .form :global(.field-group) {
+      margin-bottom: var(--space-lg);
+    }
+  }
+
+  /* Card padding responsive */
+  :global(.card) {
+    padding: var(--space-lg);
+  }
+
+  @media (min-width: 768px) {
+    :global(.card) {
+      padding: var(--space-xl);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    :global(.card) {
+      padding: var(--space-2xl);
+    }
+  }
+
+  /* Tabs responsive spacing */
+  :global(.tabs) {
+    margin-bottom: var(--space-lg);
+  }
+
+  @media (min-width: 768px) {
+    :global(.tabs) {
+      margin-bottom: var(--space-xl);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    :global(.tabs) {
+      margin-bottom: var(--space-2xl);
+    }
   }
 </style>
 
