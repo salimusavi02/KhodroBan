@@ -68,22 +68,22 @@ const mockExpenses: Expense[] = [
 
 const expenseServiceMock: IExpenseService = {
   async getAll(vehicleId?: string): Promise<Expense[]> {
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, 500));
     if (vehicleId) {
-      return mockExpenses.filter(e => e.vehicleId === vehicleId);
+      return mockExpenses.filter((e) => e.vehicleId === vehicleId);
     }
     return [...mockExpenses];
   },
 
   async getById(id: string): Promise<Expense> {
-    await new Promise(resolve => setTimeout(resolve, 300));
-    const expense = mockExpenses.find(e => e.id === id);
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    const expense = mockExpenses.find((e) => e.id === id);
     if (!expense) throw new Error('هزینه یافت نشد');
     return expense;
   },
 
   async create(data: ExpenseFormData): Promise<Expense> {
-    await new Promise(resolve => setTimeout(resolve, 600));
+    await new Promise((resolve) => setTimeout(resolve, 600));
     const newExpense: Expense = {
       id: Date.now().toString(),
       ...data,
@@ -95,10 +95,10 @@ const expenseServiceMock: IExpenseService = {
   },
 
   async update(id: string, data: Partial<ExpenseFormData>): Promise<Expense> {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    const index = mockExpenses.findIndex(e => e.id === id);
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    const index = mockExpenses.findIndex((e) => e.id === id);
     if (index === -1) throw new Error('هزینه یافت نشد');
-    
+
     mockExpenses[index] = {
       ...mockExpenses[index],
       ...data,
@@ -108,16 +108,16 @@ const expenseServiceMock: IExpenseService = {
   },
 
   async delete(id: string): Promise<void> {
-    await new Promise(resolve => setTimeout(resolve, 400));
-    const index = mockExpenses.findIndex(e => e.id === id);
+    await new Promise((resolve) => setTimeout(resolve, 400));
+    const index = mockExpenses.findIndex((e) => e.id === id);
     if (index !== -1) {
       mockExpenses.splice(index, 1);
     }
   },
 
   async getByCategory(category: string): Promise<Expense[]> {
-    await new Promise(resolve => setTimeout(resolve, 400));
-    return mockExpenses.filter(e => e.category === category);
+    await new Promise((resolve) => setTimeout(resolve, 400));
+    return mockExpenses.filter((e) => e.category === category);
   },
 };
 
@@ -130,15 +130,19 @@ const expenseServiceMock: IExpenseService = {
 
 const expenseServiceSupabase: IExpenseService = {
   async getAll(vehicleId?: string): Promise<Expense[]> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) throw new Error('کاربر لاگین نشده است');
 
     let query = supabase
       .from('daily_expenses')
-      .select(`
+      .select(
+        `
         *,
         vehicle:vehicles!inner(user_id)
-      `)
+      `
+      )
       .eq('vehicles.user_id', user.id)
       .order('expense_date_gregorian', { ascending: false });
 
@@ -164,15 +168,19 @@ const expenseServiceSupabase: IExpenseService = {
   },
 
   async getById(id: string): Promise<Expense> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) throw new Error('کاربر لاگین نشده است');
 
     const { data, error } = await supabase
       .from('daily_expenses')
-      .select(`
+      .select(
+        `
         *,
         vehicle:vehicles!inner(user_id)
-      `)
+      `
+      )
       .eq('expense_id', id)
       .eq('vehicles.user_id', user.id)
       .single();
@@ -194,7 +202,9 @@ const expenseServiceSupabase: IExpenseService = {
   },
 
   async create(data: ExpenseFormData): Promise<Expense> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) throw new Error('کاربر لاگین نشده است');
 
     // تبدیل تاریخ شمسی به میلادی (ساده - در production باید از کتابخانه استفاده شود)
@@ -231,7 +241,9 @@ const expenseServiceSupabase: IExpenseService = {
   },
 
   async update(id: string, data: Partial<ExpenseFormData>): Promise<Expense> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) throw new Error('کاربر لاگین نشده است');
 
     const updates: any = {};
@@ -246,10 +258,12 @@ const expenseServiceSupabase: IExpenseService = {
       .from('daily_expenses')
       .update(updates as any)
       .eq('expense_id', id)
-      .select(`
+      .select(
+        `
         *,
         vehicle:vehicles!inner(user_id)
-      `)
+      `
+      )
       .eq('vehicles.user_id', user.id)
       .single();
 
@@ -270,31 +284,39 @@ const expenseServiceSupabase: IExpenseService = {
   },
 
   async delete(id: string): Promise<void> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) throw new Error('کاربر لاگین نشده است');
 
     const { error } = await supabase
       .from('daily_expenses')
       .delete()
       .eq('expense_id', id)
-      .select(`
+      .select(
+        `
         vehicle:vehicles!inner(user_id)
-      `)
+      `
+      )
       .eq('vehicles.user_id', user.id);
 
     if (error) throw new Error(error.message);
   },
 
   async getByCategory(category: string): Promise<Expense[]> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) throw new Error('کاربر لاگین نشده است');
 
     const { data, error } = await supabase
       .from('daily_expenses')
-      .select(`
+      .select(
+        `
         *,
         vehicle:vehicles!inner(user_id)
-      `)
+      `
+      )
       .eq('vehicles.user_id', user.id)
       .eq('category', category)
       .order('expense_date_gregorian', { ascending: false });

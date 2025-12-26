@@ -8,7 +8,7 @@
   const languages = $derived([
     { code: 'fa', name: $_('language.persian'), flag: '🇮🇷' },
     { code: 'en', name: $_('language.english'), flag: '🇺🇸' },
-    { code: 'ar', name: $_('language.arabic'), flag: '🇸🇦' }
+    { code: 'ar', name: $_('language.arabic'), flag: '🇸🇦' },
   ]);
 
   function changeLanguage(langCode: string) {
@@ -72,11 +72,11 @@
   }
 
   /* RTL support */
-  [dir="rtl"] .language-switcher {
+  [dir='rtl'] .language-switcher {
     align-items: flex-end;
   }
 
-  [dir="rtl"] .language-buttons {
+  [dir='rtl'] .language-buttons {
     flex-direction: row-reverse;
   }
 

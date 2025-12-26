@@ -47,17 +47,9 @@
       {/if}
     </label>
   {/if}
-  
+
   <div class="select-wrapper">
-    <select
-      {name}
-      id={name}
-      {value}
-      {disabled}
-      {required}
-      class="select"
-      onchange={handleChange}
-    >
+    <select {name} id={name} {value} {disabled} {required} class="select" onchange={handleChange}>
       {#if placeholder}
         <option value="" disabled selected={!value}>{placeholder}</option>
       {/if}
@@ -69,7 +61,7 @@
     </select>
     <span class="select-arrow">▼</span>
   </div>
-  
+
   {#if error}
     <span class="select-error">{error}</span>
   {/if}

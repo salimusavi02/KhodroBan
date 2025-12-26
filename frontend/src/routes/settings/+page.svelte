@@ -7,7 +7,12 @@
   import { authStore, currentUser, isPro, remindersStore, toastStore } from '$lib/stores';
   import { authService, reminderService } from '$lib/services';
   import { formatNumber } from '$lib/utils/format';
-  import { REMINDER_CHANNEL_OPTIONS, FREE_TIER_LIMITS, PRO_TIER_FEATURES, APP_NAME } from '$lib/utils/constants';
+  import {
+    REMINDER_CHANNEL_OPTIONS,
+    FREE_TIER_LIMITS,
+    PRO_TIER_FEATURES,
+    APP_NAME,
+  } from '$lib/utils/constants';
   import type { ReminderSettings, ReminderChannel } from '$lib/types';
 
   let isLoading = $state(true);
@@ -68,10 +73,10 @@
       const nameParts = profile.name.trim().split(/\s+/);
       const firstName = nameParts[0] || '';
       const lastName = nameParts.slice(1).join(' ') || '';
-      
-      const updated = await authService.updateProfile({ 
+
+      const updated = await authService.updateProfile({
         firstName,
-        lastName 
+        lastName,
       });
       authStore.updateUser(updated);
       toastStore.success('پروفایل به‌روزرسانی شد');
@@ -87,9 +92,9 @@
       toastStore.warning('یادآور پیامکی فقط برای کاربران Pro در دسترس است');
       return;
     }
-    
+
     if (settings.channels.includes(channel)) {
-      settings.channels = settings.channels.filter(c => c !== channel);
+      settings.channels = settings.channels.filter((c) => c !== channel);
     } else {
       settings.channels = [...settings.channels, channel];
     }
@@ -101,7 +106,7 @@
       // In production, redirect to payment gateway
       toastStore.info('در حال انتقال به درگاه پرداخت...');
       // window.location.href = redirectUrl;
-      
+
       // For demo, just show a message
       setTimeout(() => {
         toastStore.success('این یک دمو است. در نسخه واقعی به درگاه پرداخت منتقل می‌شوید.');
@@ -136,13 +141,14 @@
         </div>
       </div>
 
-      <form class="form-container" onsubmit={(e) => { e.preventDefault(); saveProfile(); }}>
-        <Input
-          name="name"
-          label="نام"
-          bind:value={profile.name}
-          class="field-full-width"
-        />
+      <form
+        class="form-container"
+        onsubmit={(e) => {
+          e.preventDefault();
+          saveProfile();
+        }}
+      >
+        <Input name="name" label="نام" bind:value={profile.name} class="field-full-width" />
         <Input
           type="email"
           name="email"
@@ -152,15 +158,19 @@
           hint="ایمیل قابل تغییر نیست"
           class="field-full-width"
         />
-        <Button type="submit" variant="primary" loading={isSaving}>
-          ذخیره تغییرات
-        </Button>
+        <Button type="submit" variant="primary" loading={isSaving}>ذخیره تغییرات</Button>
       </form>
     </Card>
 
     <!-- Reminder Settings -->
     <Card variant="solid" padding="lg" title="تنظیمات یادآور">
-      <form class="form-container" onsubmit={(e) => { e.preventDefault(); saveSettings(); }}>
+      <form
+        class="form-container"
+        onsubmit={(e) => {
+          e.preventDefault();
+          saveSettings();
+        }}
+      >
         <Input
           type="number"
           name="kmInterval"
@@ -216,9 +226,7 @@
           </div>
         </div>
 
-        <Button type="submit" variant="primary" loading={isSaving}>
-          ذخیره تنظیمات
-        </Button>
+        <Button type="submit" variant="primary" loading={isSaving}>ذخیره تنظیمات</Button>
       </form>
     </Card>
 
@@ -238,9 +246,7 @@
           <li>✓ گزارش‌های پیشرفته</li>
         </ul>
 
-        <Button variant="primary" fullWidth onclick={handleUpgrade}>
-          ارتقا به Pro
-        </Button>
+        <Button variant="primary" fullWidth onclick={handleUpgrade}>ارتقا به Pro</Button>
       </Card>
     {/if}
 
@@ -256,9 +262,7 @@
     </Card>
 
     <!-- Logout -->
-    <Button variant="danger" fullWidth onclick={handleLogout}>
-      خروج از حساب
-    </Button>
+    <Button variant="danger" fullWidth onclick={handleLogout}>خروج از حساب</Button>
   </div>
 </Layout>
 
@@ -467,7 +471,11 @@
 
   /* Pro card */
   :global(.pro-card) {
-    background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(249, 115, 22, 0.1)) !important;
+    background: linear-gradient(
+      135deg,
+      rgba(245, 158, 11, 0.1),
+      rgba(249, 115, 22, 0.1)
+    ) !important;
     border-color: rgba(245, 158, 11, 0.3) !important;
   }
 
@@ -579,4 +587,3 @@
 
   /* Form fields spacing - using shared styles from layouts.css */
 </style>
-

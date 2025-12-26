@@ -4,10 +4,7 @@
     color?: string;
   }
 
-  let {
-    size = 'md',
-    color = 'var(--color-primary)',
-  }: Props = $props();
+  let { size = 'md', color = 'var(--color-primary)' }: Props = $props();
 </script>
 
 <div class="spinner spinner-{size}" style="--spinner-color: {color}">

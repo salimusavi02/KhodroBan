@@ -37,9 +37,7 @@
 
   // Generate user avatar initial
   let userInitial = $derived(
-    user.name
-      ? user.name.charAt(0).toUpperCase()
-      : user.email.charAt(0).toUpperCase()
+    user.name ? user.name.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase()
   );
 </script>
 
@@ -71,11 +69,7 @@
     >
       {$_('auth.continueToDashboard')}
     </Button>
-    <Button
-      variant="secondary"
-      onclick={handleLogout}
-      aria-label={$_('auth.logout')}
-    >
+    <Button variant="secondary" onclick={handleLogout} aria-label={$_('auth.logout')}>
       {$_('auth.logout')}
     </Button>
   </div>

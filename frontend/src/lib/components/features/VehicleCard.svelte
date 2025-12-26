@@ -12,13 +12,7 @@
     onDelete?: () => void;
   }
 
-  let {
-    vehicle,
-    status = null,
-    showActions = false,
-    onEdit,
-    onDelete,
-  }: Props = $props();
+  let { vehicle, status = null, showActions = false, onEdit, onDelete }: Props = $props();
 
   function getStatusVariant(statusType: string): 'success' | 'warning' | 'danger' {
     if (statusType === 'ok') return 'success';
@@ -45,7 +39,7 @@
         </Badge>
       {/if}
     </div>
-    
+
     <div class="vehicle-stats">
       <div class="stat">
         <span class="stat-value">{formatNumber(vehicle.currentKm)}</span>
@@ -61,15 +55,11 @@
       </div>
     {/if}
   </a>
-  
+
   {#if showActions}
     <div class="vehicle-actions">
-      <button class="action-btn" onclick={onEdit}>
-        ✏️ ویرایش
-      </button>
-      <button class="action-btn danger" onclick={onDelete}>
-        🗑️ حذف
-      </button>
+      <button class="action-btn" onclick={onEdit}> ✏️ ویرایش </button>
+      <button class="action-btn danger" onclick={onDelete}> 🗑️ حذف </button>
     </div>
   {/if}
 </Card>

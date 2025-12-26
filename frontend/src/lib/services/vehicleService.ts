@@ -34,19 +34,19 @@ const mockVehicles: Vehicle[] = [
 
 const vehicleServiceMock: IVehicleService = {
   async getAll(): Promise<Vehicle[]> {
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, 500));
     return [...mockVehicles];
   },
 
   async getById(id: string): Promise<Vehicle> {
-    await new Promise(resolve => setTimeout(resolve, 300));
-    const vehicle = mockVehicles.find(v => v.id === id);
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    const vehicle = mockVehicles.find((v) => v.id === id);
     if (!vehicle) throw new Error('خودرو یافت نشد');
     return vehicle;
   },
 
   async create(data: VehicleFormData): Promise<Vehicle> {
-    await new Promise(resolve => setTimeout(resolve, 600));
+    await new Promise((resolve) => setTimeout(resolve, 600));
     const newVehicle: Vehicle = {
       id: Date.now().toString(),
       userId: '1',
@@ -59,10 +59,10 @@ const vehicleServiceMock: IVehicleService = {
   },
 
   async update(id: string, data: Partial<VehicleFormData>): Promise<Vehicle> {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    const index = mockVehicles.findIndex(v => v.id === id);
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    const index = mockVehicles.findIndex((v) => v.id === id);
     if (index === -1) throw new Error('خودرو یافت نشد');
-    
+
     mockVehicles[index] = {
       ...mockVehicles[index],
       ...data,
@@ -72,18 +72,18 @@ const vehicleServiceMock: IVehicleService = {
   },
 
   async delete(id: string): Promise<void> {
-    await new Promise(resolve => setTimeout(resolve, 400));
-    const index = mockVehicles.findIndex(v => v.id === id);
+    await new Promise((resolve) => setTimeout(resolve, 400));
+    const index = mockVehicles.findIndex((v) => v.id === id);
     if (index !== -1) {
       mockVehicles.splice(index, 1);
     }
   },
 
   async updateKm(id: string, km: number): Promise<Vehicle> {
-    await new Promise(resolve => setTimeout(resolve, 300));
-    const index = mockVehicles.findIndex(v => v.id === id);
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    const index = mockVehicles.findIndex((v) => v.id === id);
     if (index === -1) throw new Error('خودرو یافت نشد');
-    
+
     mockVehicles[index].currentKm = km;
     mockVehicles[index].updatedAt = new Date().toISOString();
     return mockVehicles[index];
@@ -96,7 +96,9 @@ const vehicleServiceMock: IVehicleService = {
 
 const vehicleServiceSupabase: IVehicleService = {
   async getAll(): Promise<Vehicle[]> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) throw new Error('کاربر لاگین نشده است');
 
     const { data, error } = await supabase
@@ -107,7 +109,7 @@ const vehicleServiceSupabase: IVehicleService = {
 
     if (error) throw new Error(error.message);
 
-    return data.map(v => ({
+    return data.map((v) => ({
       id: v.vehicle_id.toString(),
       userId: v.user_id,
       model: v.model,
@@ -121,7 +123,9 @@ const vehicleServiceSupabase: IVehicleService = {
   },
 
   async getById(id: string): Promise<Vehicle> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) throw new Error('کاربر لاگین نشده است');
 
     const { data, error } = await supabase
@@ -147,7 +151,9 @@ const vehicleServiceSupabase: IVehicleService = {
   },
 
   async create(data: VehicleFormData): Promise<Vehicle> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) throw new Error('کاربر لاگین نشده است');
 
     const { data: newVehicle, error } = await supabase
@@ -179,7 +185,9 @@ const vehicleServiceSupabase: IVehicleService = {
   },
 
   async update(id: string, data: Partial<VehicleFormData>): Promise<Vehicle> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) throw new Error('کاربر لاگین نشده است');
 
     const updates: any = {};
@@ -213,7 +221,9 @@ const vehicleServiceSupabase: IVehicleService = {
   },
 
   async delete(id: string): Promise<void> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) throw new Error('کاربر لاگین نشده است');
 
     const { error } = await supabase

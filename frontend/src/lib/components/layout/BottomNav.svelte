@@ -16,17 +16,18 @@
   function isActive(path: string): boolean {
     const currentPath = $page.url.pathname;
     const basePath = getBasePath();
-    
+
     // Remove base path from current path for comparison
-    const cleanPath = basePath && currentPath.startsWith(basePath) 
-      ? currentPath.slice(basePath.length) || '/' 
-      : currentPath;
-    
+    const cleanPath =
+      basePath && currentPath.startsWith(basePath)
+        ? currentPath.slice(basePath.length) || '/'
+        : currentPath;
+
     // Handle dashboard route (can be / or /dashboard)
     if (path === '/dashboard') {
       return cleanPath === '/' || cleanPath === '/dashboard' || cleanPath.startsWith('/dashboard/');
     }
-    
+
     return cleanPath === path || cleanPath.startsWith(path + '/');
   }
 
@@ -45,7 +46,10 @@
       class:primary={item.isPrimary}
       type="button"
     >
-      <span class="nav-icon" class:has-badge={item.path === '/dashboard' && $reminderStats.overdue > 0}>
+      <span
+        class="nav-icon"
+        class:has-badge={item.path === '/dashboard' && $reminderStats.overdue > 0}
+      >
         {item.icon}
         {#if item.path === '/dashboard' && $reminderStats.overdue > 0}
           <span class="badge">{$reminderStats.overdue}</span>

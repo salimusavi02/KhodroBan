@@ -26,11 +26,7 @@
     errors?: FieldError[];
   }
 
-  let {
-    isLoading = false,
-    onSubmit,
-    errors = []
-  }: Props = $props();
+  let { isLoading = false, onSubmit, errors = [] }: Props = $props();
 
   let email = $state('');
   let password = $state('');
@@ -48,7 +44,9 @@
         'auth.login': 'ورود',
         'auth.loginError': 'خطا در ورود. لطفاً دوباره تلاش کنید.',
       };
-      return options?.values?.name ? `${fallbacks[key] || key} ${options.values.name}` : fallbacks[key] || key;
+      return options?.values?.name
+        ? `${fallbacks[key] || key} ${options.values.name}`
+        : fallbacks[key] || key;
     }
   }
 
@@ -67,7 +65,7 @@
     if (!validation.valid) {
       // Emit validation errors
       const customEvent = new CustomEvent('validation-error', {
-        detail: validation.errors
+        detail: validation.errors,
       });
       e.target?.dispatchEvent(customEvent);
       return;
@@ -87,18 +85,13 @@
   // Clear field errors when user starts typing
   function clearFieldError(field: string) {
     const customEvent = new CustomEvent('clear-field-error', {
-      detail: { field }
+      detail: { field },
     });
     document.dispatchEvent(customEvent);
   }
 </script>
 
-<form
-  class="auth-form"
-  onsubmit={handleSubmit}
-  role="form"
-  aria-labelledby="login-form-title"
->
+<form class="auth-form" onsubmit={handleSubmit} role="form" aria-labelledby="login-form-title">
   <div id="login-form-title" class="sr-only">فرم ورود به سیستم</div>
 
   <Input

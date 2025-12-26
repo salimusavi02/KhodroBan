@@ -8,12 +8,7 @@
     class?: string;
   }
 
-  let {
-    variant = 'default',
-    size = 'md',
-    icon = '',
-    class: className = '',
-  }: Props = $props();
+  let { variant = 'default', size = 'md', icon = '', class: className = '' }: Props = $props();
 </script>
 
 <span class="badge badge-{variant} badge-{size} {className}">

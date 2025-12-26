@@ -52,22 +52,22 @@ const mockServices: ServiceRecord[] = [
 
 const serviceServiceMock: IServiceService = {
   async getAll(vehicleId?: string): Promise<ServiceRecord[]> {
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, 500));
     if (vehicleId) {
-      return mockServices.filter(s => s.vehicleId === vehicleId);
+      return mockServices.filter((s) => s.vehicleId === vehicleId);
     }
     return [...mockServices];
   },
 
   async getById(id: string): Promise<ServiceRecord> {
-    await new Promise(resolve => setTimeout(resolve, 300));
-    const service = mockServices.find(s => s.id === id);
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    const service = mockServices.find((s) => s.id === id);
     if (!service) throw new Error('سرویس یافت نشد');
     return service;
   },
 
   async create(data: ServiceFormData): Promise<ServiceRecord> {
-    await new Promise(resolve => setTimeout(resolve, 600));
+    await new Promise((resolve) => setTimeout(resolve, 600));
     const newService: ServiceRecord = {
       id: Date.now().toString(),
       ...data,
@@ -79,10 +79,10 @@ const serviceServiceMock: IServiceService = {
   },
 
   async update(id: string, data: Partial<ServiceFormData>): Promise<ServiceRecord> {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    const index = mockServices.findIndex(s => s.id === id);
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    const index = mockServices.findIndex((s) => s.id === id);
     if (index === -1) throw new Error('سرویس یافت نشد');
-    
+
     mockServices[index] = {
       ...mockServices[index],
       ...data,
@@ -92,17 +92,17 @@ const serviceServiceMock: IServiceService = {
   },
 
   async delete(id: string): Promise<void> {
-    await new Promise(resolve => setTimeout(resolve, 400));
-    const index = mockServices.findIndex(s => s.id === id);
+    await new Promise((resolve) => setTimeout(resolve, 400));
+    const index = mockServices.findIndex((s) => s.id === id);
     if (index !== -1) {
       mockServices.splice(index, 1);
     }
   },
 
   async getLatestForVehicle(vehicleId: string): Promise<ServiceRecord | null> {
-    await new Promise(resolve => setTimeout(resolve, 300));
+    await new Promise((resolve) => setTimeout(resolve, 300));
     const services = mockServices
-      .filter(s => s.vehicleId === vehicleId)
+      .filter((s) => s.vehicleId === vehicleId)
       .sort((a, b) => b.km - a.km);
     return services[0] || null;
   },
@@ -117,15 +117,19 @@ const serviceServiceMock: IServiceService = {
 
 const serviceServiceSupabase: IServiceService = {
   async getAll(vehicleId?: string): Promise<ServiceRecord[]> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) throw new Error('کاربر لاگین نشده است');
 
     let query = supabase
       .from('services')
-      .select(`
+      .select(
+        `
         *,
         vehicle:vehicles!inner(user_id)
-      `)
+      `
+      )
       .eq('vehicles.user_id', user.id)
       .order('service_date_gregorian', { ascending: false });
 
@@ -141,7 +145,9 @@ const serviceServiceSupabase: IServiceService = {
       id: s.service_id.toString(),
       vehicleId: s.vehicle_id.toString(),
       // تبدیل تاریخ میلادی به شمسی برای نمایش در UI
-      date: s.service_date_gregorian ? formatJalaliDate(s.service_date_gregorian) : formatJalaliDate(s.service_date),
+      date: s.service_date_gregorian
+        ? formatJalaliDate(s.service_date_gregorian)
+        : formatJalaliDate(s.service_date),
       km: s.service_km,
       cost: s.cost,
       type: s.service_type as any,
@@ -152,15 +158,19 @@ const serviceServiceSupabase: IServiceService = {
   },
 
   async getById(id: string): Promise<ServiceRecord> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) throw new Error('کاربر لاگین نشده است');
 
     const { data, error } = await supabase
       .from('services')
-      .select(`
+      .select(
+        `
         *,
         vehicle:vehicles!inner(user_id)
-      `)
+      `
+      )
       .eq('service_id', id)
       .eq('vehicles.user_id', user.id)
       .single();
@@ -172,7 +182,9 @@ const serviceServiceSupabase: IServiceService = {
       id: serviceData.service_id.toString(),
       vehicleId: serviceData.vehicle_id.toString(),
       // تبدیل تاریخ میلادی به شمسی برای نمایش در UI
-      date: serviceData.service_date_gregorian ? formatJalaliDate(serviceData.service_date_gregorian) : formatJalaliDate(serviceData.service_date),
+      date: serviceData.service_date_gregorian
+        ? formatJalaliDate(serviceData.service_date_gregorian)
+        : formatJalaliDate(serviceData.service_date),
       km: serviceData.service_km,
       cost: serviceData.cost,
       type: serviceData.service_type as any,
@@ -183,7 +195,9 @@ const serviceServiceSupabase: IServiceService = {
   },
 
   async create(data: ServiceFormData): Promise<ServiceRecord> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) throw new Error('کاربر لاگین نشده است');
 
     // تبدیل تاریخ شمسی به میلادی
@@ -217,7 +231,9 @@ const serviceServiceSupabase: IServiceService = {
       id: newServiceData.service_id.toString(),
       vehicleId: newServiceData.vehicle_id.toString(),
       // تبدیل تاریخ میلادی به شمسی برای نمایش در UI
-      date: newServiceData.service_date_gregorian ? formatJalaliDate(newServiceData.service_date_gregorian) : formatJalaliDate(newServiceData.service_date),
+      date: newServiceData.service_date_gregorian
+        ? formatJalaliDate(newServiceData.service_date_gregorian)
+        : formatJalaliDate(newServiceData.service_date),
       km: newServiceData.service_km,
       cost: newServiceData.cost,
       type: newServiceData.service_type as any,
@@ -228,7 +244,9 @@ const serviceServiceSupabase: IServiceService = {
   },
 
   async update(id: string, data: Partial<ServiceFormData>): Promise<ServiceRecord> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) throw new Error('کاربر لاگین نشده است');
 
     const updates: any = {};
@@ -256,10 +274,12 @@ const serviceServiceSupabase: IServiceService = {
       // @ts-ignore - Supabase type inference issue with dynamic updates
       .update(updates)
       .eq('service_id', id)
-      .select(`
+      .select(
+        `
         *,
         vehicle:vehicles!inner(user_id)
-      `)
+      `
+      )
       .eq('vehicles.user_id', user.id)
       .single();
 
@@ -270,7 +290,9 @@ const serviceServiceSupabase: IServiceService = {
       id: updatedServiceData.service_id.toString(),
       vehicleId: updatedServiceData.vehicle_id.toString(),
       // تبدیل تاریخ میلادی به شمسی برای نمایش در UI
-      date: updatedServiceData.service_date_gregorian ? formatJalaliDate(updatedServiceData.service_date_gregorian) : formatJalaliDate(updatedServiceData.service_date),
+      date: updatedServiceData.service_date_gregorian
+        ? formatJalaliDate(updatedServiceData.service_date_gregorian)
+        : formatJalaliDate(updatedServiceData.service_date),
       km: updatedServiceData.service_km,
       cost: updatedServiceData.cost,
       type: updatedServiceData.service_type as any,
@@ -281,31 +303,39 @@ const serviceServiceSupabase: IServiceService = {
   },
 
   async delete(id: string): Promise<void> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) throw new Error('کاربر لاگین نشده است');
 
     const { error } = await supabase
       .from('services')
       .delete()
       .eq('service_id', id)
-      .select(`
+      .select(
+        `
         vehicle:vehicles!inner(user_id)
-      ` as any)
+      ` as any
+      )
       .eq('vehicles.user_id', user.id);
 
     if (error) throw new Error(error.message);
   },
 
   async getLatestForVehicle(vehicleId: string): Promise<ServiceRecord | null> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) throw new Error('کاربر لاگین نشده است');
 
     const { data, error } = await supabase
       .from('services')
-      .select(`
+      .select(
+        `
         *,
         vehicle:vehicles!inner(user_id)
-      `)
+      `
+      )
       .eq('vehicle_id', parseInt(vehicleId))
       .eq('vehicles.user_id', user.id)
       .order('service_km', { ascending: false })
@@ -322,7 +352,9 @@ const serviceServiceSupabase: IServiceService = {
       id: serviceData.service_id.toString(),
       vehicleId: serviceData.vehicle_id.toString(),
       // تبدیل تاریخ میلادی به شمسی برای نمایش در UI
-      date: serviceData.service_date_gregorian ? formatJalaliDate(serviceData.service_date_gregorian) : formatJalaliDate(serviceData.service_date),
+      date: serviceData.service_date_gregorian
+        ? formatJalaliDate(serviceData.service_date_gregorian)
+        : formatJalaliDate(serviceData.service_date),
       km: serviceData.service_km,
       cost: serviceData.cost,
       type: serviceData.service_type as any,

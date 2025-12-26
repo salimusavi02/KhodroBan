@@ -14,11 +14,11 @@ function createServicesStore() {
     subscribe,
 
     setLoading(isLoading: boolean) {
-      update(state => ({ ...state, isLoading, error: null }));
+      update((state) => ({ ...state, isLoading, error: null }));
     },
 
     setServices(services: ServiceRecord[]) {
-      update(state => ({
+      update((state) => ({
         ...state,
         services,
         isLoading: false,
@@ -27,44 +27,40 @@ function createServicesStore() {
     },
 
     addService(service: ServiceRecord) {
-      update(state => ({
+      update((state) => ({
         ...state,
         services: [service, ...state.services],
       }));
     },
 
     updateService(id: string, data: Partial<ServiceRecord>) {
-      update(state => ({
+      update((state) => ({
         ...state,
-        services: state.services.map(s => 
-          s.id === id ? { ...s, ...data } : s
-        ),
+        services: state.services.map((s) => (s.id === id ? { ...s, ...data } : s)),
       }));
     },
 
     deleteService(id: string) {
-      update(state => ({
+      update((state) => ({
         ...state,
-        services: state.services.filter(s => s.id !== id),
+        services: state.services.filter((s) => s.id !== id),
       }));
     },
 
     setError(error: string) {
-      update(state => ({ ...state, error, isLoading: false }));
+      update((state) => ({ ...state, error, isLoading: false }));
     },
 
     // Get services by vehicle ID
     getByVehicle(vehicleId: string): ServiceRecord[] {
       const state = get({ subscribe });
-      return state.services.filter(s => s.vehicleId === vehicleId);
+      return state.services.filter((s) => s.vehicleId === vehicleId);
     },
 
     // Get latest service for a vehicle
     getLatest(vehicleId: string): ServiceRecord | undefined {
       const services = this.getByVehicle(vehicleId);
-      return services.sort((a, b) => 
-        new Date(b.date).getTime() - new Date(a.date).getTime()
-      )[0];
+      return services.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
     },
 
     clear() {
@@ -76,9 +72,9 @@ function createServicesStore() {
 export const servicesStore = createServicesStore();
 
 // Derived: services grouped by vehicle
-export const servicesByVehicle = derived(servicesStore, $store => {
+export const servicesByVehicle = derived(servicesStore, ($store) => {
   const grouped: Record<string, ServiceRecord[]> = {};
-  $store.services.forEach(service => {
+  $store.services.forEach((service) => {
     if (!grouped[service.vehicleId]) {
       grouped[service.vehicleId] = [];
     }
@@ -88,6 +84,6 @@ export const servicesByVehicle = derived(servicesStore, $store => {
 });
 
 // Derived: total service cost
-export const totalServiceCost = derived(servicesStore, $store => 
+export const totalServiceCost = derived(servicesStore, ($store) =>
   $store.services.reduce((sum, s) => sum + s.cost, 0)
 );

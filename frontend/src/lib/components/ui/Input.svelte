@@ -84,12 +84,12 @@
       {/if}
     </label>
   {/if}
-  
+
   <div class="input-wrapper">
     {#if icon}
       <span class="input-icon">{icon}</span>
     {/if}
-    
+
     <input
       bind:this={inputEl}
       {type}
@@ -107,7 +107,7 @@
       onchange={handleChange}
     />
   </div>
-  
+
   {#if error}
     <span class="input-error">{error}</span>
   {:else if hint}
@@ -204,13 +204,13 @@
   }
 
   /* Number input - hide spinners */
-  .input[type="number"]::-webkit-outer-spin-button,
-  .input[type="number"]::-webkit-inner-spin-button {
+  .input[type='number']::-webkit-outer-spin-button,
+  .input[type='number']::-webkit-inner-spin-button {
     -webkit-appearance: none;
     margin: 0;
   }
 
-  .input[type="number"] {
+  .input[type='number'] {
     -moz-appearance: textfield;
   }
 

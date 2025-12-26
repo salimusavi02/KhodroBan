@@ -5,11 +5,7 @@
     description?: string;
   }
 
-  let {
-    icon = '📭',
-    title = 'موردی یافت نشد',
-    description = '',
-  }: Props = $props();
+  let { icon = '📭', title = 'موردی یافت نشد', description = '' }: Props = $props();
 </script>
 
 <div class="empty-state">

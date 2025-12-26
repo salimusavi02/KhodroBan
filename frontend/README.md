@@ -1,6 +1,5 @@
 # 🚗 خودروبان (Khodroban) - Frontend
 
-<div dir="rtl" align="right">
 
 **خودروبان** یک وب‌اپلیکیشن واکنش‌گرا برای مدیریت هوشمند نگهداری خودرو است. این اپلیکیشن به کاربران ایرانی کمک می‌کند تا سرویس‌ها، هزینه‌ها و یادآورهای خودرو خود را مدیریت کنند.
 
@@ -25,7 +24,6 @@
 
 ## 📁 ساختار پروژه
 
-</div>
 
 ```
 frontend/
@@ -51,7 +49,6 @@ frontend/
 └── tsconfig.json
 ```
 
-<div dir="rtl" align="right">
 
 ## 🚀 شروع سریع
 
@@ -62,7 +59,6 @@ frontend/
 
 ### نصب و راه‌اندازی
 
-</div>
 
 ```bash
 # Clone the repository
@@ -81,7 +77,6 @@ npm run build
 npm run preview
 ```
 
-<div dir="rtl" align="right">
 
 سرور توسعه در آدرس `http://localhost:5173` اجرا می‌شود.
 
@@ -91,7 +86,6 @@ npm run preview
 
 فایل `.env` را در ریشه پروژه ایجاد کنید:
 
-</div>
 
 ```env
 # Backend Configuration
@@ -109,7 +103,6 @@ VITE_APP_VERSION=1.0.0
 # Redirect URLs (برای OAuth) - به صورت خودکار تشخیص داده می‌شود
 ```
 
-<div dir="rtl" align="right">
 
 ### اتصال به Backend
 
@@ -141,7 +134,6 @@ Backend باید در آدرس `http://localhost:8000` در دسترس باشد.
 
 ### Glassmorphism
 
-</div>
 
 ```css
 .glass {
@@ -153,7 +145,6 @@ Backend باید در آدرس `http://localhost:8000` در دسترس باشد.
 }
 ```
 
-<div dir="rtl" align="right">
 
 ### فونت
 
@@ -178,18 +169,23 @@ Backend باید در آدرس `http://localhost:8000` در دسترس باشد.
 
 ## 🧪 تست
 
-</div>
+برای اطلاعات کامل درباره تست‌ها، به [مستندات تست](./docs/TESTING.md) مراجعه کنید.
+
 
 ```bash
+# اجرای تست‌ها
+npm run test
+
+# تست‌های smoke (سریع)
+npm run test:smoke
+
 # Type checking
 npm run check
 ```
 
-<div dir="rtl" align="right">
 
 ## 📦 Build و Deploy
 
-</div>
 
 ```bash
 # Build for production
@@ -198,31 +194,26 @@ npm run build
 # Output will be in 'dist' folder
 ```
 
-<div dir="rtl" align="right">
 
 ### Deploy به Vercel
 
-</div>
 
 ```bash
 npm install -g vercel
 vercel
 ```
 
-<div dir="rtl" align="right">
 
 ### Deploy به Netlify
 
 **نکته مهم:** برای عملکرد صحیح OAuth (ورود با گوگل)، URL redirect به صورت خودکار بر اساس محیط deploy تشخیص داده می‌شود.
 
-</div>
 
 ```bash
 npm install -g netlify-cli
 netlify deploy --prod
 ```
 
-<div dir="rtl" align="right">
 
 **گام‌های تنظیم Netlify:**
 
@@ -231,9 +222,7 @@ netlify deploy --prod
 3. به بخش **Site settings** → **Environment variables** بروید
 4. متغیرهای محیطی دیگر را تنظیم کنید (VITE_REDIRECT_BASE_URL به صورت خودکار تشخیص داده می‌شود)
 
-</div>
 
-<div dir="rtl" align="right">
 
 ## 📝 یادداشت‌های توسعه
 
@@ -252,6 +241,15 @@ netlify deploy --prod
 - `$effect` برای side effects
 - `$props` برای component props
 
+## 📚 مستندات
+
+برای اطلاعات بیشتر، به مستندات زیر مراجعه کنید:
+
+- **[راهنمای راه‌اندازی](./docs/SETUP_GUIDE.md)** - نصب و راه‌اندازی اولیه
+- **[راهنمای توسعه](./docs/DEVELOPMENT_GUIDE.md)** - نحوه توسعه و کار با پروژه
+- **[راهنمای تست](./docs/TESTING.md)** - تست‌های UI و نحوه نوشتن تست‌های جدید
+- **[چک‌لیست بررسی کد](./docs/CODE_REVIEW_CHECKLIST.md)** - قبل از Pull Request
+
 ## 🤝 مشارکت
 
 1. Fork کنید
@@ -259,6 +257,8 @@ netlify deploy --prod
 3. تغییرات را Commit کنید (`git commit -m 'Add amazing feature'`)
 4. Push کنید (`git push origin feature/amazing-feature`)
 5. Pull Request بسازید
+
+**نکته:** قبل از Pull Request، حتماً [چک‌لیست بررسی کد](./docs/CODE_REVIEW_CHECKLIST.md) را بررسی کنید.
 
 ## 📄 لایسنس
 
@@ -268,4 +268,4 @@ netlify deploy --prod
 
 ساخته شده با ❤️ برای رانندگان ایرانی
 
-</div>
+

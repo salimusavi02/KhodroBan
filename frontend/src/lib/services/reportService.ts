@@ -17,37 +17,37 @@ import { formatJalaliDate } from '../utils/format';
 
 const reportServiceMock: IReportService = {
   async getSummary(filter?: ReportFilter): Promise<ReportSummary> {
-    await new Promise(resolve => setTimeout(resolve, 600));
-    
+    await new Promise((resolve) => setTimeout(resolve, 600));
+
     // Get data from other services
     const services = await serviceService.getAll(filter?.vehicleId);
     const expenses = await expenseService.getAll(filter?.vehicleId);
-    
+
     // Calculate totals
     const totalServiceCost = services.reduce((sum, s) => sum + s.cost, 0);
     const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
-    
+
     // Group by category
     const costByCategory: Record<string, number> = {};
-    
+
     // Add service costs
-    services.forEach(s => {
+    services.forEach((s) => {
       const key = `service_${s.type}`;
       costByCategory[key] = (costByCategory[key] || 0) + s.cost;
     });
-    
+
     // Add expense costs
-    expenses.forEach(e => {
+    expenses.forEach((e) => {
       costByCategory[e.category] = (costByCategory[e.category] || 0) + e.amount;
     });
-    
+
     // Mock monthly data
     const costByMonth = [
       { month: '1403/07', amount: 850000 },
       { month: '1403/08', amount: 1200000 },
       { month: '1403/09', amount: 1550000 },
     ];
-    
+
     return {
       totalServiceCost,
       totalExpenses,
@@ -60,37 +60,40 @@ const reportServiceMock: IReportService = {
   },
 
   async exportCSV(filter?: ReportFilter): Promise<Blob> {
-    await new Promise(resolve => setTimeout(resolve, 800));
-    
+    await new Promise((resolve) => setTimeout(resolve, 800));
+
     // Generate mock CSV
     const services = await serviceService.getAll(filter?.vehicleId);
     const expenses = await expenseService.getAll(filter?.vehicleId);
-    
+
     let csv = 'نوع,تاریخ,مبلغ,توضیحات\n';
-    
-    services.forEach(s => {
+
+    services.forEach((s) => {
       csv += `سرویس - ${s.type},${s.date},${s.cost},${s.note || ''}\n`;
     });
-    
-    expenses.forEach(e => {
+
+    expenses.forEach((e) => {
       csv += `هزینه - ${e.category},${e.date},${e.amount},${e.note || ''}\n`;
     });
-    
+
     // Add BOM for Persian text support
     const BOM = '\uFEFF';
     return new Blob([BOM + csv], { type: 'text/csv;charset=utf-8' });
   },
 
   async exportPDF(filter?: ReportFilter): Promise<Blob> {
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
     // In real app, this would generate a PDF
     // For mock, just return an empty blob
     return new Blob(['PDF content'], { type: 'application/pdf' });
   },
 
-  async getMonthlyTrend(vehicleId?: string, months = 6): Promise<{ month: string; amount: number }[]> {
-    await new Promise(resolve => setTimeout(resolve, 400));
-    
+  async getMonthlyTrend(
+    vehicleId?: string,
+    months = 6
+  ): Promise<{ month: string; amount: number }[]> {
+    await new Promise((resolve) => setTimeout(resolve, 400));
+
     // Generate mock trend data
     return [
       { month: '1403/04', amount: 620000 },
@@ -123,18 +126,22 @@ const reportServiceMock: IReportService = {
 
 const reportServiceSupabase: IReportService = {
   async getSummary(filter?: ReportFilter): Promise<ReportSummary> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) throw new Error('کاربر لاگین نشده است');
 
     // دریافت services با تاریخ
     let servicesQuery = supabase
       .from('services')
-      .select(`
+      .select(
+        `
         cost,
         service_type,
         service_date_gregorian,
         vehicle:vehicles!inner(user_id)
-      `)
+      `
+      )
       .eq('vehicles.user_id', user.id);
 
     if (filter?.vehicleId) {
@@ -146,12 +153,14 @@ const reportServiceSupabase: IReportService = {
     // دریافت expenses با تاریخ
     let expensesQuery = supabase
       .from('daily_expenses')
-      .select(`
+      .select(
+        `
         amount,
         category,
         expense_date_gregorian,
         vehicle:vehicles!inner(user_id)
-      `)
+      `
+      )
       .eq('vehicles.user_id', user.id);
 
     if (filter?.vehicleId) {
@@ -167,12 +176,12 @@ const reportServiceSupabase: IReportService = {
     // Group by category
     const costByCategory: Record<string, number> = {};
 
-    (services || []).forEach(s => {
+    (services || []).forEach((s) => {
       const key = `service_${s.service_type}`;
       costByCategory[key] = (costByCategory[key] || 0) + (s.cost || 0);
     });
 
-    (expenses || []).forEach(e => {
+    (expenses || []).forEach((e) => {
       costByCategory[e.category] = (costByCategory[e.category] || 0) + (e.amount || 0);
     });
 
@@ -217,19 +226,23 @@ const reportServiceSupabase: IReportService = {
   },
 
   async exportCSV(filter?: ReportFilter): Promise<Blob> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) throw new Error('کاربر لاگین نشده است');
 
     // دریافت services
     let servicesQuery = supabase
       .from('services')
-      .select(`
+      .select(
+        `
         service_date,
         cost,
         service_type,
         description,
         vehicle:vehicles!inner(user_id)
-      `)
+      `
+      )
       .eq('vehicles.user_id', user.id);
 
     if (filter?.vehicleId) {
@@ -241,13 +254,15 @@ const reportServiceSupabase: IReportService = {
     // دریافت expenses
     let expensesQuery = supabase
       .from('daily_expenses')
-      .select(`
+      .select(
+        `
         expense_date,
         amount,
         category,
         description,
         vehicle:vehicles!inner(user_id)
-      `)
+      `
+      )
       .eq('vehicles.user_id', user.id);
 
     if (filter?.vehicleId) {
@@ -258,11 +273,11 @@ const reportServiceSupabase: IReportService = {
 
     let csv = 'نوع,تاریخ,مبلغ,توضیحات\n';
 
-    (services || []).forEach(s => {
+    (services || []).forEach((s) => {
       csv += `سرویس - ${s.service_type},${s.service_date},${s.cost},${s.description || ''}\n`;
     });
 
-    (expenses || []).forEach(e => {
+    (expenses || []).forEach((e) => {
       csv += `هزینه - ${e.category},${e.expense_date},${e.amount},${e.description || ''}\n`;
     });
 
@@ -276,18 +291,25 @@ const reportServiceSupabase: IReportService = {
     throw new Error('PDF export هنوز پیاده‌سازی نشده است');
   },
 
-  async getMonthlyTrend(vehicleId?: string, months = 6): Promise<{ month: string; amount: number }[]> {
-    const { data: { user } } = await supabase.auth.getUser();
+  async getMonthlyTrend(
+    vehicleId?: string,
+    months = 6
+  ): Promise<{ month: string; amount: number }[]> {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) throw new Error('کاربر لاگین نشده است');
 
     // دریافت services با تاریخ
     let servicesQuery = supabase
       .from('services')
-      .select(`
+      .select(
+        `
         cost,
         service_date_gregorian,
         vehicle:vehicles!inner(user_id)
-      `)
+      `
+      )
       .eq('vehicles.user_id', user.id);
 
     if (vehicleId) {
@@ -299,11 +321,13 @@ const reportServiceSupabase: IReportService = {
     // دریافت expenses با تاریخ
     let expensesQuery = supabase
       .from('daily_expenses')
-      .select(`
+      .select(
+        `
         amount,
         expense_date_gregorian,
         vehicle:vehicles!inner(user_id)
-      `)
+      `
+      )
       .eq('vehicles.user_id', user.id);
 
     if (vehicleId) {
@@ -381,7 +405,10 @@ const reportServiceDjango: IReportService = {
     return response.data;
   },
 
-  async getMonthlyTrend(vehicleId?: string, months = 6): Promise<{ month: string; amount: number }[]> {
+  async getMonthlyTrend(
+    vehicleId?: string,
+    months = 6
+  ): Promise<{ month: string; amount: number }[]> {
     const response = await api.get<ApiResponse<{ month: string; amount: number }[]>>(
       '/reports/trend/monthly/',
       { params: { vehicle_id: vehicleId, months } }

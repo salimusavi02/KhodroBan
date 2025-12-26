@@ -11,15 +11,13 @@ import PersianDate from 'persian-date';
  */
 export function formatNumber(num: number | string, usePersianDigits = true): string {
   if (num === null || num === undefined) return '';
-  
+
   const formatted = Number(num).toLocaleString('fa-IR');
-  
+
   if (!usePersianDigits) {
-    return formatted.replace(/[۰-۹]/g, (d) => 
-      String.fromCharCode(d.charCodeAt(0) - 1728)
-    );
+    return formatted.replace(/[۰-۹]/g, (d) => String.fromCharCode(d.charCodeAt(0) - 1728));
   }
-  
+
   return formatted;
 }
 
@@ -52,9 +50,7 @@ export function toPersianDigits(str: string | number): string {
  * Convert from Persian digits to English
  */
 export function toEnglishDigits(str: string): string {
-  return str.replace(/[۰-۹]/g, (d) => 
-    String(d.charCodeAt(0) - 1776)
-  );
+  return str.replace(/[۰-۹]/g, (d) => String(d.charCodeAt(0) - 1776));
 }
 
 /**
@@ -70,12 +66,12 @@ export function getCurrentJalaliDate(): string {
  */
 export function formatJalaliDate(dateStr: string): string {
   if (!dateStr) return '';
-  
+
   // If already in Jalali format (contains Persian year like 1403)
   if (dateStr.includes('1403') || dateStr.includes('1402') || dateStr.includes('1404')) {
     return dateStr;
   }
-  
+
   // Convert from Gregorian to Jalali
   try {
     const pd = new PersianDate(new Date(dateStr));
@@ -98,13 +94,14 @@ export function parseJalaliDate(jalaliStr: string): Date {
  */
 export function getRelativeTime(dateStr: string): string {
   const now = new Date();
-  const date = dateStr.includes('1403') || dateStr.includes('1402') 
-    ? parseJalaliDate(dateStr)
-    : new Date(dateStr);
-  
+  const date =
+    dateStr.includes('1403') || dateStr.includes('1402')
+      ? parseJalaliDate(dateStr)
+      : new Date(dateStr);
+
   const diffMs = now.getTime() - date.getTime();
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-  
+
   if (diffDays === 0) return 'امروز';
   if (diffDays === 1) return 'دیروز';
   if (diffDays < 7) return `${toPersianDigits(diffDays)} روز پیش`;
@@ -118,12 +115,13 @@ export function getRelativeTime(dateStr: string): string {
  */
 export function formatDateFull(dateStr: string): string {
   if (!dateStr) return '';
-  
+
   try {
-    const pd = dateStr.includes('1403') || dateStr.includes('1402')
-      ? new PersianDate().parse(dateStr.replace(/\//g, '-'))
-      : new PersianDate(new Date(dateStr));
-    
+    const pd =
+      dateStr.includes('1403') || dateStr.includes('1402')
+        ? new PersianDate().parse(dateStr.replace(/\//g, '-'))
+        : new PersianDate(new Date(dateStr));
+
     return pd.format('dddd D MMMM YYYY');
   } catch {
     return dateStr;
@@ -187,10 +185,10 @@ export function generateId(): string {
  */
 export function formatFileSize(bytes: number): string {
   if (bytes === 0) return '۰ بایت';
-  
+
   const k = 1024;
   const sizes = ['بایت', 'کیلوبایت', 'مگابایت', 'گیگابایت'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  
+
   return `${formatNumber(parseFloat((bytes / Math.pow(k, i)).toFixed(2)))} ${sizes[i]}`;
 }

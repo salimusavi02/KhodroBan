@@ -53,7 +53,7 @@
 
   async function updateKilometers() {
     if (!vehicle) return;
-    
+
     isUpdatingKm = true;
     try {
       const updated = await vehicleService.updateKm(vehicle.id, newKm);
@@ -91,9 +91,7 @@
           title="خودرو یافت نشد"
           description="این خودرو وجود ندارد یا حذف شده است"
         >
-          <Button variant="primary" onclick={() => goto('/vehicles')}>
-            بازگشت به لیست
-          </Button>
+          <Button variant="primary" onclick={() => goto('/vehicles')}>بازگشت به لیست</Button>
         </EmptyState>
       </Card>
     {:else}
@@ -116,7 +114,7 @@
             <span class="km-value">{formatNumber(vehicle.currentKm)}</span>
             <span class="km-label">کیلومتر</span>
           </div>
-          <Button variant="secondary" size="sm" onclick={() => showKmModal = true}>
+          <Button variant="secondary" size="sm" onclick={() => (showKmModal = true)}>
             به‌روزرسانی کیلومتر
           </Button>
         </div>
@@ -248,22 +246,18 @@
 
 <!-- Update KM Modal -->
 <Modal bind:open={showKmModal} title="به‌روزرسانی کیلومتر" size="sm">
-  <form onsubmit={(e) => { e.preventDefault(); updateKilometers(); }}>
-    <Input
-      type="number"
-      name="km"
-      label="کیلومتر فعلی"
-      bind:value={newKm}
-      min={0}
-      required
-    />
+  <form
+    onsubmit={(e) => {
+      e.preventDefault();
+      updateKilometers();
+    }}
+  >
+    <Input type="number" name="km" label="کیلومتر فعلی" bind:value={newKm} min={0} required />
     <div class="modal-actions">
-      <Button type="button" variant="secondary" onclick={() => showKmModal = false}>
+      <Button type="button" variant="secondary" onclick={() => (showKmModal = false)}>
         انصراف
       </Button>
-      <Button type="submit" variant="primary" loading={isUpdatingKm}>
-        ذخیره
-      </Button>
+      <Button type="submit" variant="primary" loading={isUpdatingKm}>ذخیره</Button>
     </div>
   </form>
 </Modal>
@@ -542,4 +536,3 @@
     }
   }
 </style>
-

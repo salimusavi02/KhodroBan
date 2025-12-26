@@ -1,8 +1,8 @@
 /**
  * مثال: به‌روزرسانی authService برای استفاده از Supabase
- * 
+ *
  * این فایل یک مثال از نحوه به‌روزرسانی authService.ts برای استفاده از Supabase است.
- * 
+ *
  * مراحل:
  * 1. این فایل را مطالعه کنید
  * 2. authService.ts را به‌روزرسانی کنید
@@ -19,11 +19,12 @@ import { authStore } from '../stores/auth';
 function mapSupabaseUserToAppUser(supabaseUser: any, profile: any): User {
   // دریافت subscription plan
   const subscription = profile?.subscription || { plan_code: 'free' };
-  
+
   return {
     id: supabaseUser.id,
     email: supabaseUser.email || '',
-    name: `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() || supabaseUser.email || '',
+    name:
+      `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() || supabaseUser.email || '',
     tier: subscription.plan_code === 'pro' ? 'pro' : 'free',
     createdAt: supabaseUser.created_at || new Date().toISOString(),
     updatedAt: profile?.updated_at || new Date().toISOString(),
@@ -101,7 +102,7 @@ export const authService = {
 
       // منتظر می‌مانیم تا trigger پروفایل را ایجاد کند
       // (trigger در migration 001 این کار را انجام می‌دهد)
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       // دریافت پروفایل کاربر
       const { data: profile } = await supabase
@@ -141,7 +142,10 @@ export const authService = {
    */
   async getCurrentUser(): Promise<User | null> {
     try {
-      const { data: { user }, error } = await supabase.auth.getUser();
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser();
 
       if (error || !user) {
         return null;
@@ -171,7 +175,7 @@ export const authService = {
   async checkAuth(): Promise<User | null> {
     try {
       const session = await supabase.auth.getSession();
-      
+
       if (!session.data.session) {
         return null;
       }
@@ -188,8 +192,10 @@ export const authService = {
    */
   async updateProfile(updates: { firstName?: string; lastName?: string }): Promise<User> {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
       if (!user) {
         throw new Error('کاربر لاگین نشده است');
       }
@@ -250,4 +256,3 @@ export const authService = {
     }
   },
 };
-

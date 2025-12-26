@@ -11,10 +11,7 @@
     title?: string;
   }
 
-  let {
-    showBack = false,
-    title = '',
-  }: Props = $props();
+  let { showBack = false, title = '' }: Props = $props();
 
   const dispatch = createEventDispatcher();
 
@@ -42,15 +39,13 @@
 <header class="header">
   <div class="header-start">
     {#if showBack}
-      <button class="header-btn" onclick={goBack} aria-label="بازگشت">
-        →
-      </button>
+      <button class="header-btn" onclick={goBack} aria-label="بازگشت"> → </button>
     {:else}
       <button class="header-btn menu-btn hide-desktop" onclick={toggleSidebar} aria-label="منو">
         ☰
       </button>
     {/if}
-    
+
     {#if title}
       <h1 class="header-title">{title}</h1>
     {:else}
@@ -60,15 +55,20 @@
       </a>
     {/if}
   </div>
-  
+
   <div class="header-end">
-    <button onclick={handleSettingsClick} class="header-btn notification-btn" aria-label="یادآورها" type="button">
+    <button
+      onclick={handleSettingsClick}
+      class="header-btn notification-btn"
+      aria-label="یادآورها"
+      type="button"
+    >
       🔔
       {#if reminderCount > 0}
         <span class="notification-badge">{reminderCount > 9 ? '۹+' : reminderCount}</span>
       {/if}
     </button>
-    
+
     <button onclick={handleSettingsClick} class="header-user hide-mobile" type="button">
       <span class="user-avatar">👤</span>
       <span class="user-name">{$currentUser?.name || 'کاربر'}</span>

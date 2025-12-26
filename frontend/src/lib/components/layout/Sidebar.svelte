@@ -12,9 +12,7 @@
     open?: boolean;
   }
 
-  let {
-    open = $bindable(false),
-  }: Props = $props();
+  let { open = $bindable(false) }: Props = $props();
 
   const dispatch = createEventDispatcher();
 
@@ -22,7 +20,6 @@
     open = false;
     dispatch('close');
   }
-
 
   async function handleNavigation(path: string) {
     console.log('Sidebar navigation:', path);
@@ -34,17 +31,18 @@
   function isActive(path: string): boolean {
     const currentPath = $page.url.pathname;
     const basePath = getBasePath();
-    
+
     // Remove base path from current path for comparison
-    const cleanPath = basePath && currentPath.startsWith(basePath) 
-      ? currentPath.slice(basePath.length) || '/' 
-      : currentPath;
-    
+    const cleanPath =
+      basePath && currentPath.startsWith(basePath)
+        ? currentPath.slice(basePath.length) || '/'
+        : currentPath;
+
     // Handle dashboard route (can be / or /dashboard)
     if (path === '/dashboard') {
       return cleanPath === '/' || cleanPath === '/dashboard' || cleanPath.startsWith('/dashboard/');
     }
-    
+
     return cleanPath === path || cleanPath.startsWith(path + '/');
   }
 </script>
@@ -89,7 +87,6 @@
       </button>
     {/each}
   </nav>
-
 </aside>
 
 <style>
@@ -280,12 +277,14 @@
     justify-content: center;
     gap: 0.5rem;
     padding: 0.875rem;
-    background: linear-gradient(135deg, var(--color-warning), #F97316);
+    background: linear-gradient(135deg, var(--color-warning), #f97316);
     color: white;
     text-decoration: none;
     border-radius: 12px;
     font-weight: 600;
-    transition: transform 0.2s, box-shadow 0.2s;
+    transition:
+      transform 0.2s,
+      box-shadow 0.2s;
   }
 
   .upgrade-btn:hover {

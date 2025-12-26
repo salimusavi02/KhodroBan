@@ -35,16 +35,19 @@
         .select('plan_code')
         .eq('plan_id', subscriptionData.plan_id)
         .single();
-      
+
       planCode = (plan as any)?.plan_code || 'free';
     }
-    
+
     const profileData = profile as any;
-    
+
     return {
       id: supabaseUser.id,
       email: supabaseUser.email || '',
-      name: `${profileData?.first_name || ''} ${profileData?.last_name || ''}`.trim() || supabaseUser.email || '',
+      name:
+        `${profileData?.first_name || ''} ${profileData?.last_name || ''}`.trim() ||
+        supabaseUser.email ||
+        '',
       tier: planCode === 'pro' ? 'pro' : 'free',
       createdAt: supabaseUser.created_at || new Date().toISOString(),
       updatedAt: profileData?.updated_at || new Date().toISOString(),
@@ -54,7 +57,10 @@
   onMount(async () => {
     try {
       // دریافت session از URL (Supabase خودش session را در URL قرار می‌دهد)
-      const { data: { session }, error } = await supabase.auth.getSession();
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.getSession();
 
       if (error) {
         throw error;
@@ -67,11 +73,11 @@
       // تبدیل به User type اپلیکیشن
       const user = await mapSupabaseUserToAppUser(session.user);
       const token = session.access_token;
-      
+
       // ذخیره در store
       authStore.loginSuccess(user, token);
       toastStore.success('خوش آمدید!');
-      
+
       // Redirect به dashboard
       await navigateTo('/dashboard');
     } catch (error: any) {
@@ -125,4 +131,3 @@
     }
   }
 </style>
-

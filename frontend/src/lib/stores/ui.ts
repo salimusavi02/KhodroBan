@@ -27,7 +27,7 @@ function createToastStore() {
       set({ visible: true, message, type });
 
       timeoutId = setTimeout(() => {
-        update(state => ({ ...state, visible: false }));
+        update((state) => ({ ...state, visible: false }));
       }, duration);
     },
 
@@ -52,7 +52,7 @@ function createToastStore() {
         clearTimeout(timeoutId);
         timeoutId = null;
       }
-      update(state => ({ ...state, visible: false }));
+      update((state) => ({ ...state, visible: false }));
     },
   };
 }
@@ -85,7 +85,7 @@ function createModalStore() {
     },
 
     updateProps(props: Record<string, any>) {
-      update(state => ({ ...state, props: { ...state.props, ...props } }));
+      update((state) => ({ ...state, props: { ...state.props, ...props } }));
     },
   };
 }
@@ -100,7 +100,7 @@ function createLoadingStore() {
     subscribe,
     show: () => set(true),
     hide: () => set(false),
-    toggle: () => update(state => !state),
+    toggle: () => update((state) => !state),
   };
 }
 
@@ -114,7 +114,7 @@ function createSidebarStore() {
     subscribe,
     open: () => set(true),
     close: () => set(false),
-    toggle: () => update(state => !state),
+    toggle: () => update((state) => !state),
   };
 }
 

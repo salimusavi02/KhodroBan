@@ -1,6 +1,6 @@
 /**
  * Supabase Client Configuration
- * 
+ *
  * این فایل client Supabase را برای استفاده در کل اپلیکیشن ایجاد می‌کند.
  */
 
@@ -15,21 +15,19 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 // بررسی وجود متغیرهای محیطی
 if (!supabaseUrl) {
   throw new Error(
-    'Missing VITE_SUPABASE_URL environment variable. ' +
-    'Please check your .env file.'
+    'Missing VITE_SUPABASE_URL environment variable. ' + 'Please check your .env file.'
   );
 }
 
 if (!supabaseAnonKey) {
   throw new Error(
-    'Missing VITE_SUPABASE_ANON_KEY environment variable. ' +
-    'Please check your .env file.'
+    'Missing VITE_SUPABASE_ANON_KEY environment variable. ' + 'Please check your .env file.'
   );
 }
 
 /**
  * Supabase Client Instance
- * 
+ *
  * این client برای تمام عملیات با Supabase استفاده می‌شود.
  * شامل:
  * - Authentication (ورود، ثبت‌نام، خروج)
@@ -72,7 +70,9 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
  * بررسی اینکه آیا کاربر لاگین کرده است یا نه
  */
 export async function isAuthenticated(): Promise<boolean> {
-  const { data: { session } } = await supabase.auth.getSession();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
   return !!session;
 }
 
@@ -80,7 +80,10 @@ export async function isAuthenticated(): Promise<boolean> {
  * دریافت کاربر فعلی
  */
 export async function getCurrentUser() {
-  const { data: { user }, error } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
   if (error) throw error;
   return user;
 }
@@ -89,17 +92,20 @@ export async function getCurrentUser() {
  * دریافت session فعلی
  */
 export async function getCurrentSession() {
-  const { data: { session }, error } = await supabase.auth.getSession();
+  const {
+    data: { session },
+    error,
+  } = await supabase.auth.getSession();
   if (error) throw error;
   return session;
 }
 
 /**
  * گوش دادن به تغییرات authentication
- * 
+ *
  * @param callback تابعی که هنگام تغییر وضعیت authentication فراخوانی می‌شود
  * @returns تابع unsubscribe
- * 
+ *
  * @example
  * ```typescript
  * const unsubscribe = onAuthStateChange((event, session) => {
@@ -107,14 +113,11 @@ export async function getCurrentSession() {
  *     console.log('User signed in:', session.user);
  *   }
  * });
- * 
+ *
  * // برای توقف گوش دادن
  * unsubscribe();
  * ```
  */
-export function onAuthStateChange(
-  callback: (event: string, session: any) => void
-) {
+export function onAuthStateChange(callback: (event: string, session: any) => void) {
   return supabase.auth.onAuthStateChange(callback);
 }
-
