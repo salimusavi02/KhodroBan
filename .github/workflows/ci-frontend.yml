@@ -32,6 +32,11 @@ jobs:
         working-directory: ./frontend
         run: npm ci
 
+      # TODO: Remove continue-on-error and make these checks blocking after fixing:
+      # - Type check errors (100 errors, 31 warnings)
+      # - Lint errors (183 warnings - converted from errors)
+      # - Format check issues
+      # See: frontend/TODO.md for details
       - name: Type check
         working-directory: ./frontend
         run: npm run check || echo "⚠️ Type check warnings (non-blocking - will be fixed in future PRs)"
