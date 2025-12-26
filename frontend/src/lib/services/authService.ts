@@ -38,16 +38,19 @@ async function mapSupabaseUserToAppUser(supabaseUser: any): Promise<User> {
       .select('plan_code')
       .eq('plan_id', subscriptionData.plan_id)
       .single();
-    
+
     planCode = (plan as any)?.plan_code || 'free';
   }
-  
+
   const profileData = profile as any;
-  
+
   return {
     id: supabaseUser.id,
     email: supabaseUser.email || '',
-    name: `${profileData?.first_name || ''} ${profileData?.last_name || ''}`.trim() || supabaseUser.email || '',
+    name:
+      `${profileData?.first_name || ''} ${profileData?.last_name || ''}`.trim() ||
+      supabaseUser.email ||
+      '',
     tier: planCode === 'pro' ? 'pro' : 'free',
     createdAt: supabaseUser.created_at || new Date().toISOString(),
     updatedAt: profileData?.updated_at || new Date().toISOString(),
@@ -69,8 +72,8 @@ const mockUser: User = {
 
 const authServiceMock: IAuthService = {
   async login(credentials: LoginCredentials): Promise<{ user: User; token: string }> {
-    await new Promise(resolve => setTimeout(resolve, 800));
-    
+    await new Promise((resolve) => setTimeout(resolve, 800));
+
     if (credentials.email && credentials.password) {
       const token = 'mock-jwt-token-' + Date.now();
       return { user: mockUser, token };
@@ -79,8 +82,8 @@ const authServiceMock: IAuthService = {
   },
 
   async register(data: RegisterData): Promise<{ user: User; token: string }> {
-    await new Promise(resolve => setTimeout(resolve, 800));
-    
+    await new Promise((resolve) => setTimeout(resolve, 800));
+
     const newUser: User = {
       ...mockUser,
       id: Date.now().toString(),
@@ -92,7 +95,7 @@ const authServiceMock: IAuthService = {
   },
 
   async loginWithGoogle(): Promise<void> {
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, 500));
     // Mock: redirect به dashboard (در واقعیت این کار را Supabase انجام می‌دهد)
     const token = 'mock-jwt-token-' + Date.now();
     localStorage.setItem('token', token);
@@ -100,33 +103,33 @@ const authServiceMock: IAuthService = {
   },
 
   async logout(): Promise<void> {
-    await new Promise(resolve => setTimeout(resolve, 200));
+    await new Promise((resolve) => setTimeout(resolve, 200));
     localStorage.removeItem('token');
     authStore.logout();
   },
 
   async getProfile(): Promise<User> {
-    await new Promise(resolve => setTimeout(resolve, 300));
+    await new Promise((resolve) => setTimeout(resolve, 300));
     return mockUser;
   },
 
   async updateProfile(data: Partial<{ firstName: string; lastName: string }>): Promise<User> {
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, 500));
     return { ...mockUser, ...data };
   },
 
   async forgotPassword(_email: string): Promise<void> {
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, 500));
     // Mock: همیشه موفق است
   },
 
   async resetPassword(_token: string, _password: string): Promise<void> {
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, 500));
     // Mock: همیشه موفق است
   },
 
   async upgradeToPro(): Promise<{ redirectUrl: string }> {
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, 500));
     return { redirectUrl: 'https://payment.example.com/checkout' };
   },
 };
@@ -187,10 +190,12 @@ const authServiceSupabase: IAuthService = {
       }
 
       // منتظر می‌مانیم تا trigger پروفایل را ایجاد کند
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       if (!authData.session) {
-        throw new Error('حساب شما ایجاد شد. لطفاً وارد شوید. (اگر email confirmation فعال است، ابتدا ایمیل خود را تأیید کنید)');
+        throw new Error(
+          'حساب شما ایجاد شد. لطفاً وارد شوید. (اگر email confirmation فعال است، ابتدا ایمیل خود را تأیید کنید)'
+        );
       }
 
       const user = await mapSupabaseUserToAppUser(authData.user as any);
@@ -238,8 +243,11 @@ const authServiceSupabase: IAuthService = {
 
   async getProfile(): Promise<User> {
     try {
-      const { data: { user }, error } = await supabase.auth.getUser();
-      
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser();
+
       if (error || !user) {
         throw new Error('کاربر لاگین نشده است');
       }
@@ -252,8 +260,10 @@ const authServiceSupabase: IAuthService = {
 
   async updateProfile(data: Partial<{ firstName: string; lastName: string }>): Promise<User> {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
       if (!user) {
         throw new Error('کاربر لاگین نشده است');
       }
@@ -382,8 +392,4 @@ const authServiceDjango: IAuthService = {
 // EXPORTED SERVICE (Router)
 // ============================================
 
-export const authService = selectService(
-  authServiceMock,
-  authServiceSupabase,
-  authServiceDjango
-);
+export const authService = selectService(authServiceMock, authServiceSupabase, authServiceDjango);

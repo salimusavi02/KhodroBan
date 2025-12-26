@@ -7,10 +7,7 @@
     onDismiss?: (id: string) => void;
   }
 
-  let {
-    reminder,
-    onDismiss,
-  }: Props = $props();
+  let { reminder, onDismiss }: Props = $props();
 
   function handleDismiss() {
     onDismiss?.(reminder.id);
@@ -27,9 +24,7 @@
       <span class="alert-message">{reminder.message}</span>
     </div>
     {#if onDismiss}
-      <button class="alert-dismiss" onclick={handleDismiss} aria-label="بستن یادآور">
-        ✕
-      </button>
+      <button class="alert-dismiss" onclick={handleDismiss} aria-label="بستن یادآور"> ✕ </button>
     {/if}
   </div>
 </Card>

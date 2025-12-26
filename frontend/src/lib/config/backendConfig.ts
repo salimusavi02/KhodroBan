@@ -1,11 +1,11 @@
 /**
  * تنظیمات Backend
- * 
+ *
  * این فایل نوع backend را تعیین می‌کند:
  * - 'mock': استفاده از Mock data (برای تست و یادگیری)
  * - 'supabase': استفاده از Supabase (برای production)
  * - 'django': استفاده از Django REST API (برای آینده)
- * 
+ *
  * برای تغییر:
  * 1. متغیر BACKEND_TYPE را تغییر دهید
  * 2. یا در .env: VITE_BACKEND_TYPE=mock|supabase|django
@@ -17,7 +17,7 @@ export type BackendType = 'mock' | 'supabase' | 'django';
 const backendTypeFromEnv = import.meta.env.VITE_BACKEND_TYPE as BackendType | undefined;
 
 // تعیین نوع backend
-export const BACKEND_TYPE: BackendType = 
+export const BACKEND_TYPE: BackendType =
   backendTypeFromEnv && ['mock', 'supabase', 'django'].includes(backendTypeFromEnv)
     ? backendTypeFromEnv
     : 'supabase'; // پیش‌فرض: supabase
@@ -31,4 +31,3 @@ export const isDjango = () => BACKEND_TYPE === 'django';
 if (import.meta.env.DEV) {
   console.log(`🔧 Backend Type: ${BACKEND_TYPE}`);
 }
-

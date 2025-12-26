@@ -19,7 +19,7 @@
     const configs = {
       sm: { container: '40px', border: '3px', fontSize: '0.875rem' },
       md: { container: '48px', border: '4px', fontSize: '1rem' },
-      lg: { container: '64px', border: '5px', fontSize: '1.125rem' }
+      lg: { container: '64px', border: '5px', fontSize: '1.125rem' },
     };
     return configs[size];
   });
@@ -63,8 +63,12 @@
   }
 
   @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
   }
 
   /* Reduce motion for accessibility */

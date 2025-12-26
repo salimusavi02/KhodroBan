@@ -15,7 +15,7 @@
 
   async function handleSubmit(e: Event) {
     e.preventDefault();
-    
+
     // Validate
     const validation = validateForm(
       { name, email, password, confirmPassword },
@@ -106,9 +106,7 @@
           icon="🔒"
         />
 
-        <Button type="submit" variant="primary" fullWidth loading={isLoading}>
-          ثبت‌نام
-        </Button>
+        <Button type="submit" variant="primary" fullWidth loading={isLoading}>ثبت‌نام</Button>
       </form>
 
       <div class="auth-footer">
@@ -217,4 +215,3 @@
     margin-right: 0.25rem;
   }
 </style>
-

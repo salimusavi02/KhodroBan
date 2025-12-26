@@ -10,9 +10,7 @@
       title="صفحه یافت نشد"
       description="صفحه‌ای که به دنبال آن هستید وجود ندارد یا منتقل شده است"
     >
-      <Button variant="primary" onclick={() => navigateTo('/dashboard')}>
-        بازگشت به داشبورد
-      </Button>
+      <Button variant="primary" onclick={() => navigateTo('/dashboard')}>بازگشت به داشبورد</Button>
     </EmptyState>
   </Card>
 </div>
@@ -27,4 +25,3 @@
     padding: 1rem;
   }
 </style>
-

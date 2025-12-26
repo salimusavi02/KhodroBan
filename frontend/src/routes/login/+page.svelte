@@ -36,7 +36,9 @@
         'auth.userInfo': 'اطلاعات کاربر',
         'auth.userAvatar': 'آواتار کاربر {{name}}',
       };
-      return options?.values?.name ? `${fallbacks[key] || key} ${options.values.name}` : fallbacks[key] || key;
+      return options?.values?.name
+        ? `${fallbacks[key] || key} ${options.values.name}`
+        : fallbacks[key] || key;
     }
   }
 
@@ -73,7 +75,7 @@
   function handleClearFieldError(event: Event) {
     const customEvent = event as CustomEvent<{ field: string }>;
     const { field } = customEvent.detail;
-    formErrors = formErrors.filter(error => error.field !== field);
+    formErrors = formErrors.filter((error) => error.field !== field);
   }
 
   // Listen for field error clearing
@@ -109,10 +111,7 @@
             onValidationError={handleFormValidationError}
           />
 
-          <SocialLoginButtons
-            isGoogleLoading={isGoogleLoading}
-            onGoogleLogin={handleGoogleLogin}
-          />
+          <SocialLoginButtons {isGoogleLoading} onGoogleLogin={handleGoogleLogin} />
 
           <footer class="auth-footer">
             <span>{t('auth.registerPrompt')}</span>
@@ -224,4 +223,3 @@
     color: var(--color-text-muted);
   }
 </style>
-

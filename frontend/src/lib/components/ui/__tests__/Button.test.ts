@@ -11,17 +11,17 @@ test('renders button with text', () => {
 test('calls onclick handler when clicked', async () => {
   const user = userEvent.setup();
   const handleClick = vi.fn();
-  
-  render(Button, { 
-    props: { 
+
+  render(Button, {
+    props: {
       children: 'کلیک',
-      onclick: handleClick
-    } 
+      onclick: handleClick,
+    },
   });
-  
+
   const button = screen.getByRole('button');
   await user.click(button);
-  
+
   expect(handleClick).toHaveBeenCalledTimes(1);
 });
 
@@ -38,37 +38,36 @@ test('disables button when loading prop is true', () => {
 test('does not call onclick when disabled', async () => {
   const user = userEvent.setup();
   const handleClick = vi.fn();
-  
-  render(Button, { 
-    props: { 
+
+  render(Button, {
+    props: {
       children: 'غیرفعال',
       disabled: true,
-      onclick: handleClick
-    } 
+      onclick: handleClick,
+    },
   });
-  
+
   const button = screen.getByRole('button');
   await user.click(button);
-  
+
   expect(handleClick).not.toHaveBeenCalled();
 });
 
 test('renders with different variants', () => {
-  const { container: primaryContainer } = render(Button, { 
-    props: { variant: 'primary', children: 'اولیه' } 
+  const { container: primaryContainer } = render(Button, {
+    props: { variant: 'primary', children: 'اولیه' },
   });
   expect(primaryContainer.querySelector('.btn-primary')).toBeInTheDocument();
-  
-  const { container: secondaryContainer } = render(Button, { 
-    props: { variant: 'secondary', children: 'ثانویه' } 
+
+  const { container: secondaryContainer } = render(Button, {
+    props: { variant: 'secondary', children: 'ثانویه' },
   });
   expect(secondaryContainer.querySelector('.btn-secondary')).toBeInTheDocument();
 });
 
 test('renders with icon', () => {
-  const { container } = render(Button, { 
-    props: { icon: '🔍', children: 'جستجو' } 
+  const { container } = render(Button, {
+    props: { icon: '🔍', children: 'جستجو' },
   });
   expect(container.querySelector('.btn-icon')).toBeInTheDocument();
 });
-

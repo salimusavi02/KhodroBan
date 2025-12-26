@@ -29,22 +29,18 @@
 
 <div class="layout" class:has-sidebar={showSidebar}>
   {#if showSidebar}
-    <Sidebar bind:open={sidebarOpen} on:close={() => sidebarOpen = false} />
+    <Sidebar bind:open={sidebarOpen} on:close={() => (sidebarOpen = false)} />
   {/if}
-  
+
   <div class="layout-main">
     {#if showHeader}
-      <Header 
-        title={headerTitle} 
-        showBack={showBack}
-        on:toggleSidebar={toggleSidebar} 
-      />
+      <Header title={headerTitle} {showBack} on:toggleSidebar={toggleSidebar} />
     {/if}
-    
+
     <main class="layout-content">
       <slot />
     </main>
-    
+
     {#if showBottomNav}
       <BottomNav />
     {/if}

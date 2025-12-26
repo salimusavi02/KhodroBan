@@ -10,11 +10,7 @@
     duration?: number;
   }
 
-  let {
-    message,
-    type = 'info',
-    duration = 4000,
-  }: Props = $props();
+  let { message, type = 'info', duration = 4000 }: Props = $props();
 
   const dispatch = createEventDispatcher();
 
@@ -30,16 +26,10 @@
   }
 </script>
 
-<div 
-  class="toast toast-{type}" 
-  role="alert"
-  transition:fly={{ y: -50, duration: 300 }}
->
+<div class="toast toast-{type}" role="alert" transition:fly={{ y: -50, duration: 300 }}>
   <span class="toast-icon">{icons[type]}</span>
   <span class="toast-message">{message}</span>
-  <button class="toast-close" onclick={close} aria-label="بستن">
-    ✕
-  </button>
+  <button class="toast-close" onclick={close} aria-label="بستن"> ✕ </button>
 </div>
 
 <style>
@@ -49,14 +39,14 @@
     left: 50%;
     transform: translateX(-50%);
     z-index: var(--z-toast);
-    
+
     display: flex;
     align-items: center;
     gap: 0.75rem;
     padding: 0.875rem 1.25rem;
     min-width: 280px;
     max-width: 90vw;
-    
+
     border-radius: 12px;
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);

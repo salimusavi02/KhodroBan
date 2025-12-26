@@ -16,12 +16,12 @@ function createVehiclesStore() {
 
     // Set loading state
     setLoading(isLoading: boolean) {
-      update(state => ({ ...state, isLoading, error: null }));
+      update((state) => ({ ...state, isLoading, error: null }));
     },
 
     // Set vehicles list
     setVehicles(vehicles: Vehicle[]) {
-      update(state => ({
+      update((state) => ({
         ...state,
         vehicles,
         isLoading: false,
@@ -31,7 +31,7 @@ function createVehiclesStore() {
 
     // Add a new vehicle
     addVehicle(vehicle: Vehicle) {
-      update(state => ({
+      update((state) => ({
         ...state,
         vehicles: [...state.vehicles, vehicle],
       }));
@@ -39,46 +39,41 @@ function createVehiclesStore() {
 
     // Update a vehicle
     updateVehicle(id: string, data: Partial<Vehicle>) {
-      update(state => ({
+      update((state) => ({
         ...state,
-        vehicles: state.vehicles.map(v => 
-          v.id === id ? { ...v, ...data } : v
-        ),
-        selectedVehicle: state.selectedVehicle?.id === id 
-          ? { ...state.selectedVehicle, ...data }
-          : state.selectedVehicle,
+        vehicles: state.vehicles.map((v) => (v.id === id ? { ...v, ...data } : v)),
+        selectedVehicle:
+          state.selectedVehicle?.id === id
+            ? { ...state.selectedVehicle, ...data }
+            : state.selectedVehicle,
       }));
     },
 
     // Delete a vehicle
     deleteVehicle(id: string) {
-      update(state => ({
+      update((state) => ({
         ...state,
-        vehicles: state.vehicles.filter(v => v.id !== id),
-        selectedVehicle: state.selectedVehicle?.id === id 
-          ? null 
-          : state.selectedVehicle,
+        vehicles: state.vehicles.filter((v) => v.id !== id),
+        selectedVehicle: state.selectedVehicle?.id === id ? null : state.selectedVehicle,
       }));
     },
 
     // Select a vehicle
     selectVehicle(vehicle: Vehicle | null) {
-      update(state => ({ ...state, selectedVehicle: vehicle }));
+      update((state) => ({ ...state, selectedVehicle: vehicle }));
     },
 
     // Update vehicle kilometers
     updateKilometers(id: string, km: number) {
-      update(state => ({
+      update((state) => ({
         ...state,
-        vehicles: state.vehicles.map(v => 
-          v.id === id ? { ...v, currentKm: km } : v
-        ),
+        vehicles: state.vehicles.map((v) => (v.id === id ? { ...v, currentKm: km } : v)),
       }));
     },
 
     // Set error
     setError(error: string) {
-      update(state => ({ ...state, error, isLoading: false }));
+      update((state) => ({ ...state, error, isLoading: false }));
     },
 
     // Clear state
@@ -89,7 +84,7 @@ function createVehiclesStore() {
     // Get vehicle by ID
     getById(id: string): Vehicle | undefined {
       const state = get({ subscribe });
-      return state.vehicles.find(v => v.id === id);
+      return state.vehicles.find((v) => v.id === id);
     },
   };
 }
@@ -97,10 +92,10 @@ function createVehiclesStore() {
 export const vehiclesStore = createVehiclesStore();
 
 // Derived stores
-export const vehicleCount = derived(vehiclesStore, $store => $store.vehicles.length);
+export const vehicleCount = derived(vehiclesStore, ($store) => $store.vehicles.length);
 
-export const vehicleOptions = derived(vehiclesStore, $store => 
-  $store.vehicles.map(v => ({
+export const vehicleOptions = derived(vehiclesStore, ($store) =>
+  $store.vehicles.map((v) => ({
     value: v.id,
     label: `${v.model} (${v.plateNumber})`,
   }))

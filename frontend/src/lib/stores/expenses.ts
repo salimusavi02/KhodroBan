@@ -14,11 +14,11 @@ function createExpensesStore() {
     subscribe,
 
     setLoading(isLoading: boolean) {
-      update(state => ({ ...state, isLoading, error: null }));
+      update((state) => ({ ...state, isLoading, error: null }));
     },
 
     setExpenses(expenses: Expense[]) {
-      update(state => ({
+      update((state) => ({
         ...state,
         expenses,
         isLoading: false,
@@ -27,40 +27,38 @@ function createExpensesStore() {
     },
 
     addExpense(expense: Expense) {
-      update(state => ({
+      update((state) => ({
         ...state,
         expenses: [expense, ...state.expenses],
       }));
     },
 
     updateExpense(id: string, data: Partial<Expense>) {
-      update(state => ({
+      update((state) => ({
         ...state,
-        expenses: state.expenses.map(e => 
-          e.id === id ? { ...e, ...data } : e
-        ),
+        expenses: state.expenses.map((e) => (e.id === id ? { ...e, ...data } : e)),
       }));
     },
 
     deleteExpense(id: string) {
-      update(state => ({
+      update((state) => ({
         ...state,
-        expenses: state.expenses.filter(e => e.id !== id),
+        expenses: state.expenses.filter((e) => e.id !== id),
       }));
     },
 
     setError(error: string) {
-      update(state => ({ ...state, error, isLoading: false }));
+      update((state) => ({ ...state, error, isLoading: false }));
     },
 
     getByVehicle(vehicleId: string): Expense[] {
       const state = get({ subscribe });
-      return state.expenses.filter(e => e.vehicleId === vehicleId);
+      return state.expenses.filter((e) => e.vehicleId === vehicleId);
     },
 
     getByCategory(category: string): Expense[] {
       const state = get({ subscribe });
-      return state.expenses.filter(e => e.category === category);
+      return state.expenses.filter((e) => e.category === category);
     },
 
     clear() {
@@ -72,9 +70,9 @@ function createExpensesStore() {
 export const expensesStore = createExpensesStore();
 
 // Derived: expenses grouped by category
-export const expensesByCategory = derived(expensesStore, $store => {
+export const expensesByCategory = derived(expensesStore, ($store) => {
   const grouped: Record<string, Expense[]> = {};
-  $store.expenses.forEach(expense => {
+  $store.expenses.forEach((expense) => {
     if (!grouped[expense.category]) {
       grouped[expense.category] = [];
     }
@@ -84,14 +82,14 @@ export const expensesByCategory = derived(expensesStore, $store => {
 });
 
 // Derived: total expenses
-export const totalExpenses = derived(expensesStore, $store => 
+export const totalExpenses = derived(expensesStore, ($store) =>
   $store.expenses.reduce((sum, e) => sum + e.amount, 0)
 );
 
 // Derived: expenses by vehicle
-export const expensesByVehicle = derived(expensesStore, $store => {
+export const expensesByVehicle = derived(expensesStore, ($store) => {
   const grouped: Record<string, number> = {};
-  $store.expenses.forEach(expense => {
+  $store.expenses.forEach((expense) => {
     if (!grouped[expense.vehicleId]) {
       grouped[expense.vehicleId] = 0;
     }

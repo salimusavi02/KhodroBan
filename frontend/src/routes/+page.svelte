@@ -4,9 +4,23 @@
   import { browser } from '$app/environment';
   import { Layout } from '$lib/components/layout';
   import { Card, Button, Badge, Spinner, EmptyState } from '$lib/components/ui';
-  import { vehiclesStore, servicesStore, expensesStore, remindersStore, activeReminders, toastStore, authStore } from '$lib/stores';
+  import {
+    vehiclesStore,
+    servicesStore,
+    expensesStore,
+    remindersStore,
+    activeReminders,
+    toastStore,
+    authStore,
+  } from '$lib/stores';
   import { vehicleService, serviceService, expenseService, reminderService } from '$lib/services';
-  import { formatNumber, formatCurrency, formatKm, formatJalaliDate, getRelativeTime } from '$lib/utils/format';
+  import {
+    formatNumber,
+    formatCurrency,
+    formatKm,
+    formatJalaliDate,
+    getRelativeTime,
+  } from '$lib/utils/format';
   import { REMINDER_STATUS, SERVICE_TYPES, POLL_INTERVAL } from '$lib/utils/constants';
   import type { Vehicle, Reminder } from '$lib/types';
 
@@ -17,16 +31,16 @@
   onMount(async () => {
     // Wait a bit for auth initialization in layout
     if (browser) {
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
     }
-    
+
     // Only load data if authenticated
     if (authStore.isAuthenticated()) {
       await loadData();
-      
+
       // Set up polling for reminders
       const pollInterval = setInterval(() => {
-        reminderService.refresh().then(data => {
+        reminderService.refresh().then((data) => {
           remindersStore.setReminders(data);
         });
       }, POLL_INTERVAL);
@@ -44,7 +58,7 @@
         expenseService.getAll(),
         reminderService.getAll(),
       ]);
-      
+
       vehiclesStore.setVehicles(vehiclesData);
       servicesStore.setServices(servicesData);
       expensesStore.setExpenses(expensesData);
@@ -62,7 +76,7 @@
   }
 
   function getVehicleStatus(vehicleId: string): Reminder | undefined {
-    return reminders.find(r => r.vehicleId === vehicleId && !r.dismissed);
+    return reminders.find((r) => r.vehicleId === vehicleId && !r.dismissed);
   }
 
   function getStatusVariant(status: string): 'success' | 'warning' | 'danger' {
@@ -88,7 +102,7 @@
             <span>یادآورها</span>
             <Badge variant="danger">{reminders.length}</Badge>
           </h2>
-          
+
           <div class="alerts-list">
             {#each reminders as reminder}
               <Card padding="md" variant="solid" class="alert-card alert-{reminder.status}">
@@ -127,9 +141,7 @@
               title="خودرویی ثبت نشده"
               description="اولین خودرو خود را اضافه کنید"
             >
-              <Button variant="primary" onclick={() => goto('/vehicles')}>
-                افزودن خودرو
-              </Button>
+              <Button variant="primary" onclick={() => goto('/vehicles')}>افزودن خودرو</Button>
             </EmptyState>
           </Card>
         {:else}
@@ -153,7 +165,7 @@
                         <Badge variant="success">عادی</Badge>
                       {/if}
                     </div>
-                    
+
                     <div class="vehicle-stats">
                       <div class="stat">
                         <span class="stat-label">کیلومتر فعلی</span>
@@ -164,7 +176,7 @@
                         <span class="stat-value">{formatNumber(vehicle.year)}</span>
                       </div>
                     </div>
-                    
+
                     {#if status}
                       <div class="vehicle-alert">
                         <span class="alert-badge {status.status}">
@@ -186,7 +198,7 @@
           <span>⚡</span>
           <span>دسترسی سریع</span>
         </h2>
-        
+
         <div class="quick-actions">
           <a href="/add?tab=service" class="quick-action">
             <Card hoverable padding="md">
@@ -194,21 +206,21 @@
               <span class="action-label">ثبت سرویس</span>
             </Card>
           </a>
-          
+
           <a href="/add?tab=expense" class="quick-action">
             <Card hoverable padding="md">
               <span class="action-icon">💰</span>
               <span class="action-label">ثبت هزینه</span>
             </Card>
           </a>
-          
+
           <a href="/reports" class="quick-action">
             <Card hoverable padding="md">
               <span class="action-icon">📊</span>
               <span class="action-label">گزارش‌ها</span>
             </Card>
           </a>
-          
+
           <a href="/vehicles" class="quick-action">
             <Card hoverable padding="md">
               <span class="action-icon">➕</span>
@@ -469,4 +481,3 @@
     font-weight: 500;
   }
 </style>
-

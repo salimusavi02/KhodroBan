@@ -51,10 +51,12 @@
   function openAddModal() {
     // Check free tier limit
     if (!$isPro && vehicles.length >= FREE_TIER_LIMITS.maxVehicles) {
-      toastStore.warning(`در نسخه رایگان فقط ${FREE_TIER_LIMITS.maxVehicles} خودرو می‌توانید ثبت کنید. برای خودروهای بیشتر، به Pro ارتقا دهید.`);
+      toastStore.warning(
+        `در نسخه رایگان فقط ${FREE_TIER_LIMITS.maxVehicles} خودرو می‌توانید ثبت کنید. برای خودروهای بیشتر، به Pro ارتقا دهید.`
+      );
       return;
     }
-    
+
     editingVehicle = null;
     formData = {
       model: '',
@@ -83,15 +85,12 @@
   async function handleSubmit(e: Event) {
     e.preventDefault();
 
-    const validation = validateForm(
-      formData,
-      {
-        model: [(v) => validators.required(v, 'مدل خودرو')],
-        year: [(v) => validators.required(v, 'سال'), validators.year],
-        plateNumber: [(v) => validators.required(v, 'شماره پلاک'), validators.plateNumber],
-        currentKm: [(v) => validators.required(v, 'کیلومتر فعلی'), validators.kilometers],
-      }
-    );
+    const validation = validateForm(formData, {
+      model: [(v) => validators.required(v, 'مدل خودرو')],
+      year: [(v) => validators.required(v, 'سال'), validators.year],
+      plateNumber: [(v) => validators.required(v, 'شماره پلاک'), validators.plateNumber],
+      currentKm: [(v) => validators.required(v, 'کیلومتر فعلی'), validators.kilometers],
+    });
 
     if (!validation.valid) {
       errors = validation.errors;
@@ -132,7 +131,7 @@
   }
 
   function getVehicleStatus(vehicleId: string): Reminder | undefined {
-    return reminders.find(r => r.vehicleId === vehicleId);
+    return reminders.find((r) => r.vehicleId === vehicleId);
   }
 
   function getStatusVariant(status: string): 'success' | 'warning' | 'danger' {
@@ -146,9 +145,7 @@
   <div class="page-container">
     <div class="page-header">
       <h1 class="page-title">خودروهای من</h1>
-      <Button variant="primary" onclick={openAddModal} icon="➕">
-        افزودن خودرو
-      </Button>
+      <Button variant="primary" onclick={openAddModal} icon="➕">افزودن خودرو</Button>
     </div>
 
     {#if isLoading}
@@ -163,9 +160,7 @@
           title="خودرویی ثبت نشده"
           description="اولین خودرو خود را اضافه کنید تا بتوانید سرویس و هزینه‌ها را مدیریت کنید"
         >
-          <Button variant="primary" onclick={openAddModal}>
-            افزودن خودرو
-          </Button>
+          <Button variant="primary" onclick={openAddModal}>افزودن خودرو</Button>
         </EmptyState>
       </Card>
     {:else}
@@ -190,7 +185,7 @@
                   </Badge>
                 {/if}
               </div>
-              
+
               <div class="vehicle-stats">
                 <div class="stat">
                   <span class="stat-value">{formatNumber(vehicle.currentKm)}</span>
@@ -198,7 +193,7 @@
                 </div>
               </div>
             </a>
-            
+
             <div class="vehicle-actions">
               <Button size="sm" variant="ghost" onclick={() => openEditModal(vehicle)}>
                 ✏️ ویرایش
@@ -279,9 +274,7 @@
     />
 
     <div class="form-actions">
-      <Button type="button" variant="secondary" onclick={() => showModal = false}>
-        انصراف
-      </Button>
+      <Button type="button" variant="secondary" onclick={() => (showModal = false)}>انصراف</Button>
       <Button type="submit" variant="primary" loading={isSubmitting}>
         {editingVehicle ? 'ذخیره تغییرات' : 'افزودن خودرو'}
       </Button>
@@ -458,4 +451,3 @@
 
   /* Form - using shared styles from layouts.css */
 </style>
-

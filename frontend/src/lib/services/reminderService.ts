@@ -46,32 +46,32 @@ const mockReminders: Reminder[] = [
 
 const reminderServiceMock: IReminderService = {
   async getAll(): Promise<Reminder[]> {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    return mockReminders.filter(r => !r.dismissed);
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    return mockReminders.filter((r) => !r.dismissed);
   },
 
   async getById(id: string): Promise<Reminder> {
-    await new Promise(resolve => setTimeout(resolve, 300));
-    const reminder = mockReminders.find(r => r.id === id);
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    const reminder = mockReminders.find((r) => r.id === id);
     if (!reminder) throw new Error('یادآور یافت نشد');
     return reminder;
   },
 
   async getByVehicle(vehicleId: string): Promise<Reminder[]> {
-    await new Promise(resolve => setTimeout(resolve, 400));
-    return mockReminders.filter(r => r.vehicleId === vehicleId && !r.dismissed);
+    await new Promise((resolve) => setTimeout(resolve, 400));
+    return mockReminders.filter((r) => r.vehicleId === vehicleId && !r.dismissed);
   },
 
   async dismiss(id: string): Promise<void> {
-    await new Promise(resolve => setTimeout(resolve, 300));
-    const reminder = mockReminders.find(r => r.id === id);
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    const reminder = mockReminders.find((r) => r.id === id);
     if (reminder) {
       reminder.dismissed = true;
     }
   },
 
   async getSettings(): Promise<ReminderSettings> {
-    await new Promise(resolve => setTimeout(resolve, 300));
+    await new Promise((resolve) => setTimeout(resolve, 300));
     return {
       kmInterval: 5000,
       timeIntervalMonths: 3,
@@ -81,7 +81,7 @@ const reminderServiceMock: IReminderService = {
   },
 
   async updateSettings(settings: Partial<ReminderSettings>): Promise<ReminderSettings> {
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, 500));
     return {
       kmInterval: settings.kmInterval ?? 5000,
       timeIntervalMonths: settings.timeIntervalMonths ?? 3,
@@ -101,7 +101,7 @@ const reminderServiceMock: IReminderService = {
     const dueKm = lastServiceKm + kmInterval;
     const kmRemaining = dueKm - currentKm;
     const alertKmThreshold = 1000;
-    
+
     if (kmRemaining <= 0) {
       return {
         status: 'overdue',
@@ -137,7 +137,9 @@ const reminderServiceMock: IReminderService = {
 
 const reminderServiceSupabase: IReminderService = {
   async getAll(): Promise<Reminder[]> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) throw new Error('کاربر لاگین نشده است');
 
     // دریافت تمام خودروهای کاربر
@@ -208,21 +210,21 @@ const reminderServiceSupabase: IReminderService = {
       });
     }
 
-    return reminders.filter(r => !r.dismissed);
+    return reminders.filter((r) => !r.dismissed);
   },
 
   async getById(id: string): Promise<Reminder> {
     // در Supabase، reminder ها dynamic هستند
     // پس باید از getAll استفاده کنیم
     const reminders = await this.getAll();
-    const reminder = reminders.find(r => r.id === id);
+    const reminder = reminders.find((r) => r.id === id);
     if (!reminder) throw new Error('یادآور یافت نشد');
     return reminder;
   },
 
   async getByVehicle(vehicleId: string): Promise<Reminder[]> {
     const reminders = await this.getAll();
-    return reminders.filter(r => r.vehicleId === vehicleId);
+    return reminders.filter((r) => r.vehicleId === vehicleId);
   },
 
   async dismiss(id: string): Promise<void> {
@@ -233,7 +235,9 @@ const reminderServiceSupabase: IReminderService = {
   },
 
   async getSettings(): Promise<ReminderSettings> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) throw new Error('کاربر لاگین نشده است');
 
     // دریافت تنظیمات اولین خودرو (برای MVP)
@@ -284,7 +288,9 @@ const reminderServiceSupabase: IReminderService = {
   },
 
   async updateSettings(settings: Partial<ReminderSettings>): Promise<ReminderSettings> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) throw new Error('کاربر لاگین نشده است');
 
     // دریافت اولین خودرو
@@ -299,8 +305,10 @@ const reminderServiceSupabase: IReminderService = {
 
     const updates: any = {};
     if (settings.kmInterval !== undefined) updates.interval_km = settings.kmInterval;
-    if (settings.timeIntervalMonths !== undefined) updates.interval_days = settings.timeIntervalMonths * 30;
-    if (settings.alertDaysBefore !== undefined) updates.warning_days_before = settings.alertDaysBefore;
+    if (settings.timeIntervalMonths !== undefined)
+      updates.interval_days = settings.timeIntervalMonths * 30;
+    if (settings.alertDaysBefore !== undefined)
+      updates.warning_days_before = settings.alertDaysBefore;
     if (settings.channels !== undefined) {
       updates.enable_email_reminder = settings.channels.includes('email');
       updates.enable_sms_reminder = settings.channels.includes('sms');
@@ -341,7 +349,7 @@ const reminderServiceSupabase: IReminderService = {
     const dueKm = lastServiceKm + kmInterval;
     const kmRemaining = dueKm - currentKm;
     const alertKmThreshold = 1000;
-    
+
     if (kmRemaining <= 0) {
       return {
         status: 'overdue',
@@ -419,7 +427,7 @@ const reminderServiceDjango: IReminderService = {
     const dueKm = lastServiceKm + kmInterval;
     const kmRemaining = dueKm - currentKm;
     const alertKmThreshold = 1000;
-    
+
     if (kmRemaining <= 0) {
       return {
         status: 'overdue',

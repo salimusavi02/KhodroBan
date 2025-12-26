@@ -1,13 +1,13 @@
 /**
  * Type definitions برای Service Interfaces
- * 
+ *
  * این فایل interface های مشترک برای تمام service ها را تعریف می‌کند
  * تا بتوانیم به راحتی بین Mock، Supabase و Django جابه‌جا شویم
  */
 
-import type { 
-  User, 
-  LoginCredentials, 
+import type {
+  User,
+  LoginCredentials,
   RegisterData,
   Vehicle,
   VehicleFormData,
@@ -106,7 +106,9 @@ export interface IReportService {
   getSummary(filter?: ReportFilter): Promise<ReportSummary>;
   exportCSV(filter?: ReportFilter): Promise<Blob>;
   exportPDF(filter?: ReportFilter): Promise<Blob>;
-  getMonthlyTrend(vehicleId?: string, months?: number): Promise<{ month: string; amount: number }[]>;
+  getMonthlyTrend(
+    vehicleId?: string,
+    months?: number
+  ): Promise<{ month: string; amount: number }[]>;
   downloadFile(blob: Blob, filename: string): void;
 }
-

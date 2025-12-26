@@ -56,8 +56,8 @@
 
 {#if open}
   <div class="modal-backdrop" transition:fade={{ duration: 200 }} onclick={handleBackdropClick}>
-    <div 
-      class="modal modal-{size}" 
+    <div
+      class="modal modal-{size}"
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
@@ -69,16 +69,14 @@
           <h2 id="modal-title" class="modal-title">{title}</h2>
         {/if}
         {#if showClose}
-          <button class="modal-close" onclick={close} aria-label="بستن">
-            ✕
-          </button>
+          <button class="modal-close" onclick={close} aria-label="بستن"> ✕ </button>
         {/if}
       </div>
-      
+
       <div class="modal-body">
         <slot />
       </div>
-      
+
       {#if $$slots.footer}
         <div class="modal-footer">
           <slot name="footer" />

@@ -7,10 +7,7 @@
     activeTab?: string;
   }
 
-  let {
-    tabs,
-    activeTab = $bindable(tabs[0]?.id || ''),
-  }: Props = $props();
+  let { tabs, activeTab = $bindable(tabs[0]?.id || '') }: Props = $props();
 
   const dispatch = createEventDispatcher();
 
@@ -35,7 +32,7 @@
       </button>
     {/each}
   </div>
-  
+
   <div class="tabs-content">
     <slot />
   </div>

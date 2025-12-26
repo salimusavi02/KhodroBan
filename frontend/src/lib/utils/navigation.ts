@@ -13,7 +13,7 @@ export async function navigateTo(path: string): Promise<void> {
 
   const platform = getDeployPlatform();
   const detectedBasePath = getBasePath();
-  
+
   console.log('navigateTo called:', { path, fullPath, platform, base, detectedBasePath });
 
   // For GitHub Pages (static sites), use direct navigation to ensure base path is correct
@@ -27,11 +27,11 @@ export async function navigateTo(path: string): Promise<void> {
 
   // For other platforms, use SvelteKit's goto()
   try {
-    await goto(fullPath, { 
+    await goto(fullPath, {
       noScroll: false,
       replaceState: false,
       keepFocus: false,
-      invalidateAll: false
+      invalidateAll: false,
     });
   } catch (error) {
     console.error('Navigation error:', error);

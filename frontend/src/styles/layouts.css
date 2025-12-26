@@ -139,8 +139,8 @@
   }
 
   /* Submit buttons full width */
-  .form-container :global(button[type="submit"]),
-  .form :global(button[type="submit"]) {
+  .form-container :global(button[type='submit']),
+  .form :global(button[type='submit']) {
     grid-column: 1 / -1;
   }
 }

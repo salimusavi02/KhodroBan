@@ -22,7 +22,7 @@ function createAuthStore() {
 
   return {
     subscribe,
-    
+
     // Check if user is authenticated
     isAuthenticated(): boolean {
       const state = get({ subscribe });
@@ -31,7 +31,7 @@ function createAuthStore() {
 
     // Set loading state
     setLoading(isLoading: boolean) {
-      update(state => ({ ...state, isLoading, error: null }));
+      update((state) => ({ ...state, isLoading, error: null }));
     },
 
     // Login success
@@ -39,7 +39,7 @@ function createAuthStore() {
       if (browser) {
         localStorage.setItem('token', token);
       }
-      update(state => ({
+      update((state) => ({
         ...state,
         user,
         token,
@@ -50,7 +50,7 @@ function createAuthStore() {
 
     // Login failure
     loginFailure(error: string) {
-      update(state => ({
+      update((state) => ({
         ...state,
         user: null,
         token: null,
@@ -74,7 +74,7 @@ function createAuthStore() {
 
     // Update user profile
     updateUser(user: Partial<User>) {
-      update(state => ({
+      update((state) => ({
         ...state,
         user: state.user ? { ...state.user, ...user } : null,
       }));
@@ -82,7 +82,7 @@ function createAuthStore() {
 
     // Clear error
     clearError() {
-      update(state => ({ ...state, error: null }));
+      update((state) => ({ ...state, error: null }));
     },
 
     // Check if user is Pro
@@ -96,10 +96,10 @@ function createAuthStore() {
 export const authStore = createAuthStore();
 
 // Derived store for checking if authenticated
-export const isAuthenticated = derived(authStore, $auth => !!$auth.token);
+export const isAuthenticated = derived(authStore, ($auth) => !!$auth.token);
 
 // Derived store for current user
-export const currentUser = derived(authStore, $auth => $auth.user);
+export const currentUser = derived(authStore, ($auth) => $auth.user);
 
 // Derived store for checking Pro status
-export const isPro = derived(authStore, $auth => $auth.user?.tier === 'pro');
+export const isPro = derived(authStore, ($auth) => $auth.user?.tier === 'pro');

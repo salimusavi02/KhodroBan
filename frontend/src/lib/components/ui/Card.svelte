@@ -22,7 +22,7 @@
   }: Props = $props();
 </script>
 
-<div 
+<div
   class="card card-{variant} card-padding-{padding} {className}"
   class:hoverable
   class:clickable
@@ -41,11 +41,11 @@
       {/if}
     </div>
   {/if}
-  
+
   <div class="card-body">
     <slot />
   </div>
-  
+
   {#if $$slots.footer}
     <div class="card-footer">
       <slot name="footer" />

@@ -8,7 +8,9 @@ export function getBasePath(): string {
 
   // Prefer explicitly-provided repository name(s) from env. These are commonly set for GitHub Pages deploys.
   // VITE_REPO_NAME may contain "owner/repo" or just "repo"; take the last segment as the repo name.
-  const rawRepo = String(env.VITE_REPO_NAME || env.REPO_NAME || env.VITE_REPOSITORY || env.VITE_GITHUB_REPOSITORY || '').trim();
+  const rawRepo = String(
+    env.VITE_REPO_NAME || env.REPO_NAME || env.VITE_REPOSITORY || env.VITE_GITHUB_REPOSITORY || ''
+  ).trim();
   if (rawRepo) {
     const repo = rawRepo.split('/').pop();
     if (repo) return `/${repo}`;
@@ -63,7 +65,10 @@ export function getDeployPlatform(): 'github-pages' | 'netlify' | 'deno' | 'othe
   }
 
   // Check for Deno Deploy (via environment variable)
-  if (env.DEPLOY_PLATFORM === 'deno' || (typeof process !== 'undefined' && process.env.DEPLOY_PLATFORM === 'deno')) {
+  if (
+    env.DEPLOY_PLATFORM === 'deno' ||
+    (typeof process !== 'undefined' && process.env.DEPLOY_PLATFORM === 'deno')
+  ) {
     return 'deno';
   }
 
@@ -80,7 +85,7 @@ function getRedirectBaseUrl(): string {
 
   try {
     const env = typeof import.meta !== 'undefined' ? (import.meta as any).env || {} : {};
-    
+
     // Use explicit environment variable if provided
     if (env.VITE_REDIRECT_BASE_URL) {
       return String(env.VITE_REDIRECT_BASE_URL);
@@ -91,10 +96,10 @@ function getRedirectBaseUrl(): string {
     const hostname = window.location.hostname;
     const port = window.location.port ? `:${window.location.port}` : '';
     const basePath = getBasePath();
-    
+
     // Ensure the URL is valid
     const url = `${protocol}//${hostname}${port}${basePath}`;
-    
+
     // Validate URL by trying to create a URL object
     try {
       new URL(url);

@@ -17,18 +17,20 @@ test('does not render modal when open is false', () => {
 test('closes modal when close button is clicked', async () => {
   const user = userEvent.setup();
   let isOpen = true;
-  
-  const { component } = render(Modal, { 
-    props: { 
+
+  const { component } = render(Modal, {
+    props: {
       open: isOpen,
       title: 'تست',
-      onclose: () => { isOpen = false; }
-    } 
+      onclose: () => {
+        isOpen = false;
+      },
+    },
   });
-  
+
   const closeButton = screen.getByLabelText(/بستن/);
   await user.click(closeButton);
-  
+
   // Modal should dispatch close event
   expect(closeButton).toBeInTheDocument();
 });
@@ -40,7 +42,7 @@ test('displays title when provided', () => {
 
 test('renders modal content', () => {
   render(Modal, { props: { open: true, title: 'تست' } });
-  
+
   // Modal should render
   expect(screen.getByRole('dialog')).toBeInTheDocument();
 });
@@ -56,19 +58,18 @@ test('hides close button when showClose is false', () => {
 });
 
 test('renders with different sizes', () => {
-  const { container: smModal } = render(Modal, { 
-    props: { open: true, size: 'sm' } 
+  const { container: smModal } = render(Modal, {
+    props: { open: true, size: 'sm' },
   });
   expect(smModal.querySelector('.modal-sm')).toBeInTheDocument();
-  
-  const { container: mdModal } = render(Modal, { 
-    props: { open: true, size: 'md' } 
+
+  const { container: mdModal } = render(Modal, {
+    props: { open: true, size: 'md' },
   });
   expect(mdModal.querySelector('.modal-md')).toBeInTheDocument();
-  
-  const { container: lgModal } = render(Modal, { 
-    props: { open: true, size: 'lg' } 
+
+  const { container: lgModal } = render(Modal, {
+    props: { open: true, size: 'lg' },
   });
   expect(lgModal.querySelector('.modal-lg')).toBeInTheDocument();
 });
-

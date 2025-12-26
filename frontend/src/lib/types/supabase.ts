@@ -1,24 +1,18 @@
 /**
  * TypeScript Types برای Supabase Database
- * 
+ *
  * این فایل types را از Supabase Database Schema تولید می‌کند.
- * 
+ *
  * برای تولید خودکار types:
  * 1. نصب Supabase CLI: npm install -g supabase
  * 2. لینک کردن پروژه: supabase link --project-ref YOUR_PROJECT_REF
  * 3. تولید types: supabase gen types typescript --linked > src/lib/types/supabase.ts
- * 
+ *
  * یا از طریق Dashboard:
  * Settings → API → Generate TypeScript types
  */
 
-export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json | undefined }
-  | Json[];
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export interface Database {
   public: {
@@ -330,4 +324,3 @@ export interface Database {
     };
   };
 }
-

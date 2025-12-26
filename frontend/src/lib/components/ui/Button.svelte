@@ -1,6 +1,6 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
-  
+
   type ButtonVariant = 'primary' | 'secondary' | 'success' | 'danger' | 'ghost';
   type ButtonSize = 'sm' | 'md' | 'lg';
 
@@ -67,7 +67,7 @@
     cursor: pointer;
     transition: all 0.2s ease;
     white-space: nowrap;
-    
+
     /* Glassmorphism base */
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);

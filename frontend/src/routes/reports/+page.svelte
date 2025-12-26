@@ -12,7 +12,7 @@
   let isExporting = $state(false);
   let summary = $state<ReportSummary | null>(null);
   let vehicleOptions = $state<SelectOption[]>([]);
-  
+
   let filter = $state<ReportFilter>({
     vehicleId: '',
     type: 'all',
@@ -37,10 +37,10 @@
         vehicles = await vehicleService.getAll();
         vehiclesStore.setVehicles(vehicles);
       }
-      
+
       vehicleOptions = [
         { value: '', label: 'همه خودروها' },
-        ...vehicles.map(v => ({
+        ...vehicles.map((v) => ({
           value: v.id,
           label: `${v.model} (${v.plateNumber})`,
         })),
@@ -85,7 +85,7 @@
       toastStore.warning('خروجی PDF فقط برای کاربران Pro در دسترس است');
       return;
     }
-    
+
     isExporting = true;
     try {
       const blob = await reportService.exportPDF(filter.vehicleId ? filter : undefined);
@@ -186,9 +186,12 @@
             <div class="trend-item">
               <span class="trend-month">{item.month}</span>
               <div class="trend-bar-container">
-                <div 
-                  class="trend-bar" 
-                  style="width: {Math.min(100, (item.amount / Math.max(...summary.costByMonth.map(i => i.amount))) * 100)}%"
+                <div
+                  class="trend-bar"
+                  style="width: {Math.min(
+                    100,
+                    (item.amount / Math.max(...summary.costByMonth.map((i) => i.amount))) * 100
+                  )}%"
                 ></div>
               </div>
               <span class="trend-amount">{formatCurrency(item.amount, 'toman')}</span>
@@ -203,9 +206,9 @@
           <Button variant="secondary" onclick={exportCSV} loading={isExporting}>
             📄 دانلود CSV
           </Button>
-          <Button 
-            variant={$isPro ? 'secondary' : 'ghost'} 
-            onclick={exportPDF} 
+          <Button
+            variant={$isPro ? 'secondary' : 'ghost'}
+            onclick={exportPDF}
             loading={isExporting}
             disabled={!$isPro}
           >
@@ -282,7 +285,11 @@
   }
 
   :global(.summary-card.total) {
-    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-light)) !important;
+    background: linear-gradient(
+      135deg,
+      var(--color-primary),
+      var(--color-primary-light)
+    ) !important;
     color: white !important;
   }
 
@@ -401,5 +408,3 @@
     }
   }
 </style>
-
-

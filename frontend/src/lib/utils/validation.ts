@@ -18,8 +18,12 @@ export const validators = {
    * Check if value is required
    */
   required(value: any, fieldName = 'این فیلد'): ValidationResult {
-    if (value === null || value === undefined || value === '' || 
-        (Array.isArray(value) && value.length === 0)) {
+    if (
+      value === null ||
+      value === undefined ||
+      value === '' ||
+      (Array.isArray(value) && value.length === 0)
+    ) {
       return { valid: false, message: `${fieldName} الزامی است` };
     }
     return { valid: true };
@@ -30,7 +34,7 @@ export const validators = {
    */
   email(value: string): ValidationResult {
     if (!value) return { valid: true }; // Skip if empty (use required for that)
-    
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(value)) {
       return { valid: false, message: 'فرمت ایمیل صحیح نیست' };
@@ -43,7 +47,7 @@ export const validators = {
    */
   minLength(value: string, min: number): ValidationResult {
     if (!value) return { valid: true };
-    
+
     if (value.length < min) {
       return { valid: false, message: `حداقل ${min} کاراکتر وارد کنید` };
     }
@@ -55,7 +59,7 @@ export const validators = {
    */
   maxLength(value: string, max: number): ValidationResult {
     if (!value) return { valid: true };
-    
+
     if (value.length > max) {
       return { valid: false, message: `حداکثر ${max} کاراکتر مجاز است` };
     }
@@ -67,7 +71,7 @@ export const validators = {
    */
   numeric(value: any): ValidationResult {
     if (value === '' || value === null || value === undefined) return { valid: true };
-    
+
     const num = Number(value);
     if (isNaN(num)) {
       return { valid: false, message: 'فقط عدد وارد کنید' };
@@ -80,7 +84,7 @@ export const validators = {
    */
   positiveNumber(value: any): ValidationResult {
     if (value === '' || value === null || value === undefined) return { valid: true };
-    
+
     const num = Number(value);
     if (isNaN(num) || num < 0) {
       return { valid: false, message: 'عدد مثبت وارد کنید' };
@@ -93,7 +97,7 @@ export const validators = {
    */
   min(value: number, minValue: number): ValidationResult {
     if (value === null || value === undefined) return { valid: true };
-    
+
     if (value < minValue) {
       return { valid: false, message: `مقدار باید حداقل ${minValue} باشد` };
     }
@@ -105,7 +109,7 @@ export const validators = {
    */
   max(value: number, maxValue: number): ValidationResult {
     if (value === null || value === undefined) return { valid: true };
-    
+
     if (value > maxValue) {
       return { valid: false, message: `مقدار باید حداکثر ${maxValue} باشد` };
     }
@@ -117,7 +121,7 @@ export const validators = {
    */
   year(value: number): ValidationResult {
     if (!value) return { valid: true };
-    
+
     const currentYear = 1403; // Approximate current Jalali year
     if (value < 1350 || value > currentYear + 1) {
       return { valid: false, message: 'سال معتبر نیست' };
@@ -130,7 +134,7 @@ export const validators = {
    */
   kilometers(value: number): ValidationResult {
     if (!value && value !== 0) return { valid: true };
-    
+
     if (value < 0 || value > 1000000) {
       return { valid: false, message: 'کیلومتر معتبر نیست' };
     }
@@ -142,7 +146,7 @@ export const validators = {
    */
   amount(value: number): ValidationResult {
     if (!value && value !== 0) return { valid: true };
-    
+
     if (value < 0) {
       return { valid: false, message: 'مبلغ نمی‌تواند منفی باشد' };
     }
@@ -154,7 +158,7 @@ export const validators = {
    */
   plateNumber(value: string): ValidationResult {
     if (!value) return { valid: true };
-    
+
     // Basic validation - can be enhanced for strict format
     if (value.length < 5) {
       return { valid: false, message: 'شماره پلاک معتبر نیست' };
@@ -167,7 +171,7 @@ export const validators = {
    */
   password(value: string): ValidationResult {
     if (!value) return { valid: true };
-    
+
     if (value.length < 6) {
       return { valid: false, message: 'رمز عبور باید حداقل ۶ کاراکتر باشد' };
     }
@@ -221,12 +225,12 @@ export function requiredField(fieldName: string) {
  * Get error message for a specific field
  */
 export function getFieldError(errors: FieldError[], field: string): string | undefined {
-  return errors.find(e => e.field === field)?.message;
+  return errors.find((e) => e.field === field)?.message;
 }
 
 /**
  * Check if form has error for specific field
  */
 export function hasFieldError(errors: FieldError[], field: string): boolean {
-  return errors.some(e => e.field === field);
+  return errors.some((e) => e.field === field);
 }

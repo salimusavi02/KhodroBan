@@ -3,7 +3,7 @@
    * کامپوننت Skeleton برای نمایش وضعیت بارگذاری
    * مطابق با قوانین user-feedback.mdc
    */
-  
+
   interface Props {
     variant?: 'text' | 'circular' | 'rectangular' | 'rounded';
     width?: string;
@@ -24,14 +24,14 @@
 {#if lines > 1}
   <div class="skeleton-lines {className}">
     {#each Array(lines) as _, i}
-      <div 
+      <div
         class="skeleton skeleton-{variant}"
         style="width: {i === lines - 1 ? '70%' : width}; height: {height};"
       ></div>
     {/each}
   </div>
 {:else}
-  <div 
+  <div
     class="skeleton skeleton-{variant} {className}"
     style="width: {width}; height: {height};"
   ></div>
