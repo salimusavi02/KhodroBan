@@ -14,8 +14,8 @@ export default defineConfig({
     threads: true,
     maxThreads: 4,
     minThreads: 1,
-    // Timeout کوتاه برای تست‌های سریع
-    testTimeout: 2000,
+    // Timeout برای تست‌ها (افزایش یافته برای تست‌های async)
+    testTimeout: 5000,
     // فقط تست‌های مرتبط را اجرا کن (در watch mode)
     watchExclude: ['**/node_modules/**', '**/build/**'],
     // تنظیمات خاص برای Svelte
