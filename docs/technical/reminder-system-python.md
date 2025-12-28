@@ -2,8 +2,8 @@
 
 ## 📋 اطلاعات کلی
 
-**تاریخ ایجاد:** ۲۷ دی ۱۴۰۴  
-**نوع پروژه:** Python Cron Job + Supabase + SPA  
+**تاریخ ایجاد:** ۲۷ دی ۱۴۰۴
+**نوع پروژه:** Python Cron Job + Supabase + SPA
 **هدف:** یادآوری خودکار سرویس دوره‌ای خودروها
 
 ---
@@ -11,6 +11,7 @@
 ## 🎯 سیناریو و هدف کلی
 
 ### سیناریو:
+
 - کاربر **چندین خودرو** دارد
 - هر خودرو نیاز به **سرویس دوره‌ای با فاصله زمانی متفاوت** دارد (مثلاً ۶۰، ۹۰ یا ۱۲۰ روز)
 - این تنظیمات در جدول `reminder_settings` برای هر خودرو ذخیره شده است
@@ -18,6 +19,7 @@
 - یادآوری از طریق: **ایمیل + نوتیفیکیشن درون‌برنامه‌ای**
 
 ### هدف:
+
 - **خودکارسازی:** بدون نیاز به یادآوری دستی
 - **زمان‌بندی دقیق:** بررسی روزانه
 - **چندکاناله:** ایمیل + نوتیفیکیشن
@@ -55,7 +57,7 @@
 
 ### مرحله ۱: تغییرات دیتابیس Supabase
 
-**فایل:** `supabase/migrations/002_notifications.sql`
+**فایل:** `supabase/migrations/004_notifications.sql`
 
 ```sql
 -- 1. ایجاد جدول notifications
@@ -88,6 +90,8 @@ CREATE POLICY "Users can update their own notifications" ON public.notifications
 -- 4. Index‌ها
 CREATE INDEX idx_notifications_user_id ON public.notifications(user_id);
 CREATE INDEX idx_notifications_created_at ON public.notifications(created_at DESC);
+CREATE INDEX idx_notifications_vehicle_type ON public.notifications(vehicle_id, type);
+CREATE INDEX idx_notifications_user_read ON public.notifications(user_id, read);
 
 -- 5. تریگر updated_at
 CREATE OR REPLACE FUNCTION public.handle_updated_at()
@@ -157,6 +161,7 @@ $$ LANGUAGE plpgsql;
 ### مرحله ۲: کد Python برای Cron Job
 
 **ساختار پوشه:**
+
 ```
 reminder-service/
 ├── main.py
@@ -166,6 +171,7 @@ reminder-service/
 ```
 
 **فایل: `main.py`**
+
 ```python
 import os
 from supabase import create_client, Client
@@ -173,20 +179,42 @@ from datetime import datetime, timedelta
 import schedule
 import time
 import logging
+from dotenv import load_dotenv
+import sys
+
+# بارگذاری متغیرهای محیطی از فایل .env
+load_dotenv()
 
 # تنظیمات لاگ
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(sys.stdout)
+    ]
 )
 
-# بارگذاری متغیرهای محیطی
+# بارگذاری و بررسی متغیرهای محیطی
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
 CRON_TIME = os.environ.get("CRON_TIME", "08:00")
 
+# بررسی وجود متغیرهای ضروری
+if not SUPABASE_URL:
+    logging.error("❌ خطا: متغیر SUPABASE_URL تنظیم نشده است")
+    sys.exit(1)
+
+if not SUPABASE_KEY:
+    logging.error("❌ خطا: متغیر SUPABASE_SERVICE_ROLE_KEY تنظیم نشده است")
+    sys.exit(1)
+
 # ایجاد کلاینت Supabase
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+try:
+    supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+    logging.info("✅ اتصال به Supabase برقرار شد")
+except Exception as e:
+    logging.error(f"❌ خطا در اتصال به Supabase: {str(e)}")
+    sys.exit(1)
 
 def check_time_based_reminders():
     """
@@ -195,17 +223,17 @@ def check_time_based_reminders():
     """
     logging.info("=" * 50)
     logging.info("شروع بررسی یادآورهای زمانی...")
-    
+  
     try:
         # خواندن تمام خودروهای فعال با تنظیمات یادآوری زمانی
         vehicles_response = supabase.rpc('get_vehicles_for_reminder').execute()
-        
+      
         if not vehicles_response.data:
             logging.info("هیچ خودرویی برای یادآوری پیدا نشد")
             return
-        
+      
         logging.info(f"تعداد {len(vehicles_response.data)} خودرو برای بررسی")
-        
+      
         for vehicle in vehicles_response.data:
             try:
                 # خواندن آخرین سرویس
@@ -215,38 +243,52 @@ def check_time_based_reminders():
                     .order("service_date_gregorian", desc=True) \
                     .limit(1) \
                     .execute()
-                
+              
                 if not last_service.data:
                     logging.warning(f"خودرو {vehicle['model']} - سرویسی ثبت نشده")
                     continue
-                
+              
                 last_date = datetime.strptime(
                     last_service.data[0]["service_date_gregorian"], 
                     "%Y-%m-%d"
                 ).date()
-                
+              
                 # محاسبه روزهای مانده بر اساس تنظیمات هر خودرو
                 days_since_last = (datetime.now().date() - last_date).days
                 interval_days = vehicle["interval_days"]  # متفاوت برای هر خودرو
                 days_until_due = interval_days - days_since_last
-                
+              
                 # بررسی آیا در بازه هشدار است؟
                 warning_days = vehicle["warning_days_before"]
-                
+              
                 if 0 < days_until_due <= warning_days:
-                    # بررسی اینکه قبلاً نوتیفیکیشن ارسال نشده باشد
+                    # محاسبه تاریخ موعد برای بررسی دقیق‌تر
+                    due_date = last_date + timedelta(days=interval_days)
+                    today = datetime.now().date()
+                    
+                    # بررسی اینکه قبلاً برای این موعد نوتیفیکیشن ارسال نشده باشد
+                    # بررسی بر اساس vehicle_id و days_until_due در metadata
                     existing = supabase.table("notifications") \
                         .select("*") \
                         .eq("vehicle_id", vehicle["vehicle_id"]) \
                         .eq("type", "reminder") \
                         .eq("read", False) \
-                        .gte("created_at", (datetime.now() - timedelta(days=1)).isoformat()) \
+                        .gte("created_at", (datetime.now() - timedelta(days=warning_days + 1)).isoformat()) \
                         .execute()
-                    
+                  
+                    # بررسی اینکه آیا نوتیفیکیشن با همان days_until_due وجود دارد
+                    notification_exists = False
                     if existing.data:
-                        logging.info(f"✅ نوتیفیکیشن قبلاً ارسال شده: {vehicle['model']}")
+                        for notif in existing.data:
+                            metadata = notif.get("metadata", {})
+                            if metadata.get("days_until_due") == days_until_due:
+                                notification_exists = True
+                                break
+                  
+                    if notification_exists:
+                        logging.info(f"✅ نوتیفیکیشن قبلاً ارسال شده: {vehicle['model']} - {days_until_due} روز مانده")
                         continue
-                    
+                  
                     # ایجاد نوتیفیکیشن
                     notification = {
                         "user_id": vehicle["user_id"],
@@ -263,23 +305,25 @@ def check_time_based_reminders():
                             "due_date": (last_date + timedelta(days=interval_days)).isoformat()
                         }
                     }
-                    
+                  
                     result = supabase.table("notifications").insert(notification).execute()
-                    
+                  
                     if result.data:
                         logging.info(f"✅ نوتیفیکیشن ایجاد شد: {vehicle['model']} - {days_until_due} روز مانده (موعد: {interval_days} روز)")
                     else:
                         logging.error(f"❌ خطا در ایجاد نوتیفیکیشن: {vehicle['model']}")
-                
+              
             except Exception as e:
-                logging.error(f"خطا در پردازش خودرو {vehicle.get('model', 'unknown')}: {str(e)}")
+                logging.error(f"❌ خطا در پردازش خودرو {vehicle.get('model', 'unknown')}: {str(e)}")
+                logging.exception("جزئیات خطا:")
                 continue
-        
-        logging.info("پایان بررسی یادآورها")
+      
+        logging.info("✅ پایان بررسی یادآورها")
         logging.info("=" * 50)
-        
+      
     except Exception as e:
-        logging.error(f"خطا در دریافت لیست خودروها: {str(e)}")
+        logging.error(f"❌ خطا در دریافت لیست خودروها: {str(e)}")
+        logging.exception("جزئیات خطا:")
 
 def main():
     """
@@ -287,14 +331,14 @@ def main():
     """
     logging.info("سرویس یادآوری سرویس دوره‌ای شروع شد...")
     logging.info(f"زمان اجرا: {CRON_TIME}")
-    
+  
     # تنظیم Cron Job
     schedule.every().day.at(CRON_TIME).do(check_time_based_reminders)
-    
+  
     # اجرای اولیه برای تست
     logging.info("اجرای اولیه برای تست...")
     check_time_based_reminders()
-    
+  
     # حلقه اصلی
     while True:
         schedule.run_pending()
@@ -309,6 +353,7 @@ if __name__ == "__main__":
 ### مرحله ۳: فایل‌های پیکربندی Python
 
 **فایل: `requirements.txt`**
+
 ```
 supabase==2.4.0
 schedule==1.2.0
@@ -316,6 +361,7 @@ python-dotenv==1.0.0
 ```
 
 **فایل: `.env.example`**
+
 ```
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
@@ -323,6 +369,7 @@ CRON_TIME=08:00
 ```
 
 **فایل: `Dockerfile` (اختیاری)**
+
 ```dockerfile
 FROM python:3.11-slim
 
@@ -341,20 +388,30 @@ CMD ["python", "main.py"]
 ### مرحله ۴: تغییرات در فرانت‌اند (SPA)
 
 **فایل جدید: `frontend/src/lib/services/notificationService.ts`**
+
 ```typescript
 import { supabase } from '../supabase';
 import type { Notification } from '$lib/types';
 
 export const notificationService = {
   // خواندن نوتیفیکیشن‌های کاربر
-  async getNotifications(userId: string): Promise<Notification[]> {
-    const { data, error } = await supabase
+  async getNotifications(userId: string, onlyUnread: boolean = true): Promise<Notification[]> {
+    if (!supabase) {
+      throw new Error('Supabase client not available. Check VITE_BACKEND_TYPE and environment variables.');
+    }
+
+    let query = supabase
       .from('notifications')
       .select('*')
       .eq('user_id', userId)
-      .eq('read', false)
       .order('created_at', { ascending: false })
       .limit(50);
+
+    if (onlyUnread) {
+      query = query.eq('read', false);
+    }
+
+    const { data, error } = await query;
 
     if (error) throw error;
     return data || [];
@@ -362,6 +419,10 @@ export const notificationService = {
 
   // علامت‌گذاری به عنوان خوانده‌شده
   async markAsRead(notificationId: string): Promise<void> {
+    if (!supabase) {
+      throw new Error('Supabase client not available. Check VITE_BACKEND_TYPE and environment variables.');
+    }
+
     const { error } = await supabase
       .from('notifications')
       .update({ read: true })
@@ -372,6 +433,10 @@ export const notificationService = {
 
   // علامت‌گذاری همه به عنوان خوانده‌شده
   async markAllAsRead(userId: string): Promise<void> {
+    if (!supabase) {
+      throw new Error('Supabase client not available. Check VITE_BACKEND_TYPE and environment variables.');
+    }
+
     const { error } = await supabase
       .from('notifications')
       .update({ read: true })
@@ -383,6 +448,11 @@ export const notificationService = {
 
   // گوش دادن به نوتیفیکیشن‌های جدید (Realtime)
   subscribeToNotifications(userId: string, callback: (notification: Notification) => void) {
+    if (!supabase) {
+      console.error('Supabase client not available. Realtime subscription will not work.');
+      return null;
+    }
+
     const channel = supabase
       .channel('public:notifications')
       .on(
@@ -404,6 +474,10 @@ export const notificationService = {
 
   // شمارش نوتیفیکیشن‌های unread
   async getUnreadCount(userId: string): Promise<number> {
+    if (!supabase) {
+      throw new Error('Supabase client not available. Check VITE_BACKEND_TYPE and environment variables.');
+    }
+
     const { count, error } = await supabase
       .from('notifications')
       .select('*', { count: 'exact' })
@@ -417,6 +491,7 @@ export const notificationService = {
 ```
 
 **فایل: `frontend/src/lib/types/index.ts`**
+
 ```typescript
 export interface Notification {
   id: string;
@@ -437,24 +512,29 @@ export interface Notification {
 ### مرحله ۵: تغییرات UI (کامپوننت نوتیفیکیشن)
 
 **فایل جدید: `frontend/src/lib/components/organisms/NotificationBell.svelte`**
+
 ```svelte
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
   import { notificationService } from '$lib/services/notificationService';
-  import { userStore } from '$lib/stores/auth';
+  import { authStore, currentUser } from '$lib/stores/auth';
+  import { supabase } from '$lib/supabase';
   import { writable } from 'svelte/store';
+  import type { Notification } from '$lib/types';
 
-  let notifications = writable([]);
+  let notifications = writable<Notification[]>([]);
   let unreadCount = writable(0);
-  let isOpen = false;
-  let realtimeChannel: any;
+  let isOpen = $state(false);
+  let realtimeChannel: any = null;
 
   onMount(async () => {
-    if ($userStore) {
-      await loadNotifications();
-      
+    const user = $currentUser;
+    
+    if (user?.id) {
+      await loadNotifications(user.id);
+    
       realtimeChannel = notificationService.subscribeToNotifications(
-        $userStore.id,
+        user.id,
         (newNotification) => {
           notifications.update(list => [newNotification, ...list]);
           unreadCount.update(c => c + 1);
@@ -465,19 +545,17 @@ export interface Notification {
   });
 
   onDestroy(() => {
-    if (realtimeChannel) {
+    if (realtimeChannel && supabase) {
       supabase.removeChannel(realtimeChannel);
     }
   });
 
-  async function loadNotifications() {
-    if (!$userStore) return;
-    
+  async function loadNotifications(userId: string) {
     try {
-      const data = await notificationService.getNotifications($userStore.id);
+      const data = await notificationService.getNotifications(userId, true);
       notifications.set(data);
-      
-      const count = await notificationService.getUnreadCount($userStore.id);
+    
+      const count = await notificationService.getUnreadCount(userId);
       unreadCount.set(count);
     } catch (error) {
       console.error('Error loading notifications:', error);
@@ -495,10 +573,11 @@ export interface Notification {
   }
 
   async function markAllAsRead() {
-    if (!$userStore) return;
-    
+    const user = $currentUser;
+    if (!user?.id) return;
+  
     try {
-      await notificationService.markAllAsRead($userStore.id);
+      await notificationService.markAllAsRead(user.id);
       notifications.set([]);
       unreadCount.set(0);
     } catch (error) {
@@ -507,6 +586,8 @@ export interface Notification {
   }
 
   function showToast(title: string, body: string) {
+    // در صورت استفاده از toast system می‌توانید از toastStore استفاده کنید
+    // یا یک toast component جداگانه بسازید
     const toast = document.createElement('div');
     toast.className = 'toast-notification';
     toast.innerHTML = `
@@ -516,6 +597,9 @@ export interface Notification {
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 5000);
   }
+
+  $: user = $currentUser;
+  $: userId = user?.id;
 </script>
 
 <div class="notification-bell">
@@ -532,7 +616,7 @@ export interface Notification {
         <h3>نوتیفیکیشن‌ها</h3>
         <button on:click={markAllAsRead}>همه خوانده شد</button>
       </div>
-      
+    
       <div class="list">
         {#if $notifications.length === 0}
           <p class="empty">نوتیفیکیشن جدیدی وجود ندارد</p>
@@ -564,6 +648,7 @@ export interface Notification {
 ```
 
 **استفاده در داشبورد:**
+
 ```svelte
 <!-- frontend/src/routes/dashboard/+page.svelte -->
 <script>
@@ -584,6 +669,7 @@ export interface Notification {
 ### مرحله ۶: استقرار در چابکان
 
 **الف) ایجاد سرویس Python:**
+
 1. وارد پنل چابکان شوید
 2. به بخش **هاست ابری (PaaS)** بروید
 3. روی **ایجاد سرویس جدید** کلیک کنید
@@ -594,6 +680,7 @@ export interface Notification {
    - متغیرهای محیطی: از `.env` استفاده کنید
 
 **ب) تنظیم Cron Job در چابکان:**
+
 - در بخش **Cron Jobs** پنل چابکان
 - ایجاد Cron جدید:
   - زمان: `0 8 * * *` (هر روز ساعت ۸ صبح)
@@ -607,16 +694,17 @@ export interface Notification {
 **وقتی همه مراحل اجرا شود:**
 
 1. **هر روز ساعت ۸ صبح:**
+
    - Python Cron Job اجرا می‌شود
    - خودروهایی که در بازه هشدار هستند را پیدا می‌کند
    - بر اساس `interval_days` هر خودرو محاسبه می‌کند
    - در جدول `notifications` رکورد ایجاد می‌کند
-
 2. **بلافاصله:**
+
    - کاربر در داشبورد نوتیفیکیشن را می‌بیند (Realtime)
    - می‌تواند روی آن کلیک کند و جزئیات را ببیند
-
 3. **مزایا:**
+
    - ✅ خودکار و بدون نیاز به دستی
    - ✅ Realtime (بدون رفرش صفحه)
    - ✅ قابل تنظیم توسط کاربر
@@ -628,9 +716,10 @@ export interface Notification {
 ## 📦 فایل‌های مورد نیاز
 
 ### در پروژه اصلی:
+
 ```
 OilChenger/
-├── supabase/migrations/002_notifications.sql
+├── supabase/migrations/004_notifications.sql
 └── frontend/src/
     ├── lib/services/notificationService.ts
     ├── lib/types/index.ts
@@ -638,6 +727,7 @@ OilChenger/
 ```
 
 ### سرویس جدید (جداگانه):
+
 ```
 reminder-service/
 ├── main.py
@@ -651,6 +741,7 @@ reminder-service/
 ## 🔧 دستورالعمل اجرا
 
 ### ۱. اجرای دیتابیس:
+
 ```bash
 # در Supabase SQL Editor اجرا کنید
 # یا از CLI استفاده کنید
@@ -658,28 +749,67 @@ supabase migration up
 ```
 
 ### ۲. اجرای سرویس Python (لوکال):
+
 ```bash
 cd reminder-service
+
+# نصب dependencies
 pip install -r requirements.txt
+
+# کپی کردن فایل .env.example به .env و پر کردن مقادیر
+cp .env.example .env
+# سپس .env را ویرایش کنید و SUPABASE_URL و SUPABASE_SERVICE_ROLE_KEY را تنظیم کنید
+
+# اجرای سرویس
 python main.py
 ```
 
+**نکته مهم:** 
+- برای تست، می‌توانید `CRON_TIME` را به زمان فعلی تنظیم کنید (مثلاً 2 دقیقه دیگر)
+- برای production، از cron واقعی سیستم‌عامل استفاده کنید یا از scheduler سرویس cloud استفاده کنید
+
 ### ۳. استقرار در چابکان:
+
 - فایل‌ها را آپلود کنید
 - متغیرهای محیطی را تنظیم کنید
 - Cron Job را فعال کنید
 
 ---
 
-## 📞 پشتیبانی
+## 📞 پشتیبانی و عیب‌یابی
 
 در صورت بروز مشکل:
-1. لاگ‌های Python را بررسی کنید
-2. جدول `notifications` در Supabase را ببینید
-3. کنسول مرورگر برای خطاهای Realtime
+
+1. **لاگ‌های Python:** بررسی لاگ‌ها برای خطاهای اتصال به Supabase یا پردازش داده
+2. **دیتابیس:** بررسی جدول `notifications` در Supabase Dashboard
+3. **فرانت‌اند:** کنسول مرورگر برای خطاهای Realtime یا Supabase
+4. **RLS Policies:** اطمینان از اینکه پالیسی‌های RLS به درستی تنظیم شده‌اند
+5. **Service Role Key:** اطمینان از استفاده از Service Role Key (نه anon key) در Python
+6. **Realtime:** بررسی فعال بودن Realtime برای جدول `notifications` در Supabase Dashboard
+
+### مشکلات رایج:
+
+**مشکل:** Python نمی‌تواند به Supabase متصل شود
+- **راه‌حل:** بررسی `SUPABASE_URL` و `SUPABASE_SERVICE_ROLE_KEY` در `.env`
+
+**مشکل:** نوتیفیکیشن در فرانت‌اند نمایش داده نمی‌شود
+- **راه‌حل:** بررسی اتصال Realtime در Supabase Dashboard → Replication
+
+**مشکل:** RLS Policy خطا می‌دهد
+- **راه‌حل:** برای Python باید از Service Role Key استفاده شود که RLS را دور می‌زند
+
+---
+
+## ⚠️ نکات مهم
+
+1. **Service Role Key:** هرگز Service Role Key را در frontend استفاده نکنید! فقط در backend/Python
+2. **Cron Job:** در production از cron واقعی سیستم‌عامل استفاده کنید، نه `schedule` library
+3. **Migration:** قبل از اجرای migration در production، یک backup از دیتابیس بگیرید
+4. **Performance:** Index‌های اضافه شده برای بهبود کارایی در query‌های بزرگ ضروری هستند
+5. **Error Handling:** کد Python با error handling کامل نوشته شده تا در صورت خطا crash نکند
 
 ---
 
 **تاریخ آخرین بروزرسانی:** ۲۷ دی ۱۴۰۴  
-**وضعیت:** آماده اجرا  
+**وضعیت:** ✅ آماده پیاده‌سازی  
 **نکته کلیدی:** هر خودرو `interval_days` مخصوص خود را دارد که از جدول `reminder_settings` خوانده می‌شود
