@@ -14,6 +14,27 @@ const config = {
     paths: {
       base: process.env.STATIC_PAGES === 'true' ? `/${process.env.REPO_NAME || 'KhodroBan'}` : ''
     },
+    // مدیریت خطاهای HTTP و routeهای داینامیک در prerender
+    prerender: {
+      // برای SPA: هیچ routeای prerender نمی‌شود، فقط index.html ایجاد می‌شود
+      entries: process.env.STATIC_PAGES === 'true' ? undefined : [],
+      handleHttpError: ({ path, statusCode }) => {
+        // نادیده گرفتن خطاهای 404 برای فایل‌های استاتیک
+        if ((statusCode === 404 || !statusCode) && (path.includes('.svg') || path.includes('.ico') || path.includes('favicon'))) {
+          return;
+        }
+        throw new Error(`HTTP ${statusCode || 'unknown'} error during prerender: ${path}`);
+      },
+      handleUnseenRoutes: ({ path }) => {
+        // نادیده گرفتن routeهای داینامیک (مثل /vehicles/[id])
+        // این routeها در runtime به صورت client-side render می‌شوند
+        if (path && (path.includes('[') || path.includes(']'))) {
+          return;
+        }
+        // نادیده گرفتن همه routeهای unseen برای SPA
+        return;
+      }
+    },
     adapter: (() => {
       // در محیط‌های بدون process (مثل بعضی buildهای قدیمی) ایمن باش
       if (typeof process === 'undefined') {
