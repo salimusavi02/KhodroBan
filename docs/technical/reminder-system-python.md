@@ -57,7 +57,7 @@
 
 ### مرحله ۱: تغییرات دیتابیس Supabase
 
-**فایل:** `supabase/migrations/004_notifications.sql`
+**فایل:** 
 
 ```sql
 -- 1. ایجاد جدول notifications
@@ -227,13 +227,13 @@ def check_time_based_reminders():
     try:
         # خواندن تمام خودروهای فعال با تنظیمات یادآوری زمانی
         vehicles_response = supabase.rpc('get_vehicles_for_reminder').execute()
-      
+    
         if not vehicles_response.data:
             logging.info("هیچ خودرویی برای یادآوری پیدا نشد")
             return
-      
+    
         logging.info(f"تعداد {len(vehicles_response.data)} خودرو برای بررسی")
-      
+    
         for vehicle in vehicles_response.data:
             try:
                 # خواندن آخرین سرویس
@@ -243,29 +243,29 @@ def check_time_based_reminders():
                     .order("service_date_gregorian", desc=True) \
                     .limit(1) \
                     .execute()
-              
+            
                 if not last_service.data:
                     logging.warning(f"خودرو {vehicle['model']} - سرویسی ثبت نشده")
                     continue
-              
+            
                 last_date = datetime.strptime(
                     last_service.data[0]["service_date_gregorian"], 
                     "%Y-%m-%d"
                 ).date()
-              
+            
                 # محاسبه روزهای مانده بر اساس تنظیمات هر خودرو
                 days_since_last = (datetime.now().date() - last_date).days
                 interval_days = vehicle["interval_days"]  # متفاوت برای هر خودرو
                 days_until_due = interval_days - days_since_last
-              
+            
                 # بررسی آیا در بازه هشدار است؟
                 warning_days = vehicle["warning_days_before"]
-              
+            
                 if 0 < days_until_due <= warning_days:
                     # محاسبه تاریخ موعد برای بررسی دقیق‌تر
                     due_date = last_date + timedelta(days=interval_days)
                     today = datetime.now().date()
-                    
+                  
                     # بررسی اینکه قبلاً برای این موعد نوتیفیکیشن ارسال نشده باشد
                     # بررسی بر اساس vehicle_id و days_until_due در metadata
                     existing = supabase.table("notifications") \
@@ -275,7 +275,7 @@ def check_time_based_reminders():
                         .eq("read", False) \
                         .gte("created_at", (datetime.now() - timedelta(days=warning_days + 1)).isoformat()) \
                         .execute()
-                  
+                
                     # بررسی اینکه آیا نوتیفیکیشن با همان days_until_due وجود دارد
                     notification_exists = False
                     if existing.data:
@@ -284,11 +284,11 @@ def check_time_based_reminders():
                             if metadata.get("days_until_due") == days_until_due:
                                 notification_exists = True
                                 break
-                  
+                
                     if notification_exists:
                         logging.info(f"✅ نوتیفیکیشن قبلاً ارسال شده: {vehicle['model']} - {days_until_due} روز مانده")
                         continue
-                  
+                
                     # ایجاد نوتیفیکیشن
                     notification = {
                         "user_id": vehicle["user_id"],
@@ -305,22 +305,22 @@ def check_time_based_reminders():
                             "due_date": (last_date + timedelta(days=interval_days)).isoformat()
                         }
                     }
-                  
+                
                     result = supabase.table("notifications").insert(notification).execute()
-                  
+                
                     if result.data:
                         logging.info(f"✅ نوتیفیکیشن ایجاد شد: {vehicle['model']} - {days_until_due} روز مانده (موعد: {interval_days} روز)")
                     else:
                         logging.error(f"❌ خطا در ایجاد نوتیفیکیشن: {vehicle['model']}")
-              
+            
             except Exception as e:
                 logging.error(f"❌ خطا در پردازش خودرو {vehicle.get('model', 'unknown')}: {str(e)}")
                 logging.exception("جزئیات خطا:")
                 continue
-      
+    
         logging.info("✅ پایان بررسی یادآورها")
         logging.info("=" * 50)
-      
+    
     except Exception as e:
         logging.error(f"❌ خطا در دریافت لیست خودروها: {str(e)}")
         logging.exception("جزئیات خطا:")
@@ -529,10 +529,10 @@ export interface Notification {
 
   onMount(async () => {
     const user = $currentUser;
-    
+  
     if (user?.id) {
       await loadNotifications(user.id);
-    
+  
       realtimeChannel = notificationService.subscribeToNotifications(
         user.id,
         (newNotification) => {
@@ -554,7 +554,7 @@ export interface Notification {
     try {
       const data = await notificationService.getNotifications(userId, true);
       notifications.set(data);
-    
+  
       const count = await notificationService.getUnreadCount(userId);
       unreadCount.set(count);
     } catch (error) {
@@ -616,7 +616,7 @@ export interface Notification {
         <h3>نوتیفیکیشن‌ها</h3>
         <button on:click={markAllAsRead}>همه خوانده شد</button>
       </div>
-    
+  
       <div class="list">
         {#if $notifications.length === 0}
           <p class="empty">نوتیفیکیشن جدیدی وجود ندارد</p>
@@ -764,7 +764,8 @@ cp .env.example .env
 python main.py
 ```
 
-**نکته مهم:** 
+**نکته مهم:**
+
 - برای تست، می‌توانید `CRON_TIME` را به زمان فعلی تنظیم کنید (مثلاً 2 دقیقه دیگر)
 - برای production، از cron واقعی سیستم‌عامل استفاده کنید یا از scheduler سرویس cloud استفاده کنید
 
@@ -790,12 +791,15 @@ python main.py
 ### مشکلات رایج:
 
 **مشکل:** Python نمی‌تواند به Supabase متصل شود
+
 - **راه‌حل:** بررسی `SUPABASE_URL` و `SUPABASE_SERVICE_ROLE_KEY` در `.env`
 
 **مشکل:** نوتیفیکیشن در فرانت‌اند نمایش داده نمی‌شود
+
 - **راه‌حل:** بررسی اتصال Realtime در Supabase Dashboard → Replication
 
 **مشکل:** RLS Policy خطا می‌دهد
+
 - **راه‌حل:** برای Python باید از Service Role Key استفاده شود که RLS را دور می‌زند
 
 ---
@@ -810,6 +814,6 @@ python main.py
 
 ---
 
-**تاریخ آخرین بروزرسانی:** ۲۷ دی ۱۴۰۴  
-**وضعیت:** ✅ آماده پیاده‌سازی  
+**تاریخ آخرین بروزرسانی:** ۲۷ دی ۱۴۰۴
+**وضعیت:** ✅ آماده پیاده‌سازی
 **نکته کلیدی:** هر خودرو `interval_days` مخصوص خود را دارد که از جدول `reminder_settings` خوانده می‌شود
