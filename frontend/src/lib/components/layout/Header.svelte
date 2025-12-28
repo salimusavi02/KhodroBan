@@ -5,6 +5,7 @@
   import { APP_NAME } from '../../utils/constants';
   import { navigateTo } from '../../utils/navigation';
   import { getBasePath } from '../../utils/config';
+  import NotificationBell from '../organisms/NotificationBell.svelte';
 
   interface Props {
     showBack?: boolean;
@@ -57,17 +58,7 @@
   </div>
 
   <div class="header-end">
-    <button
-      onclick={handleSettingsClick}
-      class="header-btn notification-btn"
-      aria-label="یادآورها"
-      type="button"
-    >
-      🔔
-      {#if reminderCount > 0}
-        <span class="notification-badge">{reminderCount > 9 ? '۹+' : reminderCount}</span>
-      {/if}
-    </button>
+    <NotificationBell />
 
     <button onclick={handleSettingsClick} class="header-user hide-mobile" type="button">
       <span class="user-avatar">👤</span>
@@ -109,5 +100,26 @@
     background: rgba(0, 0, 0, 0.05);
     color: var(--color-text);
     border-radius: 10px;
+  }
+
+  .header-user {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border: none;
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--color-text);
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 0.9rem;
+  }
+
+  .user-avatar {
+    font-size: 1.2rem;
+  }
+
+  .user-name {
+    font-weight: 500;
   }
 </style>

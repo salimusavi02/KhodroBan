@@ -164,6 +164,34 @@ export interface RemindersState {
 }
 
 // ========================================
+// Notification Types (New System)
+// ========================================
+
+export type NotificationType = 'reminder' | 'warning' | 'info' | 'subscription';
+
+export interface Notification {
+  id: string;
+  user_id: string;
+  vehicle_id?: number;
+  title: string;
+  body: string;
+  type: NotificationType;
+  read: boolean;
+  metadata?: {
+    vehicle_model?: string;
+    plate_number?: string;
+    days_until_due?: number;
+    interval_days?: number;
+    last_service_date?: string;
+    due_date?: string;
+    warning_days_before?: number;
+    [key: string]: any;
+  };
+  created_at: string;
+  updated_at: string;
+}
+
+// ========================================
 // Report Types
 // ========================================
 

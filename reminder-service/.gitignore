@@ -1,0 +1,28 @@
+# فایل‌های غیرضروری جنگو几十
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+
+env/
+
+venv/
+.env
+*.env
+*.env.production
+*.env.development
+*.env.test
+*.env.local
+# Logs
+*.log
+logs/
+!logs/.gitkeep    # استثنا: فقط .gitkeep را نگه داریم
+logs/*.log
+logs/*.log.*  # برای فایل‌های backup (مثل dashboard.log.1)
+
+.DS_Store
+.vscode/
+
+staticfiles/
+temp_data/

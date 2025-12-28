@@ -3,6 +3,7 @@
   import { goto } from '$app/navigation';
   import { Layout } from '$lib/components/layout';
   import { Card, Button, Badge, Spinner, EmptyState } from '$lib/components/ui';
+  import NotificationBell from '$lib/components/organisms/NotificationBell.svelte';
   import {
     vehiclesStore,
     servicesStore,
