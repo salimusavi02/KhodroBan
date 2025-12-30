@@ -3,12 +3,12 @@
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
   import { Layout } from '$lib/components/layout';
-  import { Card, Button, Input, Select, Tabs } from '$lib/components/ui';
+  import { Card, Button, Input, Select, Tabs, GroupedSelect } from '$lib/components/ui';
   import { vehiclesStore, servicesStore, expensesStore, toastStore } from '$lib/stores';
   import { vehicleService, serviceService, expenseService } from '$lib/services';
   import { validators, validateForm, getFieldError, type FieldError } from '$lib/utils/validation';
   import { getCurrentJalaliDate } from '$lib/utils/format';
-  import { SERVICE_TYPE_OPTIONS, EXPENSE_CATEGORY_OPTIONS } from '$lib/utils/constants';
+  import { SERVICE_TYPE_OPTIONS, EXPENSE_CATEGORY_OPTIONS, SERVICE_CATEGORIES, EXPENSE_CATEGORIES_GROUPED } from '$lib/utils/constants';
   import type { ServiceFormData, ExpenseFormData, SelectOption } from '$lib/types';
 
   // Parse query params
@@ -224,10 +224,10 @@
               required
             />
 
-            <Select
-              name="type"
+            <GroupedSelect
+              groups={SERVICE_CATEGORIES}
               label="نوع سرویس"
-              options={SERVICE_TYPE_OPTIONS}
+              placeholder="انتخاب سرویس..."
               bind:value={serviceForm.type}
               error={getFieldError(errors, 'type')}
               required
@@ -279,10 +279,10 @@
               required
             />
 
-            <Select
-              name="category"
-              label="دسته‌بندی"
-              options={EXPENSE_CATEGORY_OPTIONS}
+            <GroupedSelect
+              groups={EXPENSE_CATEGORIES_GROUPED}
+              label="دسته‌بندی هزینه"
+              placeholder="انتخاب هزینه..."
               bind:value={expenseForm.category}
               error={getFieldError(errors, 'category')}
               required
