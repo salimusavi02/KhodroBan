@@ -12,6 +12,19 @@ export const SERVICE_TYPES = {
   oil_change: 'تعویض روغن',
   filter: 'فیلتر',
   brakes: 'ترمز',
+  battery: 'باتری',
+  tire: 'لاستیک',
+  alignment: 'همراستایی',
+  suspension: 'تعلیق',
+  transmission: 'گیربکس',
+  cooling: 'سیستم خنک‌کننده',
+  electrical: 'برق',
+  ac: 'کولر',
+  exhaust: 'اگزوز',
+  clutch: 'کلاچ',
+  body: 'بدنه',
+  glass: 'شیشه',
+  lighting: 'چراغ',
   other: 'سایر',
 } as const;
 
@@ -19,7 +32,90 @@ export const SERVICE_TYPE_OPTIONS = [
   { value: 'oil_change', label: 'تعویض روغن' },
   { value: 'filter', label: 'فیلتر (هوا/روغن/بنزین)' },
   { value: 'brakes', label: 'ترمز (لنت/دیسک)' },
+  { value: 'battery', label: 'باتری' },
+  { value: 'tire', label: 'لاستیک' },
+  { value: 'alignment', label: 'همراستایی' },
+  { value: 'suspension', label: 'تعلیق' },
+  { value: 'transmission', label: 'گیربکس' },
+  { value: 'cooling', label: 'سیستم خنک‌کننده' },
+  { value: 'electrical', label: 'برق' },
+  { value: 'ac', label: 'کولر' },
+  { value: 'exhaust', label: 'اگزوز' },
+  { value: 'clutch', label: 'کلاچ' },
+  { value: 'body', label: 'بدنه' },
+  { value: 'glass', label: 'شیشه' },
+  { value: 'lighting', label: 'چراغ' },
   { value: 'other', label: 'سایر' },
+];
+
+// Service Categories (Grouped)
+export const SERVICE_CATEGORIES = [
+  {
+    id: 'engine',
+    label: 'موتور و روغن',
+    icon: '🔧',
+    items: [
+      { value: 'oil_change', label: 'تعویض روغن' },
+      { value: 'filter', label: 'فیلتر (هوا/روغن/بنزین)' },
+      { value: 'battery', label: 'باتری' },
+      { value: 'cooling', label: 'سیستم خنک‌کننده' },
+    ]
+  },
+  {
+    id: 'brakes',
+    label: 'ترمز و ایمنی',
+    icon: '🛡️',
+    items: [
+      { value: 'brakes', label: 'ترمز (لنت/دیسک)' },
+      { value: 'clutch', label: 'کلاچ' },
+    ]
+  },
+  {
+    id: 'wheels',
+    label: 'چرخ و تعلیق',
+    icon: '🚗',
+    items: [
+      { value: 'tire', label: 'لاستیک' },
+      { value: 'alignment', label: 'همراستایی' },
+      { value: 'suspension', label: 'تعلیق' },
+    ]
+  },
+  {
+    id: 'electrical',
+    label: 'برق و الکترونیک',
+    icon: '⚡',
+    items: [
+      { value: 'electrical', label: 'برق' },
+      { value: 'ac', label: 'کولر' },
+      { value: 'lighting', label: 'چراغ' },
+    ]
+  },
+  {
+    id: 'transmission',
+    label: 'گیربکس و اگزوز',
+    icon: '⚙️',
+    items: [
+      { value: 'transmission', label: 'گیربکس' },
+      { value: 'exhaust', label: 'اگزوز' },
+    ]
+  },
+  {
+    id: 'body',
+    label: 'بدنه و شیشه',
+    icon: '🔲',
+    items: [
+      { value: 'body', label: 'بدنه' },
+      { value: 'glass', label: 'شیشه' },
+    ]
+  },
+  {
+    id: 'other',
+    label: 'سایر',
+    icon: '📋',
+    items: [
+      { value: 'other', label: 'سایر' },
+    ]
+  },
 ];
 
 // Expense Categories
@@ -29,6 +125,16 @@ export const EXPENSE_CATEGORIES = {
   parking: 'پارکینگ',
   toll: 'عوارض',
   minor_repair: 'تعمیرات جزئی',
+  insurance: 'بیمه',
+  tax: 'مالیات',
+  fine: 'جریمه',
+  maintenance: 'نگهداری',
+  accessories: 'لوازم جانبی',
+  service: 'سرویس',
+  parts: 'قطعات',
+  labor: 'دستمزد',
+  diagnostic: 'دیاگ',
+  registration: 'ثبت‌نام',
   other: 'سایر',
 } as const;
 
@@ -38,7 +144,93 @@ export const EXPENSE_CATEGORY_OPTIONS = [
   { value: 'parking', label: 'پارکینگ' },
   { value: 'toll', label: 'عوارض' },
   { value: 'minor_repair', label: 'تعمیرات جزئی' },
+  { value: 'insurance', label: 'بیمه' },
+  { value: 'tax', label: 'مالیات' },
+  { value: 'fine', label: 'جریمه' },
+  { value: 'maintenance', label: 'نگهداری' },
+  { value: 'accessories', label: 'لوازم جانبی' },
+  { value: 'service', label: 'سرویس' },
+  { value: 'parts', label: 'قطعات' },
+  { value: 'labor', label: 'دستمزد' },
+  { value: 'diagnostic', label: 'دیاگ' },
+  { value: 'registration', label: 'ثبت‌نام' },
   { value: 'other', label: 'سایر' },
+];
+
+// Expense Categories (Grouped)
+export const EXPENSE_CATEGORIES_GROUPED = [
+  {
+    id: 'fuel',
+    label: 'سوخت',
+    icon: '⛽',
+    items: [
+      { value: 'fuel', label: 'سوخت' },
+    ]
+  },
+  {
+    id: 'maintenance',
+    label: 'نگهداری و سرویس',
+    icon: '🛠️',
+    items: [
+      { value: 'wash', label: 'کارواش' },
+      { value: 'maintenance', label: 'نگهداری' },
+      { value: 'service', label: 'سرویس' },
+    ]
+  },
+  {
+    id: 'legal',
+    label: 'اجباری و قانونی',
+    icon: '📄',
+    items: [
+      { value: 'insurance', label: 'بیمه' },
+      { value: 'tax', label: 'مالیات' },
+      { value: 'registration', label: 'ثبت‌نام' },
+    ]
+  },
+  {
+    id: 'fines',
+    label: 'جریمه و عوارض',
+    icon: '💸',
+    items: [
+      { value: 'fine', label: 'جریمه' },
+      { value: 'toll', label: 'عوارض' },
+    ]
+  },
+  {
+    id: 'parts',
+    label: 'قطعات و دستمزد',
+    icon: '🔩',
+    items: [
+      { value: 'parts', label: 'قطعات' },
+      { value: 'labor', label: 'دستمزد' },
+      { value: 'accessories', label: 'لوازم جانبی' },
+    ]
+  },
+  {
+    id: 'parking',
+    label: 'پارکینگ',
+    icon: '🅿️',
+    items: [
+      { value: 'parking', label: 'پارکینگ' },
+    ]
+  },
+  {
+    id: 'repairs',
+    label: 'تعمیرات',
+    icon: '🔧',
+    items: [
+      { value: 'minor_repair', label: 'تعمیرات جزئی' },
+      { value: 'diagnostic', label: 'دیاگ' },
+    ]
+  },
+  {
+    id: 'other',
+    label: 'سایر',
+    icon: '📎',
+    items: [
+      { value: 'other', label: 'سایر' },
+    ]
+  },
 ];
 
 // Expense Category Icons (emoji)
@@ -48,7 +240,17 @@ export const EXPENSE_ICONS = {
   parking: '🅿️',
   toll: '🛣️',
   minor_repair: '🔧',
-  other: '📋',
+  insurance: '🛡️',
+  tax: '📄',
+  fine: '💸',
+  maintenance: '🛠️',
+  accessories: '🎒',
+  service: '⚙️',
+  parts: '🔩',
+  labor: '👷',
+  diagnostic: '🔍',
+  registration: '📋',
+  other: '📎',
 } as const;
 
 // Reminder Channels
