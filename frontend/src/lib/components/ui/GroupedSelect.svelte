@@ -97,7 +97,7 @@
 
 <div class="grouped-select">
   {#if label}
-    <label class="label">
+    <label class="label" for="grouped-select-display">
       {label}
       {#if required}<span class="required">*</span>{/if}
     </label>
@@ -105,6 +105,7 @@
 
   <!-- Selected Value Display -->
   <div
+    id="grouped-select-display"
     class="display"
     class:error={!!error}
     class:expanded={isExpanded}
