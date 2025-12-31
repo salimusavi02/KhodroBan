@@ -165,7 +165,20 @@ export class OpenAIProvider implements IAIProvider {
         max_tokens: params.mode === 'expert' ? 2000 : 1000,
       });
 
-      const text = response.choices[0]?.message?.content || "پاسخی دریافت نشد.";
+      // بررسی ایمن response
+      if (!response || !response.choices || response.choices.length === 0) {
+        console.error("OpenAI API Error: Empty response", response);
+        return {
+          text: "پاسخی از هوش مصنوعی دریافت نشد. لطفاً دوباره تلاش کنید.",
+          groundingChunks: [],
+          metadata: {
+            error: 'Empty response from API'
+          }
+        };
+      }
+
+      const firstChoice = response.choices[0];
+      const text = firstChoice?.message?.content || "پاسخی دریافت نشد.";
       
       return {
         text,
