@@ -131,24 +131,63 @@ export interface ExpenseFormData {
 // ========================================
 
 export type ReminderStatus = 'ok' | 'near' | 'overdue';
+export type ReminderSource = 'manual' | 'auto';
 export type ReminderChannel = 'inApp' | 'email' | 'sms';
 
+// جدید: ساختار کامل یادآور
 export interface Reminder {
   id: string;
-  vehicleId: string;
-  vehicleName: string;
-  type: ServiceType;
+  userId: string;
+  
+  // ارتباطات (اختیاری)
+  vehicleId?: string;
+  vehicleName?: string;  // برای نمایش سریع
+  serviceId?: string;
+  
+  // اطلاعات یادآور
+  title: string;
+  description?: string;
+  
+  // زمان‌بندی (یکی از این دو یا هر دو)
+  dueDate?: string;      // تاریخ سررسید (ISO string)
+  dueKm?: number;        // کیلومتر سررسید
+  
+  // هشدار
+  warningDaysBefore: number;
+  
+  // وضعیت و پیام
   status: ReminderStatus;
-  dueDate?: string;
-  dueKm?: number;
-  currentKm: number;
-  lastServiceDate?: string;
-  lastServiceKm?: number;
   message: string;
+  
+  // متادیتا
+  source: ReminderSource;
   dismissed: boolean;
   createdAt: string;
+  updatedAt: string;
 }
 
+// جدید: داده ورودی برای ایجاد یادآور
+export interface ReminderCreateData {
+  title: string;
+  description?: string;
+  vehicleId?: string;
+  serviceId?: string;
+  dueDate?: string;
+  dueKm?: number;
+  warningDaysBefore?: number;
+}
+
+// جدید: داده ورودی برای ایجاد یادآور از فرم سرویس
+export interface ServiceReminderData {
+  vehicleId: string;
+  serviceType: ServiceType;
+  lastServiceDate: string;
+  lastServiceKm: number;
+  currentKm: number;
+  warningDaysBefore?: number;
+}
+
+// ساختارهای قدیمی (برای سازگاری)
 export interface ReminderSettings {
   kmInterval: number;
   timeIntervalMonths: number;

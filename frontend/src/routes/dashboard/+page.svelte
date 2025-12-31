@@ -3,7 +3,7 @@
   import { goto } from '$app/navigation';
   import { Layout } from '$lib/components/layout';
   import { Card, Button, Badge, Spinner, EmptyState } from '$lib/components/ui';
-  import NotificationBell from '$lib/components/organisms/NotificationBell.svelte';
+  import { NotificationBell, ReminderModal } from '$lib/components/organisms';
   import {
     vehiclesStore,
     servicesStore,
@@ -26,6 +26,9 @@
   let isLoading = $state(true);
   let vehicles = $derived($vehiclesStore.vehicles);
   let reminders = $derived($activeReminders);
+  
+  // Modal state
+  let showReminderModal = $state(false);
 
   onMount(async () => {
     await loadData();
@@ -86,14 +89,25 @@
       </div>
     {:else}
       <!-- Active Alerts -->
-      {#if reminders.length > 0}
-        <section class="section">
+      <section class="section">
+        <div class="section-header">
           <h2 class="section-title">
             <span>🔔</span>
             <span>یادآورها</span>
-            <Badge variant="danger">{reminders.length}</Badge>
+            {#if reminders.length > 0}
+              <Badge variant="danger">{reminders.length}</Badge>
+            {/if}
           </h2>
+          <Button 
+            variant="primary" 
+            size="sm"
+            onclick={() => showReminderModal = true}
+          >
+            ➕ ایجاد یادآور
+          </Button>
+        </div>
 
+        {#if reminders.length > 0}
           <div class="alerts-list">
             {#each reminders as reminder}
               <Card padding="md" variant="solid" class="alert-card alert-{reminder.status}">
@@ -102,7 +116,9 @@
                     {#if reminder.status === 'overdue'}⚠️{:else}🔔{/if}
                   </div>
                   <div class="alert-info">
-                    <span class="alert-vehicle">{reminder.vehicleName}</span>
+                    <span class="alert-vehicle">
+                      {reminder.vehicleName || 'یادآور عمومی'}
+                    </span>
                     <span class="alert-message">{reminder.message}</span>
                   </div>
                   <button class="alert-dismiss" onclick={() => dismissReminder(reminder.id)}>
@@ -112,8 +128,16 @@
               </Card>
             {/each}
           </div>
-        </section>
-      {/if}
+        {:else}
+          <Card>
+            <EmptyState
+              icon="🔔"
+              title="یادآوری فعالی وجود ندارد"
+              description="برای ایجاد یادآور جدید، دکمه بالا را بزنید"
+            />
+          </Card>
+        {/if}
+      </section>
 
       <!-- Vehicles Overview -->
       <section class="section">
@@ -752,3 +776,6 @@
     color: var(--color-danger);
   }
 </style>
+
+<!-- Reminder Modal -->
+<ReminderModal bind:open={showReminderModal} mode="general" />

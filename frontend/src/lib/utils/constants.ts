@@ -298,6 +298,7 @@ export const PRO_TIER_FEATURES = {
 // Navigation Menu Items
 export const MENU_ITEMS = [
   { path: '/dashboard', label: 'داشبورد', icon: '🏠' },
+  { path: '/reminders', label: 'یادآورها', icon: '🔔' },
   { path: '/vehicles', label: 'خودروها', icon: '🚗' },
   { path: '/add', label: 'ثبت جدید', icon: '➕' },
   { path: '/reports', label: 'گزارش‌ها', icon: '📊' },

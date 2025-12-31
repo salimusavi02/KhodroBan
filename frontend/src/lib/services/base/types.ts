@@ -17,6 +17,7 @@ import type {
   ExpenseFormData,
   Reminder,
   ReminderSettings,
+  ReminderCreateData,
   ReportFilter,
   ReportSummary,
 } from '../../types';
@@ -81,6 +82,7 @@ export interface IExpenseService {
 // ============================================
 
 export interface IReminderService {
+  // Existing methods
   getAll(): Promise<Reminder[]>;
   getById(id: string): Promise<Reminder>;
   getByVehicle(vehicleId: string): Promise<Reminder[]>;
@@ -96,6 +98,18 @@ export interface IReminderService {
     alertDaysBefore: number
   ): { status: 'ok' | 'near' | 'overdue'; dueKm: number; message: string };
   refresh(): Promise<Reminder[]>;
+  
+  // NEW: ایجاد یادآور دستی
+  create(data: ReminderCreateData): Promise<Reminder>;
+  
+  // NEW: ویرایش یادآور
+  update(id: string, data: Partial<ReminderCreateData>): Promise<Reminder>;
+  
+  // NEW: دریافت یادآورهای کاربر
+  getUserReminders(): Promise<Reminder[]>;
+  
+  // NEW: حذف یادآور
+  delete(id: string): Promise<void>;
 }
 
 // ============================================

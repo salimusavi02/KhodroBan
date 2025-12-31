@@ -1,6 +1,6 @@
 import { supabase } from '../supabase';
 import api from './api';
-import type { Reminder, ReminderSettings, ApiResponse } from '../types';
+import type { Reminder, ReminderSettings, ReminderCreateData, ApiResponse } from '../types';
 import { selectService } from './base/router';
 import type { IReminderService } from './base/types';
 
@@ -16,31 +16,57 @@ import type { IReminderService } from './base/types';
 const mockReminders: Reminder[] = [
   {
     id: '1',
+    userId: 'mock-user',
     vehicleId: '1',
     vehicleName: 'پژو ۲۰۶',
+    title: 'یادآوری سرویس دوره‌ای',
+    description: 'تعویض روغن موتور',
     type: 'oil_change',
     status: 'near',
     dueKm: 87000,
     currentKm: 85000,
     lastServiceDate: '1403/09/15',
     lastServiceKm: 82000,
+    warningDaysBefore: 7,
     message: 'تعویض روغن موتور تا ۲۰۰۰ کیلومتر دیگر',
+    source: 'auto',
     dismissed: false,
     createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
   {
     id: '2',
+    userId: 'mock-user',
     vehicleId: '2',
     vehicleName: 'سمند LX',
+    title: 'یادآوری سرویس دوره‌ای',
+    description: 'تعویض روغن موتور',
     type: 'oil_change',
     status: 'overdue',
     dueKm: 140000,
     currentKm: 142000,
     lastServiceDate: '1403/05/10',
     lastServiceKm: 135000,
+    warningDaysBefore: 7,
     message: 'موعد تعویض روغن گذشته است! ۲۰۰۰ کیلومتر تأخیر',
+    source: 'auto',
     dismissed: false,
     createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: '3',
+    userId: 'mock-user',
+    title: 'پرداخت قسط خودرو',
+    description: 'قسط ماهانه ۵,۰۰۰,۰۰۰ تومان',
+    dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+    status: 'near',
+    warningDaysBefore: 2,
+    message: '۲ روز دیگر سررسید قسط خودرو',
+    source: 'manual',
+    dismissed: false,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
 ];
 
@@ -125,6 +151,64 @@ const reminderServiceMock: IReminderService = {
 
   async refresh(): Promise<Reminder[]> {
     return this.getAll();
+  },
+
+  async create(data: ReminderCreateData): Promise<Reminder> {
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    
+    const newReminder: Reminder = {
+      id: String(Date.now()),
+      userId: 'mock-user',
+      vehicleId: data.vehicleId,
+      title: data.title,
+      description: data.description,
+      dueDate: data.dueDate,
+      dueKm: data.dueKm,
+      warningDaysBefore: data.warningDaysBefore || 7,
+      status: 'ok',
+      message: data.description || data.title,
+      source: 'manual',
+      dismissed: false,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    
+    mockReminders.push(newReminder);
+    return newReminder;
+  },
+
+  async getUserReminders(): Promise<Reminder[]> {
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    return mockReminders.filter((r) => r.userId === 'mock-user' && !r.dismissed);
+  },
+
+  async delete(id: string): Promise<void> {
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    const index = mockReminders.findIndex((r) => r.id === id);
+    if (index !== -1) {
+      mockReminders.splice(index, 1);
+    }
+  },
+
+  async update(id: string, data: Partial<ReminderCreateData>): Promise<Reminder> {
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    const index = mockReminders.findIndex((r) => r.id === id);
+    if (index === -1) throw new Error('یادآور یافت نشد');
+
+    const reminder = mockReminders[index];
+    const updatedReminder: Reminder = {
+      ...reminder,
+      ...(data.title && { title: data.title }),
+      ...(data.description && { description: data.description }),
+      ...(data.vehicleId !== undefined && { vehicleId: data.vehicleId }),
+      ...(data.dueDate !== undefined && { dueDate: data.dueDate }),
+      ...(data.dueKm !== undefined && { dueKm: data.dueKm }),
+      ...(data.warningDaysBefore !== undefined && { warningDaysBefore: data.warningDaysBefore }),
+      updatedAt: new Date().toISOString(),
+    };
+
+    mockReminders[index] = updatedReminder;
+    return updatedReminder;
   },
 };
 
@@ -227,10 +311,20 @@ const reminderServiceSupabase: IReminderService = {
   },
 
   async dismiss(id: string): Promise<void> {
-    // در Supabase، می‌توانیم یک reminder_log ایجاد کنیم
-    // یا از یک جدول dismissed_reminders استفاده کنیم
-    // برای MVP، فقط در client-side dismiss می‌کنیم
-    // TODO: پیاده‌سازی dismiss در Supabase
+    if (!supabase) throw new Error('Supabase client not available.');
+    
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) throw new Error('کاربر لاگین نشده است');
+
+    const { error } = await supabase
+      .from('reminders')
+      .update({ dismissed: true })
+      .eq('id', id)
+      .eq('user_id', user.id);
+
+    if (error) throw new Error(error.message);
   },
 
   async getSettings(): Promise<ReminderSettings> {
@@ -375,6 +469,124 @@ const reminderServiceSupabase: IReminderService = {
   async refresh(): Promise<Reminder[]> {
     return this.getAll();
   },
+
+  async create(data: ReminderCreateData): Promise<Reminder> {
+    if (!supabase) throw new Error('Supabase client not available. Check VITE_BACKEND_TYPE and environment variables.');
+    
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) throw new Error('کاربر لاگین نشده است');
+
+    // تولید پیام
+    let message = data.title;
+    if (data.description) message += ` - ${data.description}`;
+    if (data.dueDate) {
+      const days = Math.ceil((new Date(data.dueDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+      message += ` (${days} روز دیگر)`;
+    }
+    if (data.dueKm) {
+      message += ` (${data.dueKm} کیلومتر)`;
+    }
+
+    const { data: newReminder, error } = await supabase
+      .from('reminders')
+      .insert({
+        user_id: user.id,
+        vehicle_id: data.vehicleId,
+        title: data.title,
+        description: data.description,
+        due_date: data.dueDate,
+        due_km: data.dueKm,
+        warning_days_before: data.warningDaysBefore || 7,
+        message,
+        source: 'manual',
+      })
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return newReminder;
+  },
+
+  async getUserReminders(): Promise<Reminder[]> {
+    if (!supabase) throw new Error('Supabase client not available.');
+    
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) throw new Error('کاربر لاگین نشده است');
+
+    const { data: reminders, error } = await supabase
+      .from('reminders')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
+
+    if (error) throw new Error(error.message);
+    return reminders || [];
+  },
+
+  async delete(id: string): Promise<void> {
+    if (!supabase) throw new Error('Supabase client not available.');
+    
+    const { error } = await supabase
+      .from('reminders')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw new Error(error.message);
+  },
+
+  async update(id: string, data: Partial<ReminderCreateData>): Promise<Reminder> {
+    if (!supabase) throw new Error('Supabase client not available.');
+    
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) throw new Error('کاربر لاگین نشده است');
+
+    // Get current reminder to verify ownership
+    const { data: current } = await supabase
+      .from('reminders')
+      .select('*')
+      .eq('id', id)
+      .eq('user_id', user.id)
+      .single();
+
+    if (!current) throw new Error('یادآور یافت نشد یا دسترسی غیرمجاز');
+
+    // Update data
+    const updates: any = {
+      updated_at: new Date().toISOString(),
+    };
+
+    if (data.title) updates.title = data.title;
+    if (data.description !== undefined) updates.description = data.description;
+    if (data.vehicleId !== undefined) updates.vehicle_id = data.vehicleId;
+    if (data.dueDate !== undefined) updates.due_date = data.dueDate;
+    if (data.dueKm !== undefined) updates.due_km = data.dueKm;
+    if (data.warningDaysBefore !== undefined) updates.warning_days_before = data.warningDaysBefore;
+
+    // Recalculate message if needed
+    if (data.dueDate || data.dueKm) {
+      const days = data.dueDate ? Math.ceil((new Date(data.dueDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : null;
+      let message = data.title || current.title;
+      if (days) message += ` (${days} روز دیگر)`;
+      if (data.dueKm) message += ` (${data.dueKm} کیلومتر)`;
+      updates.message = message;
+    }
+
+    const { data: updatedReminder, error } = await supabase
+      .from('reminders')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return updatedReminder;
+  },
 };
 
 // ============================================
@@ -452,6 +664,25 @@ const reminderServiceDjango: IReminderService = {
 
   async refresh(): Promise<Reminder[]> {
     return this.getAll();
+  },
+
+  async create(data: ReminderCreateData): Promise<Reminder> {
+    const response = await api.post<ApiResponse<Reminder>>('/reminders/', data);
+    return response.data.data;
+  },
+
+  async getUserReminders(): Promise<Reminder[]> {
+    const response = await api.get<ApiResponse<Reminder[]>>('/reminders/user/');
+    return response.data.data;
+  },
+
+  async delete(id: string): Promise<void> {
+    await api.delete(`/reminders/${id}/`);
+  },
+
+  async update(id: string, data: Partial<ReminderCreateData>): Promise<Reminder> {
+    const response = await api.patch<ApiResponse<Reminder>>(`/reminders/${id}/`, data);
+    return response.data.data;
   },
 };
 

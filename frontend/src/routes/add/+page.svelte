@@ -4,12 +4,13 @@
   import { goto } from '$app/navigation';
   import { Layout } from '$lib/components/layout';
   import { Card, Button, Input, Select, Tabs, GroupedSelect } from '$lib/components/ui';
-  import { vehiclesStore, servicesStore, expensesStore, toastStore } from '$lib/stores';
-  import { vehicleService, serviceService, expenseService } from '$lib/services';
+  import { ReminderModal } from '$lib/components/organisms';
+  import { vehiclesStore, servicesStore, expensesStore, toastStore, remindersStore } from '$lib/stores';
+  import { vehicleService, serviceService, expenseService, reminderService } from '$lib/services';
   import { validators, validateForm, getFieldError, type FieldError } from '$lib/utils/validation';
-  import { getCurrentJalaliDate } from '$lib/utils/format';
+  import { getCurrentJalaliDate, addMonths, addDays } from '$lib/utils/format';
   import { SERVICE_TYPE_OPTIONS, EXPENSE_CATEGORY_OPTIONS, SERVICE_CATEGORIES, EXPENSE_CATEGORIES_GROUPED } from '$lib/utils/constants';
-  import type { ServiceFormData, ExpenseFormData, SelectOption } from '$lib/types';
+  import type { ServiceFormData, ExpenseFormData, SelectOption, ReminderCreateData, Vehicle } from '$lib/types';
 
   // Parse query params
   let activeTab = $state('service');
@@ -41,6 +42,10 @@
     category: 'fuel',
     note: '',
   });
+
+  // Reminder Modal state
+  let showReminderModal = $state(false);
+  let reminderDefaultData = $state<Partial<ReminderCreateData> | null>(null);
 
   $effect(() => {
     const tab = $page.url.searchParams.get('tab');
@@ -118,12 +123,56 @@
       }
 
       toastStore.success('سرویس با موفقیت ثبت شد');
-      goto('/dashboard');
+      
+      // Open reminder modal with default data
+      if (vehicle) {
+        openReminderModal(vehicle);
+      } else {
+        isSubmitting = false;
+        goto('/dashboard');
+      }
     } catch {
       toastStore.error('خطا در ثبت سرویس');
-    } finally {
       isSubmitting = false;
     }
+  }
+
+  function openReminderModal(vehicle: Vehicle) {
+    const dueKm = serviceForm.km + 5000;
+    const dueDate = addMonths(serviceForm.date, 3);
+    
+    reminderDefaultData = {
+      title: `سرویس بعدی ${serviceForm.type === 'oil_change' ? 'تعویض روغن' : serviceForm.type === 'filter' ? 'فیلتر' : 'سرویس'} ${vehicle.model}`,
+      description: `بر اساس سرویس ثبت شده در ${serviceForm.date} - کیلومتر ${serviceForm.km}`,
+      vehicleId: serviceForm.vehicleId,
+      dueKm: dueKm,
+      dueDate: dueDate,
+      warningDaysBefore: 7,
+    };
+    
+    showReminderModal = true;
+    isSubmitting = false;
+  }
+
+  async function handleSaveReminder(e: CustomEvent<ReminderCreateData>) {
+    try {
+      const newReminder = await reminderService.create(e.detail);
+      remindersStore.addReminder(newReminder);
+      toastStore.success('یادآور با موفقیت ایجاد شد');
+    } catch (error) {
+      console.error('Failed to create reminder:', error);
+      toastStore.error('خطا در ایجاد یادآور');
+    } finally {
+      showReminderModal = false;
+      reminderDefaultData = null;
+      goto('/dashboard');
+    }
+  }
+
+  function handleReminderModalClose() {
+    showReminderModal = false;
+    reminderDefaultData = null;
+    isSubmitting = false;
   }
 
   async function submitExpense(e: Event) {
@@ -245,7 +294,22 @@
               <Button type="button" variant="secondary" onclick={() => window.history.back()}>
                 انصراف
               </Button>
-              <Button type="submit" variant="primary" loading={isSubmitting}>ثبت سرویس</Button>
+              <Button type="submit" variant="primary" loading={isSubmitting}>
+                ثبت سرویس
+              </Button>
+              {#if serviceForm.vehicleId && serviceForm.km > 0}
+                <Button 
+                  type="button" 
+                  variant="primary-outline"
+                  onclick={() => {
+                    const vehicle = $vehiclesStore.vehicles.find(v => v.id === serviceForm.vehicleId);
+                    if (vehicle) openReminderModal(vehicle);
+                  }}
+                  disabled={isSubmitting}
+                >
+                  🔔 ایجاد یادآور
+                </Button>
+              {/if}
             </div>
           </form>
         {:else}
@@ -399,4 +463,55 @@
       margin-bottom: var(--space-2xl);
     }
   }
+
+  /* Reminder option styles */
+  .reminder-option {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: rgba(59, 130, 246, 0.05);
+    border: 1px solid rgba(59, 130, 246, 0.15);
+    border-radius: 8px;
+  }
+
+  .checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 500;
+  }
+
+  .checkbox-label input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+  }
+
+  .reminder-settings {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px dashed rgba(59, 130, 246, 0.3);
+  }
+
+  .hint {
+    color: var(--color-primary);
+    font-size: 0.85rem;
+    text-align: center;
+  }
 </style>
+
+<!-- Reminder Modal -->
+{#if showReminderModal && reminderDefaultData}
+  <ReminderModal 
+    bind:open={showReminderModal}
+    mode="service"
+    defaultData={reminderDefaultData}
+    on:save={handleSaveReminder}
+    on:close={handleReminderModalClose}
+  />
+{/if}
