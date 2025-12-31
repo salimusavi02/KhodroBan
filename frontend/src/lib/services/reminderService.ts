@@ -239,12 +239,22 @@ const reminderServiceSupabase: IReminderService = {
 
     // برای هر خودرو، یادآوری‌ها را محاسبه کن
     for (const vehicle of vehicles) {
+      console.log(`[REMINDER-SERVICE] Processing vehicle: ${JSON.stringify(vehicle)}`);
+      console.log(`[REMINDER-SERVICE] vehicle.vehicle_id type: ${typeof vehicle.vehicle_id}, value: ${vehicle.vehicle_id}`);
+      
       // دریافت تنظیمات یادآوری
-      const { data: settings } = await supabase
+      const { data: settings, error: settingsError } = await supabase
         .from('reminder_settings')
         .select('*')
         .eq('vehicle_id', vehicle.vehicle_id)
         .single();
+      
+      if (settingsError) {
+        console.error(`[REMINDER-SERVICE] Settings error for vehicle ${vehicle.vehicle_id}:`, settingsError);
+        console.error(`[REMINDER-SERVICE] Full error:`, JSON.stringify(settingsError, null, 2));
+      }
+      
+      if (!settings) continue;
 
       if (!settings) continue;
 
