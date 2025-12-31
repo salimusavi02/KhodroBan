@@ -1,11 +1,11 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { Layout } from '$lib/components/layout';
-  import { Card, Button, Badge, EmptyState, Spinner } from '$lib/components/ui';
+  import { Card, Button, Badge, EmptyState, Spinner, Input, Select } from '$lib/components/ui';
   import { ReminderModal } from '$lib/components/organisms';
-  import { remindersStore, toastStore, activeReminders } from '$lib/stores';
-  import { reminderService } from '$lib/services';
-  import type { Reminder, ReminderCreateData } from '$lib/types';
+  import { remindersStore, toastStore, activeReminders, vehiclesStore } from '$lib/stores';
+  import { reminderService, vehicleService } from '$lib/services';
+  import type { Reminder, ReminderCreateData, Vehicle } from '$lib/types';
   import { formatNumber } from '$lib/utils/format';
 
   let isLoading = $state(true);
@@ -13,15 +13,67 @@
   let showEditModal = $state(false);
   let editingReminder = $state<Reminder | null>(null);
   let filter = $state<'all' | 'active' | 'dismissed'>('active');
+  
+  // Search and filters
+  let searchQuery = $state('');
+  let selectedVehicleFilter = $state<string>('all');
+  let dateRangeFilter = $state<'all' | 'thisWeek' | 'thisMonth' | 'nextMonth'>('all');
 
   // Reactive: filtered reminders
   let reminders = $derived.by(() => {
     const store = $remindersStore;
     if (!store || !store.reminders) return [];
-    const all = store.reminders;
-    if (filter === 'all') return all;
-    if (filter === 'active') return all.filter(r => !r.dismissed);
-    if (filter === 'dismissed') return all.filter(r => r.dismissed);
+    let all = store.reminders;
+    
+    // Apply status filter
+    if (filter === 'active') all = all.filter(r => !r.dismissed);
+    if (filter === 'dismissed') all = all.filter(r => r.dismissed);
+    
+    // Apply search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      all = all.filter(r => 
+        r.title?.toLowerCase().includes(query) ||
+        r.description?.toLowerCase().includes(query) ||
+        r.vehicleName?.toLowerCase().includes(query) ||
+        r.message?.toLowerCase().includes(query)
+      );
+    }
+    
+    // Apply vehicle filter
+    if (selectedVehicleFilter !== 'all') {
+      all = all.filter(r => {
+        const vehicleId = r.vehicle_id || r.vehicleId;
+        return String(vehicleId) === selectedVehicleFilter;
+      });
+    }
+    
+    // Apply date range filter
+    if (dateRangeFilter !== 'all') {
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      
+      all = all.filter(r => {
+        if (!r.due_date && !r.dueDate) return false;
+        const dueDate = new Date(r.due_date || r.dueDate || '');
+        if (isNaN(dueDate.getTime())) return false;
+        
+        const dueDateOnly = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
+        const daysDiff = Math.ceil((dueDateOnly.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+        
+        switch (dateRangeFilter) {
+          case 'thisWeek':
+            return daysDiff >= 0 && daysDiff <= 7;
+          case 'thisMonth':
+            return daysDiff >= 0 && daysDiff <= 30;
+          case 'nextMonth':
+            return daysDiff >= 31 && daysDiff <= 60;
+          default:
+            return true;
+        }
+      });
+    }
+    
     return all;
   });
 
@@ -54,9 +106,23 @@
     return result;
   });
 
+  // Vehicles for filter
+  let vehicles = $state<Vehicle[]>([]);
+
   onMount(async () => {
-    await loadReminders();
+    await Promise.all([
+      loadReminders(),
+      loadVehicles()
+    ]);
   });
+
+  async function loadVehicles() {
+    try {
+      vehicles = await vehicleService.getAll();
+    } catch (error) {
+      console.error('Failed to load vehicles:', error);
+    }
+  }
 
   async function loadReminders() {
     isLoading = true;
@@ -155,6 +221,60 @@
     if (status === 'near') return 'نزدیک';
     return 'گذشته';
   }
+
+  // Get vehicle for reminder
+  function getVehicleForReminder(reminder: Reminder): Vehicle | null {
+    const vehicleId = reminder.vehicle_id || reminder.vehicleId;
+    if (!vehicleId) return null;
+    return vehicles.find(v => String(v.id) === String(vehicleId)) || null;
+  }
+
+  // Calculate days/km remaining
+  function getDaysRemaining(reminder: Reminder): number | null {
+    if (!reminder.due_date && !reminder.dueDate) return null;
+    const dueDate = new Date(reminder.due_date || reminder.dueDate || '');
+    if (isNaN(dueDate.getTime())) return null;
+    const now = new Date();
+    const diff = Math.ceil((dueDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    return diff;
+  }
+
+  function getKmRemaining(reminder: Reminder, vehicle: Vehicle | null): number | null {
+    if (!reminder.due_km && !reminder.dueKm) return null;
+    if (!vehicle || !vehicle.currentKm) return null;
+    const dueKm = reminder.due_km || reminder.dueKm || 0;
+    return dueKm - vehicle.currentKm;
+  }
+
+  // Calculate progress percentage (0-100)
+  function getProgress(reminder: Reminder, vehicle: Vehicle | null): number {
+    const warningDays = reminder.warning_days_before || reminder.warningDaysBefore || 7;
+    
+    // Date-based progress
+    if (reminder.due_date || reminder.dueDate) {
+      const daysRemaining = getDaysRemaining(reminder);
+      if (daysRemaining !== null) {
+        if (daysRemaining <= 0) return 100; // Overdue
+        const totalDays = warningDays * 2; // Assume warning period is half of total
+        const progress = Math.max(0, Math.min(100, ((totalDays - daysRemaining) / totalDays) * 100));
+        return progress;
+      }
+    }
+    
+    // KM-based progress
+    if (reminder.due_km || reminder.dueKm) {
+      const kmRemaining = getKmRemaining(reminder, vehicle);
+      if (kmRemaining !== null) {
+        if (kmRemaining <= 0) return 100; // Overdue
+        const warningKm = (reminder.warning_days_before || reminder.warningDaysBefore || 7) * 100;
+        const totalKm = warningKm * 2;
+        const progress = Math.max(0, Math.min(100, ((totalKm - kmRemaining) / totalKm) * 100));
+        return progress;
+      }
+    }
+    
+    return 0;
+  }
 </script>
 
 <Layout headerTitle="یادآورها">
@@ -167,7 +287,7 @@
       </Button>
     </div>
 
-    <!-- Filters -->
+    <!-- Status Filters -->
     <div class="filters">
       <Button 
         variant={filter === 'active' ? 'primary' : 'secondary'}
@@ -190,6 +310,57 @@
       >
         بسته شده ({dismissedCount})
       </Button>
+    </div>
+
+    <!-- Search and Advanced Filters -->
+    <div class="search-filters">
+      <div class="search-box">
+        <Input
+          type="text"
+          placeholder="🔍 جستجو در عنوان، توضیحات، خودرو..."
+          bind:value={searchQuery}
+          class="search-input"
+        />
+      </div>
+      
+      <div class="advanced-filters">
+        <Select
+          bind:value={selectedVehicleFilter}
+          options={[
+            { value: 'all', label: 'همه خودروها' },
+            ...vehicles.map(v => ({ 
+              value: String(v.id), 
+              label: `${v.model} - ${v.plateNumber}` 
+            }))
+          ]}
+          class="filter-select"
+        />
+        
+        <Select
+          bind:value={dateRangeFilter}
+          options={[
+            { value: 'all', label: 'همه تاریخ‌ها' },
+            { value: 'thisWeek', label: 'این هفته' },
+            { value: 'thisMonth', label: 'این ماه' },
+            { value: 'nextMonth', label: 'ماه آینده' }
+          ]}
+          class="filter-select"
+        />
+        
+        {#if searchQuery || selectedVehicleFilter !== 'all' || dateRangeFilter !== 'all'}
+          <Button
+            variant="secondary"
+            size="sm"
+            onclick={() => {
+              searchQuery = '';
+              selectedVehicleFilter = 'all';
+              dateRangeFilter = 'all';
+            }}
+          >
+            🗑️ پاک کردن فیلترها
+          </Button>
+        {/if}
+      </div>
     </div>
 
     <!-- Loading -->
@@ -223,6 +394,10 @@
             <Badge variant="danger">{groupedReminders.overdue.length}</Badge>
           </div>
           {#each groupedReminders.overdue as reminder}
+            {@const vehicle = getVehicleForReminder(reminder)}
+            {@const daysRemaining = getDaysRemaining(reminder)}
+            {@const kmRemaining = getKmRemaining(reminder, vehicle)}
+            {@const progress = getProgress(reminder, vehicle)}
             <Card variant="solid" class="reminder-card overdue" padding="md">
               <div class="reminder-content">
                 <div class="reminder-icon">{getCategoryIcon(reminder.category)}</div>
@@ -238,6 +413,27 @@
                   {#if reminder.vehicleName}
                     <p class="reminder-vehicle">🚗 {reminder.vehicleName}</p>
                   {/if}
+                  
+                  <!-- Progress and Remaining Info -->
+                  <div class="reminder-progress-info">
+                    {#if daysRemaining !== null}
+                      <Badge variant="danger" class="remaining-badge">
+                        ⏰ {Math.abs(daysRemaining)} روز {daysRemaining < 0 ? 'گذشته' : 'باقی مانده'}
+                      </Badge>
+                    {/if}
+                    {#if kmRemaining !== null}
+                      <Badge variant="danger" class="remaining-badge">
+                        📍 {formatNumber(Math.abs(kmRemaining))} کیلومتر {kmRemaining < 0 ? 'گذشته' : 'باقی مانده'}
+                      </Badge>
+                    {/if}
+                  </div>
+                  
+                  {#if progress > 0}
+                    <div class="progress-bar-container">
+                      <div class="progress-bar" style="width: {progress}%"></div>
+                    </div>
+                  {/if}
+                  
                   <div class="reminder-meta">
                     {#if reminder.dueDate}<span>📅 {reminder.dueDate}</span>{/if}
                     {#if reminder.dueKm}<span>📍 {formatNumber(reminder.dueKm)} کیلومتر</span>{/if}
@@ -263,6 +459,10 @@
             <Badge variant="warning">{groupedReminders.near.length}</Badge>
           </div>
           {#each groupedReminders.near as reminder}
+            {@const vehicle = getVehicleForReminder(reminder)}
+            {@const daysRemaining = getDaysRemaining(reminder)}
+            {@const kmRemaining = getKmRemaining(reminder, vehicle)}
+            {@const progress = getProgress(reminder, vehicle)}
             <Card variant="solid" class="reminder-card near" padding="md">
               <div class="reminder-content">
                 <div class="reminder-icon">{getCategoryIcon(reminder.category)}</div>
@@ -278,6 +478,27 @@
                   {#if reminder.vehicleName}
                     <p class="reminder-vehicle">🚗 {reminder.vehicleName}</p>
                   {/if}
+                  
+                  <!-- Progress and Remaining Info -->
+                  <div class="reminder-progress-info">
+                    {#if daysRemaining !== null}
+                      <Badge variant="warning" class="remaining-badge">
+                        ⏰ {daysRemaining} روز باقی مانده
+                      </Badge>
+                    {/if}
+                    {#if kmRemaining !== null}
+                      <Badge variant="warning" class="remaining-badge">
+                        📍 {formatNumber(kmRemaining)} کیلومتر باقی مانده
+                      </Badge>
+                    {/if}
+                  </div>
+                  
+                  {#if progress > 0}
+                    <div class="progress-bar-container">
+                      <div class="progress-bar warning" style="width: {progress}%"></div>
+                    </div>
+                  {/if}
+                  
                   <div class="reminder-meta">
                     {#if reminder.dueDate}<span>📅 {reminder.dueDate}</span>{/if}
                     {#if reminder.dueKm}<span>📍 {formatNumber(reminder.dueKm)} کیلومتر</span>{/if}
@@ -303,6 +524,10 @@
             <Badge variant="success">{groupedReminders.ok.length}</Badge>
           </div>
           {#each groupedReminders.ok as reminder}
+            {@const vehicle = getVehicleForReminder(reminder)}
+            {@const daysRemaining = getDaysRemaining(reminder)}
+            {@const kmRemaining = getKmRemaining(reminder, vehicle)}
+            {@const progress = getProgress(reminder, vehicle)}
             <Card variant="solid" class="reminder-card ok" padding="md">
               <div class="reminder-content">
                 <div class="reminder-icon">{getCategoryIcon(reminder.category)}</div>
@@ -318,6 +543,27 @@
                   {#if reminder.vehicleName}
                     <p class="reminder-vehicle">🚗 {reminder.vehicleName}</p>
                   {/if}
+                  
+                  <!-- Progress and Remaining Info -->
+                  <div class="reminder-progress-info">
+                    {#if daysRemaining !== null && daysRemaining > 0}
+                      <Badge variant="success" class="remaining-badge">
+                        ⏰ {daysRemaining} روز باقی مانده
+                      </Badge>
+                    {/if}
+                    {#if kmRemaining !== null && kmRemaining > 0}
+                      <Badge variant="success" class="remaining-badge">
+                        📍 {formatNumber(kmRemaining)} کیلومتر باقی مانده
+                      </Badge>
+                    {/if}
+                  </div>
+                  
+                  {#if progress > 0 && progress < 100}
+                    <div class="progress-bar-container">
+                      <div class="progress-bar success" style="width: {progress}%"></div>
+                    </div>
+                  {/if}
+                  
                   <div class="reminder-meta">
                     {#if reminder.dueDate}<span>📅 {reminder.dueDate}</span>{/if}
                     {#if reminder.dueKm}<span>📍 {formatNumber(reminder.dueKm)} کیلومتر</span>{/if}
@@ -444,8 +690,49 @@
   .filters {
     display: flex;
     gap: var(--space-sm);
-    margin-bottom: var(--space-lg);
+    margin-bottom: var(--space-md);
     flex-wrap: wrap;
+  }
+
+  .search-filters {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    margin-bottom: var(--space-lg);
+    padding: var(--space-md);
+    background: var(--color-bg-light);
+    border-radius: var(--border-radius-md);
+  }
+
+  .search-box {
+    width: 100%;
+  }
+
+  .search-input {
+    width: 100%;
+  }
+
+  .advanced-filters {
+    display: flex;
+    gap: var(--space-sm);
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .filter-select {
+    min-width: 200px;
+    flex: 1;
+  }
+
+  @media (max-width: 768px) {
+    .advanced-filters {
+      flex-direction: column;
+    }
+    
+    .filter-select {
+      width: 100%;
+      min-width: unset;
+    }
   }
 
   .loading {
@@ -596,6 +883,46 @@
     display: flex;
     gap: var(--space-xs);
     flex-wrap: wrap;
+  }
+
+  .reminder-progress-info {
+    display: flex;
+    gap: var(--space-xs);
+    flex-wrap: wrap;
+    margin: var(--space-sm) 0;
+  }
+
+  .remaining-badge {
+    font-size: var(--font-size-xs);
+    padding: var(--space-xs) var(--space-sm);
+  }
+
+  .progress-bar-container {
+    width: 100%;
+    height: 6px;
+    background-color: var(--color-bg-light);
+    border-radius: var(--border-radius-sm);
+    overflow: hidden;
+    margin: var(--space-sm) 0;
+  }
+
+  .progress-bar {
+    height: 100%;
+    background-color: var(--color-primary);
+    border-radius: var(--border-radius-sm);
+    transition: width 0.3s ease;
+  }
+
+  .progress-bar.warning {
+    background-color: var(--color-warning);
+  }
+
+  .progress-bar.success {
+    background-color: var(--color-success);
+  }
+
+  .progress-bar.danger {
+    background-color: var(--color-danger);
   }
 
   @media (min-width: 768px) {
