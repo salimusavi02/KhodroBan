@@ -301,6 +301,7 @@ export const MENU_ITEMS = [
   { path: '/reminders', label: 'یادآورها', icon: '🔔' },
   { path: '/vehicles', label: 'خودروها', icon: '🚗' },
   { path: '/add', label: 'ثبت جدید', icon: '➕' },
+  { path: '/ai-consultant', label: 'مشاور هوشمند', icon: '🤖' },
   { path: '/reports', label: 'گزارش‌ها', icon: '📊' },
   { path: '/settings', label: 'تنظیمات', icon: '⚙️' },
 ];

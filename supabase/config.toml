@@ -55,3 +55,7 @@ file_size_limit = "50MiB"
 # تنظیمات Edge Functions
 verify_jwt = false
 
+[functions.ai-proxy]
+# برای function ai-proxy، JWT verification را غیرفعال می‌کنیم (public function)
+verify_jwt = false
+
