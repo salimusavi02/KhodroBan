@@ -28,7 +28,7 @@ function createRemindersStore() {
     setReminders(reminders: Reminder[]) {
       update((state) => ({
         ...state,
-        reminders,
+        reminders: reminders || [],
         isLoading: false,
         error: null,
       }));
@@ -52,6 +52,13 @@ function createRemindersStore() {
       update((state) => ({
         ...state,
         reminders: state.reminders.map((r) => (r.id === id ? { ...r, dismissed: true } : r)),
+      }));
+    },
+
+    deleteReminder(id: string) {
+      update((state) => ({
+        ...state,
+        reminders: state.reminders.filter((r) => r.id !== id),
       }));
     },
 
@@ -86,22 +93,22 @@ export const remindersStore = createRemindersStore();
 
 // Derived: active (not dismissed) reminders
 export const activeReminders = derived(remindersStore, ($store) =>
-  $store.reminders.filter((r) => !r.dismissed)
+  $store?.reminders?.filter((r) => !r.dismissed) || []
 );
 
 // Derived: overdue reminders
 export const overdueReminders = derived(remindersStore, ($store) =>
-  $store.reminders.filter((r) => !r.dismissed && r.status === 'overdue')
+  $store?.reminders?.filter((r) => !r.dismissed && r.status === 'overdue') || []
 );
 
 // Derived: near-due reminders
 export const nearDueReminders = derived(remindersStore, ($store) =>
-  $store.reminders.filter((r) => !r.dismissed && r.status === 'near')
+  $store?.reminders?.filter((r) => !r.dismissed && r.status === 'near') || []
 );
 
 // Derived: reminder count by status
 export const reminderStats = derived(remindersStore, ($store) => {
-  const active = $store.reminders.filter((r) => !r.dismissed);
+  const active = $store?.reminders?.filter((r) => !r.dismissed) || [];
   return {
     total: active.length,
     ok: active.filter((r) => r.status === 'ok').length,

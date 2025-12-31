@@ -62,6 +62,24 @@ export function getCurrentJalaliDate(): string {
 }
 
 /**
+ * Add months to Jalali date
+ */
+export function addMonths(dateStr: string, months: number): string {
+  if (!dateStr) return '';
+  const pd = new PersianDate(dateStr);
+  return pd.add('month', months).format('YYYY/MM/DD');
+}
+
+/**
+ * Add days to Jalali date
+ */
+export function addDays(dateStr: string, days: number): string {
+  if (!dateStr) return '';
+  const pd = new PersianDate(dateStr);
+  return pd.add('day', days).format('YYYY/MM/DD');
+}
+
+/**
  * Format Jalali date
  */
 export function formatJalaliDate(dateStr: string): string {
