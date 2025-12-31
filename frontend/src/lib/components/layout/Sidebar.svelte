@@ -22,8 +22,12 @@
   }
 
   async function handleNavigation(path: string) {
-    console.log('Sidebar navigation:', path);
     await navigateTo(path);
+    close();
+  }
+
+  async function handleUpgrade() {
+    await navigateTo('/upgrade');
     close();
   }
 
@@ -86,6 +90,18 @@
         {/if}
       </button>
     {/each}
+    
+    <!-- Upgrade Button for Free Users -->
+    {#if !$isPro}
+      <button
+        onclick={handleUpgrade}
+        class="nav-item upgrade-nav-item"
+        type="button"
+      >
+        <span class="nav-icon">🌟</span>
+        <span class="nav-label">ارتقا به Pro</span>
+      </button>
+    {/if}
   </nav>
 </aside>
 
@@ -261,6 +277,23 @@
   .nav-badge.danger {
     background: var(--color-danger);
     color: white;
+  }
+
+  .upgrade-nav-item {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(249, 115, 22, 0.1) 100%);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    color: #f59e0b;
+    font-weight: 600;
+    margin-top: var(--space-sm);
+  }
+
+  .upgrade-nav-item:hover {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(249, 115, 22, 0.2) 100%);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+  }
+
+  .upgrade-nav-item .nav-icon {
+    filter: drop-shadow(0 2px 4px rgba(245, 158, 11, 0.4));
   }
 
   .sidebar-footer {

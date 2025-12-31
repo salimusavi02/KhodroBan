@@ -88,7 +88,7 @@ function createAuthStore() {
     // Check if user is Pro
     isPro(): boolean {
       const state = get({ subscribe });
-      return state.user?.tier === 'pro';
+      return state.user?.tier === 'pro' || state.user?.tier === 'pro+';
     },
   };
 }
@@ -102,4 +102,4 @@ export const isAuthenticated = derived(authStore, ($auth) => !!$auth.token);
 export const currentUser = derived(authStore, ($auth) => $auth.user);
 
 // Derived store for checking Pro status
-export const isPro = derived(authStore, ($auth) => $auth.user?.tier === 'pro');
+export const isPro = derived(authStore, ($auth) => $auth.user?.tier === 'pro' || $auth.user?.tier === 'pro+');

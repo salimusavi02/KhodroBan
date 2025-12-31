@@ -6,3 +6,4 @@ export { serviceService } from './serviceService';
 export { expenseService } from './expenseService';
 export { reminderService } from './reminderService';
 export { reportService } from './reportService';
+export { upgradeService } from './upgradeService';

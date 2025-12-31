@@ -1,7 +1,7 @@
 <script lang="ts">
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
-  import { reminderStats } from '../../stores';
+  import { reminderStats, isPro } from '../../stores';
   import { navigateTo } from '../../utils/navigation';
   import { getBasePath } from '../../utils/config';
 
@@ -10,7 +10,7 @@
     { path: '/vehicles', label: 'خودروها', icon: '🚗' },
     { path: '/add', label: 'ثبت', icon: '➕', isPrimary: true },
     { path: '/reports', label: 'گزارش', icon: '📊' },
-    { path: '/settings', label: 'تنظیمات', icon: '⚙️' },
+    { path: '/settings', label: 'تنظیمات', icon: '⚙️', showUpgradeBadge: true },
   ];
 
   function isActive(path: string): boolean {
@@ -48,11 +48,14 @@
     >
       <span
         class="nav-icon"
-        class:has-badge={item.path === '/dashboard' && $reminderStats.overdue > 0}
+        class:has-badge={(item.path === '/dashboard' && $reminderStats.overdue > 0) || (item.showUpgradeBadge && !$isPro)}
       >
         {item.icon}
         {#if item.path === '/dashboard' && $reminderStats.overdue > 0}
           <span class="badge">{$reminderStats.overdue}</span>
+        {/if}
+        {#if item.showUpgradeBadge && !$isPro}
+          <span class="badge upgrade-badge">!</span>
         {/if}
       </span>
       <span class="nav-label">{item.label}</span>
@@ -156,6 +159,22 @@
     display: flex;
     align-items: center;
     justify-content: center;
+  }
+
+  .badge.upgrade-badge {
+    background: var(--color-warning);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    50% {
+      transform: scale(1.2);
+      opacity: 0.8;
+    }
   }
 
   .nav-label {

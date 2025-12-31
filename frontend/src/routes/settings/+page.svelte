@@ -101,19 +101,7 @@
   }
 
   async function handleUpgrade() {
-    try {
-      const { redirectUrl } = await authService.upgradeToPro();
-      // In production, redirect to payment gateway
-      toastStore.info('در حال انتقال به درگاه پرداخت...');
-      // window.location.href = redirectUrl;
-
-      // For demo, just show a message
-      setTimeout(() => {
-        toastStore.success('این یک دمو است. در نسخه واقعی به درگاه پرداخت منتقل می‌شوید.');
-      }, 1000);
-    } catch {
-      toastStore.error('خطا در ارتباط با سرور');
-    }
+    await navigateTo('/upgrade');
   }
 
   function handleLogout() {

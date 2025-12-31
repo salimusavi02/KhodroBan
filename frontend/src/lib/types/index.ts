@@ -6,7 +6,7 @@ export interface User {
   id: string;
   email: string;
   name: string;
-  tier: 'free' | 'pro';
+  tier: 'free' | 'pro' | 'pro+';
   createdAt: string;
   updatedAt: string;
 }

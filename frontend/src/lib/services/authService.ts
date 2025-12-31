@@ -51,7 +51,7 @@ async function mapSupabaseUserToAppUser(supabaseUser: any): Promise<User> {
       `${profileData?.first_name || ''} ${profileData?.last_name || ''}`.trim() ||
       supabaseUser.email ||
       '',
-    tier: planCode === 'pro' ? 'pro' : 'free',
+    tier: (planCode === 'pro' || planCode === 'pro+') ? planCode : 'free',
     createdAt: supabaseUser.created_at || new Date().toISOString(),
     updatedAt: profileData?.updated_at || new Date().toISOString(),
   };
