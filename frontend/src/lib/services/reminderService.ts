@@ -247,27 +247,39 @@ const reminderServiceSupabase: IReminderService = {
         .from('reminder_settings')
         .select('*')
         .eq('vehicle_id', vehicle.vehicle_id)
-        .single();
+        .maybeSingle();
       
-      if (settingsError) {
+      // اگر خطا وجود دارد (غیر از "no rows found") آن را لاگ کن
+      if (settingsError && settingsError.code !== 'PGRST116') {
         console.error(`[REMINDER-SERVICE] Settings error for vehicle ${vehicle.vehicle_id}:`, settingsError);
         console.error(`[REMINDER-SERVICE] Full error:`, JSON.stringify(settingsError, null, 2));
       }
       
-      if (!settings) continue;
-
-      if (!settings) continue;
+      // اگر تنظیماتی برای این خودرو وجود ندارد، از آن رد شو
+      if (!settings) {
+        console.log(`[REMINDER-SERVICE] No settings found for vehicle ${vehicle.vehicle_id}, skipping...`);
+        continue;
+      }
 
       // دریافت آخرین سرویس
-      const { data: lastService } = await supabase
+      const { data: lastService, error: lastServiceError } = await supabase
         .from('services')
         .select('service_date, service_km, service_type')
         .eq('vehicle_id', vehicle.vehicle_id)
         .order('service_km', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
-      if (!lastService) continue;
+      // اگر خطا وجود دارد (غیر از "no rows found") آن را لاگ کن
+      if (lastServiceError && lastServiceError.code !== 'PGRST116') {
+        console.error(`[REMINDER-SERVICE] Last service error for vehicle ${vehicle.vehicle_id}:`, lastServiceError);
+      }
+
+      // اگر سرویسی برای این خودرو وجود ندارد، از آن رد شو
+      if (!lastService) {
+        console.log(`[REMINDER-SERVICE] No service found for vehicle ${vehicle.vehicle_id}, skipping...`);
+        continue;
+      }
 
       // محاسبه وضعیت
       const dueKm = lastService.service_km + settings.interval_km;
@@ -351,7 +363,7 @@ const reminderServiceSupabase: IReminderService = {
       .select('vehicle_id')
       .eq('user_id', user.id)
       .limit(1)
-      .single();
+      .maybeSingle();
 
     if (!vehicle) {
       // تنظیمات پیش‌فرض
@@ -367,7 +379,7 @@ const reminderServiceSupabase: IReminderService = {
       .from('reminder_settings')
       .select('*')
       .eq('vehicle_id', vehicle.vehicle_id)
-      .single();
+      .maybeSingle();
 
     if (!settings) {
       return {
@@ -404,7 +416,7 @@ const reminderServiceSupabase: IReminderService = {
       .select('vehicle_id')
       .eq('user_id', user.id)
       .limit(1)
-      .single();
+      .maybeSingle();
 
     if (!vehicle) throw new Error('خودرویی یافت نشد');
 
@@ -562,7 +574,7 @@ const reminderServiceSupabase: IReminderService = {
       .select('*')
       .eq('id', id)
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
     if (!current) throw new Error('یادآور یافت نشد یا دسترسی غیرمجاز');
 

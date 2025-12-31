@@ -227,14 +227,106 @@ CREATE TRIGGER set_updated_at_service_types_mapping
 -- 7. Comments برای مستندسازی
 -- ============================================
 
-COMMENT ON TABLE public.service_types IS 'انواع سرویس‌های قابل انتخاب (تعویض روغن، فیلتر، ...)';
-COMMENT ON TABLE public.expense_categories IS 'دسته‌بندی هزینه‌های روزانه (سوخت، کارواش، ...)';
-COMMENT ON TABLE public.service_items IS 'اقلام سرویس (برای پشتیبانی از سرویس‌های چندگانه)';
-COMMENT ON TABLE public.service_types_mapping IS 'نگاشت سرویس‌ها به انواع سرویس (جایگزین service_type)';
+COMMENT ON TABLE public.service_types IS 'انواع سرویس‌های قابل انتخاب (تعویض روغن، فیلتر، ...) - جدول مرجع عمومی';
+COMMENT ON TABLE public.expense_categories IS 'دسته‌بندی هزینه‌های روزانه (سوخت، کارواش، ...) - جدول مرجع عمومی';
+COMMENT ON TABLE public.service_items IS 'اقلام سرویس (برای پشتیبانی از سرویس‌های چندگانه) - RLS فعال';
+COMMENT ON TABLE public.service_types_mapping IS 'نگاشت سرویس‌ها به انواع سرویس (جایگزین service_type) - RLS فعال';
 
 -- ============================================
--- 8. به‌روزرسانی نظرات جداول موجود
+-- 8. فعال‌سازی Row Level Security (RLS)
+-- ============================================
+
+-- RLS برای جدول service_items (داده‌های کاربر)
+ALTER TABLE public.service_items ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own service items" ON public.service_items
+    FOR SELECT USING (
+        EXISTS (
+            SELECT 1 FROM public.services s
+            JOIN public.vehicles v ON s.vehicle_id = v.vehicle_id
+            WHERE s.service_id = service_items.service_id
+            AND v.user_id = auth.uid()
+        )
+    );
+
+CREATE POLICY "Users can insert own service items" ON public.service_items
+    FOR INSERT WITH CHECK (
+        EXISTS (
+            SELECT 1 FROM public.services s
+            JOIN public.vehicles v ON s.vehicle_id = v.vehicle_id
+            WHERE s.service_id = service_items.service_id
+            AND v.user_id = auth.uid()
+        )
+    );
+
+CREATE POLICY "Users can update own service items" ON public.service_items
+    FOR UPDATE USING (
+        EXISTS (
+            SELECT 1 FROM public.services s
+            JOIN public.vehicles v ON s.vehicle_id = v.vehicle_id
+            WHERE s.service_id = service_items.service_id
+            AND v.user_id = auth.uid()
+        )
+    );
+
+CREATE POLICY "Users can delete own service items" ON public.service_items
+    FOR DELETE USING (
+        EXISTS (
+            SELECT 1 FROM public.services s
+            JOIN public.vehicles v ON s.vehicle_id = v.vehicle_id
+            WHERE s.service_id = service_items.service_id
+            AND v.user_id = auth.uid()
+        )
+    );
+
+-- RLS برای جدول service_types_mapping (داده‌های کاربر)
+ALTER TABLE public.service_types_mapping ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own service types mapping" ON public.service_types_mapping
+    FOR SELECT USING (
+        EXISTS (
+            SELECT 1 FROM public.services s
+            JOIN public.vehicles v ON s.vehicle_id = v.vehicle_id
+            WHERE s.service_id = service_types_mapping.service_id
+            AND v.user_id = auth.uid()
+        )
+    );
+
+CREATE POLICY "Users can insert own service types mapping" ON public.service_types_mapping
+    FOR INSERT WITH CHECK (
+        EXISTS (
+            SELECT 1 FROM public.services s
+            JOIN public.vehicles v ON s.vehicle_id = v.vehicle_id
+            WHERE s.service_id = service_types_mapping.service_id
+            AND v.user_id = auth.uid()
+        )
+    );
+
+CREATE POLICY "Users can update own service types mapping" ON public.service_types_mapping
+    FOR UPDATE USING (
+        EXISTS (
+            SELECT 1 FROM public.services s
+            JOIN public.vehicles v ON s.vehicle_id = v.vehicle_id
+            WHERE s.service_id = service_types_mapping.service_id
+            AND v.user_id = auth.uid()
+        )
+    );
+
+CREATE POLICY "Users can delete own service types mapping" ON public.service_types_mapping
+    FOR DELETE USING (
+        EXISTS (
+            SELECT 1 FROM public.services s
+            JOIN public.vehicles v ON s.vehicle_id = v.vehicle_id
+            WHERE s.service_id = service_types_mapping.service_id
+            AND v.user_id = auth.uid()
+        )
+    );
+
+-- ============================================
+-- 9. به‌روزرسانی نظرات جداول موجود
 -- ============================================
 
 COMMENT ON TABLE public.services IS 'سوابق سرویس و تعویض روغن (پشتیبانی از چند سرویس همزمان)';
 COMMENT ON TABLE public.daily_expenses IS 'هزینه‌های روزانه خودرو (با دسته‌بندی از جدول مرجع)';
+COMMENT ON TABLE public.service_items IS 'اقلام سرویس (برای پشتیبانی از سرویس‌های چندگانه) - RLS فعال';
+COMMENT ON TABLE public.service_types_mapping IS 'نگاشت سرویس‌ها به انواع سرویس (جایگزین service_type) - RLS فعال';
