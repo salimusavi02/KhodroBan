@@ -3,9 +3,11 @@
   import { Layout } from '$lib/components/layout';
   import { Button, Spinner } from '$lib/components/ui';
   import { analyzeCarIssue, isAIServiceConfigured, getCurrentProviderInfo } from '$lib/services/ai';
+  import { buildUserContext } from '$lib/services/ai/utils';
   import type { AIModelMode } from '$lib/services/ai';
   import type { ChatMessage } from '$lib/types';
-  import { toastStore } from '$lib/stores';
+  import { toastStore, vehiclesStore, servicesStore, expensesStore } from '$lib/stores';
+  import { vehicleService, serviceService, expenseService } from '$lib/services';
 
   let messages = $state<ChatMessage[]>([
     { 
@@ -24,12 +26,35 @@
   let chatEndRef: HTMLDivElement;
   let fileInputRef: HTMLInputElement;
 
-  onMount(() => {
+  // Derived stores برای دسترسی به داده‌ها
+  let vehicles = $derived($vehiclesStore.vehicles);
+  let services = $derived($servicesStore.services);
+  let expenses = $derived($expensesStore.expenses);
+
+  // بارگذاری اطلاعات برای context
+  onMount(async () => {
     isConfigured = isAIServiceConfigured();
     providerInfo = getCurrentProviderInfo();
     
     if (!isConfigured) {
       toastStore.warning('سرویس AI پیکربندی نشده است. لطفاً با مدیر سیستم تماس بگیرید.');
+    }
+
+    // بارگذاری اطلاعات برای context (اگر هنوز بارگذاری نشده باشند)
+    try {
+      // اگر داده‌ها خالی هستند، از service بارگذاری کن
+      if (vehicles.length === 0) {
+        await vehicleService.getAll().then(data => vehiclesStore.setVehicles(data));
+      }
+      if (services.length === 0) {
+        await serviceService.getAll().then(data => servicesStore.setServices(data));
+      }
+      if (expenses.length === 0) {
+        await expenseService.getAll().then(data => expensesStore.setExpenses(data));
+      }
+    } catch (error) {
+      console.warn('Failed to load context data:', error);
+      // این خطا critical نیست - فقط context دقیق‌تر نمی‌شود
     }
   });
 
@@ -90,12 +115,14 @@
       mode: activeMode
     };
 
-    messages = [...messages, userMsg];
     const currentInput = input;
     const currentImage = image;
     input = '';
     image = null;
     isLoading = true;
+
+    // اضافه کردن پیام کاربر به messages (بعد از ساخت context)
+    messages = [...messages, userMsg];
 
     try {
       let locationData = undefined;
@@ -110,12 +137,37 @@
       }
 
       const base64Data = currentImage ? currentImage.split(',')[1] : undefined;
+      
+      // ساخت user context از اطلاعات کاربر
+      const userContext = buildUserContext({
+        vehicles,
+        services,
+        expenses,
+        maxServices: 10,
+        maxExpenses: 10,
+      });
+
+      // ساخت conversation context از تاریخچه گفتگو (بدون آخرین پیام که همین حالا اضافه شد)
+      // فقط پیام‌های قبلی (قبل از userMsg) را بگیر
+      const previousMessages = messages.slice(0, -1);
+      const conversationContext = {
+        messages: previousMessages
+          .filter(msg => msg.role === 'user' || msg.role === 'model')
+          .map(msg => ({
+            role: msg.role as 'user' | 'model',
+            text: msg.text
+          })),
+        maxHistoryMessages: 10
+      };
+
       const result = await analyzeCarIssue({
         prompt: currentInput,
         base64Image: base64Data,
         deepThinking: useDeepThinking,
         mode: activeMode,
-        location: locationData
+        location: locationData,
+        userContext,
+        conversationContext
       });
 
       const groundingLinks = result.groundingChunks

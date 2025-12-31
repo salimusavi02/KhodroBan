@@ -5,6 +5,7 @@
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 import type { IAIProvider } from '../base';
 import type { AIRequestParams, AIResponse, AIProviderInfo, AIProviderConfig } from '../types';
+import { formatUserContextForPrompt, formatConversationContextForPrompt } from '../utils';
 
 export class GeminiProvider implements IAIProvider {
   private apiKey: string;
@@ -73,7 +74,32 @@ export class GeminiProvider implements IAIProvider {
       modelName = params.model;
     }
 
-    const parts: any[] = [{ text: params.prompt }];
+    // ساخت prompt با context
+    let fullPrompt = '';
+    
+    // اضافه کردن conversation context
+    if (params.conversationContext?.messages && params.conversationContext.messages.length > 0) {
+      const conversationContext = formatConversationContextForPrompt(
+        params.conversationContext.messages,
+        params.conversationContext.maxHistoryMessages || 10
+      );
+      if (conversationContext) {
+        fullPrompt += conversationContext + '\n\n';
+      }
+    }
+    
+    // اضافه کردن user context (اطلاعات خودرو و سوابق)
+    if (params.userContext) {
+      const userContextText = formatUserContextForPrompt(params.userContext);
+      if (userContextText) {
+        fullPrompt += 'اطلاعات کاربر برای راهنمایی بهتر:\n' + userContextText + '\n\n';
+      }
+    }
+    
+    // اضافه کردن prompt فعلی
+    fullPrompt += params.prompt;
+
+    const parts: any[] = [{ text: fullPrompt }];
     
     if (params.base64Image) {
       parts.push({

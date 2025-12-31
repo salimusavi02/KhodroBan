@@ -5,6 +5,7 @@
 import OpenAI from 'openai';
 import type { IAIProvider } from '../base';
 import type { AIRequestParams, AIResponse, AIProviderInfo, AIProviderConfig, AIModelMode } from '../types';
+import { formatUserContextForPrompt, formatConversationContextForPrompt } from '../utils';
 
 export class OpenAIProvider implements IAIProvider {
   private apiKey: string;
@@ -22,13 +23,47 @@ export class OpenAIProvider implements IAIProvider {
     this.defaultModels = config.defaultModels || {};
     
     if (this.apiKey) {
+      const isSupabaseProxy = this.baseURL?.includes('supabase.co/functions/v1');
+      
+      // دریافت Supabase anon key برای Edge Functions
+      const supabaseAnonKey = isSupabaseProxy 
+        ? import.meta.env.VITE_SUPABASE_ANON_KEY 
+        : undefined;
+      
+      // ساخت defaultHeaders (فقط برای OpenRouter)
+      const defaultHeaders: Record<string, string> = {};
+      
+      if (this.baseURL?.includes('openrouter.ai')) {
+        defaultHeaders['HTTP-Referer'] = typeof window !== 'undefined' ? window.location.origin : '';
+      }
+      
+      // Custom fetch برای Supabase proxy که headers apikey و Authorization را اضافه می‌کند
+      // این بهتر از defaultHeaders است چون OpenAI client ممکن است headers را override کند
+      // Supabase Edge Functions نیاز به header 'apikey' و 'Authorization' با anon key دارند
+      const customFetch = isSupabaseProxy && supabaseAnonKey
+        ? (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+            const headers = new Headers(init?.headers);
+            // اضافه کردن apikey header
+            headers.set('apikey', supabaseAnonKey);
+            // override کردن Authorization header با Supabase anon key (به جای dummy)
+            headers.set('Authorization', `Bearer ${supabaseAnonKey}`);
+            return fetch(input, { ...init, headers });
+          }
+        : undefined;
+      
       this.client = new OpenAI({
-        apiKey: this.apiKey,
+        // برای Supabase proxy، API Key از Supabase secret استفاده می‌شود
+        // پس dummy key می‌فرستیم
+        apiKey: isSupabaseProxy ? 'dummy' : this.apiKey,
         baseURL: this.baseURL,
-        // برای OpenRouter نیاز به header اضافی است
-        defaultHeaders: this.baseURL?.includes('openrouter.ai') 
-          ? { 'HTTP-Referer': typeof window !== 'undefined' ? window.location.origin : '' }
-          : undefined,
+        // اجازه استفاده در مرورگر (برای frontend applications)
+        // نکته: این فقط برای API Key‌های public/frontend استفاده می‌شود
+        // هرگز secret key را در frontend قرار ندهید!
+        dangerouslyAllowBrowser: true,
+        // اضافه کردن headers اضافی
+        defaultHeaders: Object.keys(defaultHeaders).length > 0 ? defaultHeaders : undefined,
+        // استفاده از custom fetch برای Supabase proxy
+        fetch: customFetch,
       });
     }
   }
@@ -82,16 +117,45 @@ export class OpenAIProvider implements IAIProvider {
     }
 
     const model = this.getModelForMode(params.mode, params.model);
+    
+    // ساخت system prompt با context
+    let systemPrompt = 'شما یک مشاور هوشمند خودرو هستید که به زبان فارسی پاسخ می‌دهید. به سوالات کاربران درباره مشکلات خودرو، نگهداری، تعمیرات و سرویس‌های دوره‌ای پاسخ می‌دهید.';
+    
+    // اضافه کردن user context (اطلاعات خودرو و سوابق)
+    if (params.userContext) {
+      const userContextText = formatUserContextForPrompt(params.userContext);
+      if (userContextText) {
+        systemPrompt += '\n\nشما به اطلاعات زیر از کاربر دسترسی دارید. از این اطلاعات برای ارائه راهنمایی‌های دقیق‌تر و شخصی‌سازی‌شده استفاده کنید:';
+        systemPrompt += userContextText;
+      }
+    }
+
+    // ساخت messages با conversation context
     const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
       {
         role: 'system',
-        content: 'شما یک مشاور هوشمند خودرو هستید که به زبان فارسی پاسخ می‌دهید. به سوالات کاربران درباره مشکلات خودرو، نگهداری، تعمیرات و سرویس‌های دوره‌ای پاسخ می‌دهید.'
-      },
-      {
-        role: 'user',
-        content: this.buildContent(params)
+        content: systemPrompt
       }
     ];
+
+    // اضافه کردن تاریخچه گفتگو (conversation context)
+    if (params.conversationContext?.messages && params.conversationContext.messages.length > 0) {
+      const maxHistory = params.conversationContext.maxHistoryMessages || 10;
+      const historyMessages = params.conversationContext.messages.slice(-maxHistory);
+      
+      historyMessages.forEach((msg) => {
+        messages.push({
+          role: msg.role === 'user' ? 'user' : 'assistant',
+          content: msg.text
+        });
+      });
+    }
+
+    // اضافه کردن پیام فعلی
+    messages.push({
+      role: 'user',
+      content: this.buildContent(params)
+    });
 
     try {
       const response = await this.client.chat.completions.create({

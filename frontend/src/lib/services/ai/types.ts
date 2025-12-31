@@ -13,6 +13,53 @@ export type AIModelMode = 'expert' | 'fast' | 'maps';
 export type AIProvider = 'gemini' | 'openai' | 'openrouter';
 
 /**
+ * Context اطلاعات کاربر (خودرو و سوابق)
+ */
+export interface UserContext {
+  /** لیست خودروهای کاربر */
+  vehicles?: Array<{
+    id: string;
+    model: string;
+    year: number;
+    plateNumber: string;
+    currentKm: number;
+    note?: string;
+  }>;
+  /** آخرین سرویس‌ها (حداکثر 10) */
+  recentServices?: Array<{
+    date: string;
+    km: number;
+    cost: number;
+    type: string;
+    types?: string[];
+    note?: string;
+    vehicleModel?: string;
+  }>;
+  /** آخرین هزینه‌ها (حداکثر 10) */
+  recentExpenses?: Array<{
+    date: string;
+    amount: number;
+    category: string;
+    km?: number;
+    note?: string;
+    vehicleModel?: string;
+  }>;
+}
+
+/**
+ * Context گفتگو (تاریخچه پیام‌ها)
+ */
+export interface ConversationContext {
+  /** تاریخچه پیام‌ها (برای حفظ context) */
+  messages?: Array<{
+    role: 'user' | 'model';
+    text: string;
+  }>;
+  /** حداکثر تعداد پیام‌های قبلی که باید ارسال شود (default: 10) */
+  maxHistoryMessages?: number;
+}
+
+/**
  * تنظیمات برای درخواست AI
  */
 export interface AIRequestParams {
@@ -26,6 +73,10 @@ export interface AIRequestParams {
   };
   /** مدل خاص (اختیاری - اگر provider به پشتیبانی از مدل‌های مختلف نیاز داشته باشد) */
   model?: string;
+  /** Context اطلاعات کاربر (خودرو و سوابق) */
+  userContext?: UserContext;
+  /** Context گفتگو (تاریخچه پیام‌ها) */
+  conversationContext?: ConversationContext;
 }
 
 /**
