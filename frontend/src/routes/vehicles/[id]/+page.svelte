@@ -175,7 +175,15 @@
                 <div class="record-header">
                   <div class="record-type">
                     <span class="type-icon">🔧</span>
-                    <span class="type-label">{SERVICE_TYPES[service.type]}</span>
+                    <div class="type-labels">
+                      {#if service.types && service.types.length > 0}
+                        {#each service.types as type}
+                          <span class="type-label">{SERVICE_TYPES[type] || type}</span>
+                        {/each}
+                      {:else}
+                        <span class="type-label">{SERVICE_TYPES[service.type]}</span>
+                      {/if}
+                    </div>
                   </div>
                   <Badge variant="primary">{formatJalaliDate(service.date)}</Badge>
                 </div>
@@ -482,8 +490,19 @@
     font-size: 1.25rem;
   }
 
+  .type-labels {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
   .type-label {
     font-weight: 600;
+    padding: 0.25rem 0.5rem;
+    background: var(--color-primary-light);
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
   }
 
   .record-details {

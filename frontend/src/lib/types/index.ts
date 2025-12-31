@@ -64,15 +64,40 @@ export interface VehicleFormData {
 // Service Record Types
 // ========================================
 
-export type ServiceType = 'oil_change' | 'filter' | 'brakes' | 'other';
+export type ServiceType = 
+  | 'oil_change' 
+  | 'filter' 
+  | 'brakes' 
+  | 'battery'
+  | 'tire'
+  | 'alignment'
+  | 'suspension'
+  | 'transmission'
+  | 'cooling'
+  | 'electrical'
+  | 'ac'
+  | 'exhaust'
+  | 'clutch'
+  | 'body'
+  | 'glass'
+  | 'lighting'
+  | 'other';
+
+export interface ServiceItem {
+  type: ServiceType;
+  cost: number;
+  description?: string;
+}
 
 export interface ServiceRecord {
   id: string;
   vehicleId: string;
   date: string; // Jalali date string
   km: number;
-  cost: number;
-  type: ServiceType;
+  cost: number; // Total cost (sum of all items)
+  type: ServiceType; // Primary type (for backward compatibility)
+  types: ServiceType[]; // All service types
+  items?: ServiceItem[]; // Detailed items with individual costs
   note?: string;
   createdAt: string;
   updatedAt: string;
@@ -88,8 +113,10 @@ export interface ServiceFormData {
   vehicleId: string;
   date: string;
   km: number;
-  cost: number;
-  type: ServiceType;
+  cost: number; // Total cost
+  type: ServiceType; // Primary type (for backward compatibility)
+  types: ServiceType[]; // Selected service types
+  items?: ServiceItem[]; // Optional: individual costs per type
   note?: string;
 }
 

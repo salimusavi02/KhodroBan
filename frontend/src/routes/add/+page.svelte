@@ -3,7 +3,7 @@
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
   import { Layout } from '$lib/components/layout';
-  import { Card, Button, Input, Select, Tabs, GroupedSelect } from '$lib/components/ui';
+  import { Card, Button, Input, Select, Tabs, GroupedSelectAccordionRadio } from '$lib/components/ui';
   import { ReminderModal } from '$lib/components/organisms';
   import { vehiclesStore, servicesStore, expensesStore, toastStore, remindersStore } from '$lib/stores';
   import { vehicleService, serviceService, expenseService, reminderService } from '$lib/services';
@@ -31,6 +31,7 @@
     km: 0,
     cost: 0,
     type: 'oil_change',
+    types: [],
     note: '',
   });
 
@@ -100,7 +101,12 @@
       date: [(v) => validators.required(v, 'تاریخ')],
       km: [(v) => validators.required(v, 'کیلومتر'), validators.kilometers],
       cost: [(v) => validators.required(v, 'هزینه'), validators.amount],
-      type: [(v) => validators.required(v, 'نوع سرویس')],
+      types: [(v) => {
+        if (!v || (Array.isArray(v) && v.length === 0)) {
+          return { valid: false, message: 'حداقل یک نوع سرویس را انتخاب کنید' };
+        }
+        return { valid: true };
+      }],
     });
 
     if (!validation.valid) {
@@ -273,11 +279,21 @@
               required
             />
 
-            <GroupedSelect
+            <!-- <GroupedSelect
               groups={SERVICE_CATEGORIES}
               label="نوع سرویس"
               placeholder="انتخاب سرویس..."
               bind:value={serviceForm.type}
+              error={getFieldError(errors, 'type')}
+              required
+            /> -->
+            <GroupedSelectAccordionRadio
+              groups={SERVICE_CATEGORIES}
+              label="نوع سرویس"
+              placeholder="انتخاب سرویس..."
+              bind:value={serviceForm.type}
+              bind:values={serviceForm.types}
+              multiple={true}
               error={getFieldError(errors, 'type')}
               required
             />
@@ -343,7 +359,7 @@
               required
             />
 
-            <GroupedSelect
+            <GroupedSelectAccordionRadio
               groups={EXPENSE_CATEGORIES_GROUPED}
               label="دسته‌بندی هزینه"
               placeholder="انتخاب هزینه..."

@@ -1,6 +1,6 @@
 import { supabase } from '../supabase';
 import api from './api';
-import type { ServiceRecord, ServiceFormData, ApiResponse } from '../types';
+import type { ServiceRecord, ServiceFormData, ApiResponse, ServiceType } from '../types';
 import { selectService } from './base/router';
 import type { IServiceService } from './base/types';
 import { parseJalaliDate, formatJalaliDate } from '../utils/format';
@@ -179,17 +179,34 @@ const serviceServiceSupabase: IServiceService = {
 
     if (error) throw new Error(error.message);
 
+    // Fetch service items
+    const { data: items } = await supabase
+      .from('service_items')
+      .select('service_type_code, cost, description')
+      .eq('service_id', parseInt(id));
+
+    const serviceItems = (items || []).map((item: any) => ({
+      type: item.service_type_code as ServiceType,
+      cost: item.cost,
+      description: item.description || undefined,
+    }));
+
     const serviceData = data as any;
+    const types = serviceItems.length > 0
+      ? serviceItems.map(item => item.type)
+      : [serviceData.service_type as ServiceType];
+
     return {
       id: serviceData.service_id.toString(),
       vehicleId: serviceData.vehicle_id.toString(),
-      // تبدیل تاریخ میلادی به شمسی برای نمایش در UI
       date: serviceData.service_date_gregorian
         ? formatJalaliDate(serviceData.service_date_gregorian)
         : formatJalaliDate(serviceData.service_date),
       km: serviceData.service_km,
-      cost: serviceData.cost,
+      cost: serviceData.total_cost || serviceData.cost,
       type: serviceData.service_type as any,
+      types: types,
+      items: serviceItems.length > 0 ? serviceItems : undefined,
       note: serviceData.description || undefined,
       createdAt: serviceData.created_at,
       updatedAt: serviceData.updated_at,
@@ -213,33 +230,108 @@ const serviceServiceSupabase: IServiceService = {
       serviceDateGregorian = new Date().toISOString().split('T')[0];
     }
 
-    const { data: newService, error } = await supabase
+    // استفاده از types اگر موجود باشد، در غیر این صورت از type
+    const serviceTypes = data.types && data.types.length > 0 ? data.types : [data.type];
+    const primaryType = serviceTypes[0] || data.type;
+
+    // محاسبه total_cost از items اگر موجود باشد، در غیر این صورت از cost
+    const totalCost = data.items && data.items.length > 0
+      ? data.items.reduce((sum, item) => sum + item.cost, 0)
+      : data.cost;
+
+    // ایجاد سرویس اصلی
+    const { data: newService, error: serviceError } = await supabase
       .from('services')
       .insert({
         vehicle_id: parseInt(data.vehicleId),
-        service_date: serviceDateGregorian, // استفاده از تاریخ میلادی برای service_date
+        service_date: serviceDateGregorian,
         service_date_gregorian: serviceDateGregorian,
         service_km: data.km,
-        cost: data.cost,
-        service_type: data.type,
+        cost: totalCost,
+        total_cost: totalCost,
+        service_type: primaryType,
         description: data.note || null,
+        general_note: data.note || null,
       } as any)
       .select()
       .single();
 
-    if (error) throw new Error(error.message);
+    if (serviceError) throw new Error(serviceError.message);
 
     const newServiceData = newService as any;
+    const serviceId = newServiceData.service_id;
+
+    // ایجاد service_items برای هر نوع سرویس
+    if (serviceTypes.length > 0) {
+      // فیلتر کردن service types تکراری
+      const uniqueServiceTypes = [...new Set(serviceTypes)];
+      
+      const itemsToInsert = data.items && data.items.length > 0
+        ? data.items
+            .filter(item => item.type && item.cost !== undefined)
+            .map(item => ({
+              service_id: serviceId,
+              service_type_code: item.type,
+              cost: Math.max(0, Math.floor(item.cost || 0)),
+              description: item.description || null,
+            }))
+        : uniqueServiceTypes
+            .filter(type => type) // فیلتر کردن مقادیر null/undefined
+            .map(type => ({
+              service_id: serviceId,
+              service_type_code: type,
+              cost: Math.max(0, Math.floor(totalCost / uniqueServiceTypes.length)), // تقسیم هزینه به صورت مساوی
+              description: null,
+            }));
+
+      // بررسی اینکه آیا itemsToInsert خالی نیست
+      if (itemsToInsert.length > 0) {
+        // بررسی اینکه آیا service_id معتبر است
+        if (!serviceId || isNaN(Number(serviceId))) {
+          await supabase.from('services').delete().eq('service_id', serviceId);
+          throw new Error('شناسه سرویس معتبر نیست');
+        }
+
+        const { error: itemsError, data: insertedItems } = await supabase
+          .from('service_items')
+          .insert(itemsToInsert)
+          .select();
+
+        if (itemsError) {
+          // اگر insert items ناموفق بود، سرویس را حذف می‌کنیم
+          await supabase.from('services').delete().eq('service_id', serviceId);
+          console.error('Error inserting service items:', itemsError);
+          console.error('Items to insert:', JSON.stringify(itemsToInsert, null, 2));
+          console.error('Service ID:', serviceId);
+          console.error('Service Types:', serviceTypes);
+          throw new Error(`خطا در ثبت اقلام سرویس: ${itemsError.message} (کد خطا: ${itemsError.code || 'unknown'})`);
+        }
+      }
+    }
+
+    // Fetch service items for response
+    const { data: serviceItems } = await supabase
+      .from('service_items')
+      .select('service_type_code, cost, description')
+      .eq('service_id', serviceId);
+
+    const items = serviceItems?.map((item: any) => ({
+      type: item.service_type_code as ServiceType,
+      cost: item.cost,
+      description: item.description || undefined,
+    })) || [];
+
     return {
       id: newServiceData.service_id.toString(),
       vehicleId: newServiceData.vehicle_id.toString(),
-      // تبدیل تاریخ میلادی به شمسی برای نمایش در UI
       date: newServiceData.service_date_gregorian
         ? formatJalaliDate(newServiceData.service_date_gregorian)
         : formatJalaliDate(newServiceData.service_date),
       km: newServiceData.service_km,
-      cost: newServiceData.cost,
-      type: newServiceData.service_type as any,
+      cost: newServiceData.total_cost || newServiceData.cost,
+      type: primaryType as any,
+      types: serviceTypes as ServiceType[],
+      items: items,
       note: newServiceData.description || undefined,
       createdAt: newServiceData.created_at,
       updatedAt: newServiceData.updated_at,
