@@ -4,6 +4,7 @@ import type { ServiceRecord, ServiceFormData, ApiResponse, ServiceType } from '.
 import { selectService } from './base/router';
 import type { IServiceService } from './base/types';
 import { parseJalaliDate, formatJalaliDate } from '../utils/format';
+import { vehicleService } from './vehicleService';
 
 // ============================================
 // MOCK IMPLEMENTATION
@@ -75,6 +76,21 @@ const serviceServiceMock: IServiceService = {
       updatedAt: new Date().toISOString(),
     };
     mockServices.unshift(newService);
+    
+    // ثبت کیلومتر در تاریخچه
+    if (data.km) {
+      const typesText = data.types && data.types.length > 0 
+        ? data.types.join(', ') 
+        : (data.type || 'سرویس');
+      await vehicleService.addKmHistory(
+        data.vehicleId,
+        data.km,
+        'service',
+        newService.id,
+        `سرویس: ${typesText}`
+      );
+    }
+    
     return newService;
   },
 
@@ -320,6 +336,23 @@ const serviceServiceSupabase: IServiceService = {
       cost: item.cost,
       description: item.description || undefined,
     })) || [];
+
+    // ثبت کیلومتر در تاریخچه
+    if (data.km) {
+      const typesText = serviceTypes.join(', ');
+      try {
+        await vehicleService.addKmHistory(
+          data.vehicleId,
+          data.km,
+          'service',
+          serviceId.toString(),
+          `سرویس: ${typesText}`
+        );
+      } catch (error) {
+        // Log error but don't fail the service creation
+        console.error('Failed to add KM history:', error);
+      }
+    }
 
     return {
       id: newServiceData.service_id.toString(),

@@ -100,6 +100,30 @@ export function formatJalaliDate(dateStr: string): string {
 }
 
 /**
+ * Format Jalali date and time
+ */
+export function formatJalaliDateTime(dateStr: string): string {
+  if (!dateStr) return '';
+
+  try {
+    const date = new Date(dateStr);
+    const pd = new PersianDate(date);
+    
+    // Format: YYYY/MM/DD - HH:MM
+    const datePart = pd.format('YYYY/MM/DD');
+    const timePart = date.toLocaleTimeString('fa-IR', { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      hour12: false 
+    });
+    
+    return `${datePart} - ${timePart}`;
+  } catch {
+    return dateStr;
+  }
+}
+
+/**
  * Parse Jalali date to Date object
  */
 export function parseJalaliDate(jalaliStr: string): Date {

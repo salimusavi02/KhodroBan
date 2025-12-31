@@ -1,6 +1,6 @@
 import { supabase } from '../supabase';
 import api from './api';
-import type { Vehicle, VehicleFormData, ApiResponse } from '../types';
+import type { Vehicle, VehicleFormData, ApiResponse, KmHistoryRecord, KmHistorySource } from '../types';
 import { selectService } from './base/router';
 import type { IVehicleService } from './base/types';
 
@@ -32,6 +32,9 @@ const mockVehicles: Vehicle[] = [
   },
 ];
 
+// Mock storage for KM history
+const mockKmHistory: Record<string, KmHistoryRecord[]> = {};
+
 const vehicleServiceMock: IVehicleService = {
   async getAll(): Promise<Vehicle[]> {
     await new Promise((resolve) => setTimeout(resolve, 500));
@@ -55,6 +58,12 @@ const vehicleServiceMock: IVehicleService = {
       updatedAt: new Date().toISOString(),
     };
     mockVehicles.push(newVehicle);
+    
+    // ایجاد رکورد اولیه در تاریخچه کیلومتر
+    if (data.currentKm > 0) {
+      await this.addKmHistory(newVehicle.id, data.currentKm, 'initial', undefined, 'اولین ثبت خودرو');
+    }
+    
     return newVehicle;
   },
 
@@ -76,6 +85,7 @@ const vehicleServiceMock: IVehicleService = {
     const index = mockVehicles.findIndex((v) => v.id === id);
     if (index !== -1) {
       mockVehicles.splice(index, 1);
+      delete mockKmHistory[id];
     }
   },
 
@@ -87,6 +97,43 @@ const vehicleServiceMock: IVehicleService = {
     mockVehicles[index].currentKm = km;
     mockVehicles[index].updatedAt = new Date().toISOString();
     return mockVehicles[index];
+  },
+
+  async addKmHistory(id: string, km: number, sourceType: KmHistorySource, sourceId?: string, note?: string): Promise<Vehicle> {
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    
+    // به‌روزرسانی کیلومتر فعلی خودرو
+    const index = mockVehicles.findIndex((v) => v.id === id);
+    if (index === -1) throw new Error('خودرو یافت نشد');
+
+    mockVehicles[index].currentKm = km;
+    mockVehicles[index].updatedAt = new Date().toISOString();
+
+    // ثبت در تاریخچه
+    if (!mockKmHistory[id]) {
+      mockKmHistory[id] = [];
+    }
+
+    const historyRecord: KmHistoryRecord = {
+      id: Date.now().toString(),
+      vehicleId: id,
+      km: km,
+      recordedAt: new Date().toISOString(),
+      sourceType: sourceType,
+      sourceId: sourceId,
+      note: note,
+      createdAt: new Date().toISOString(),
+    };
+
+    mockKmHistory[id].push(historyRecord);
+    mockKmHistory[id].sort((a, b) => new Date(b.recordedAt).getTime() - new Date(a.recordedAt).getTime());
+
+    return mockVehicles[index];
+  },
+
+  async getKmHistory(id: string): Promise<KmHistoryRecord[]> {
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    return mockKmHistory[id] || [];
   },
 };
 
@@ -174,6 +221,17 @@ const vehicleServiceSupabase: IVehicleService = {
 
     if (error) throw new Error(error.message);
 
+    // ایجاد رکورد اولیه در تاریخچه کیلومتر
+    if (data.currentKm > 0) {
+      await this.addKmHistory(
+        newVehicle.vehicle_id.toString(),
+        data.currentKm,
+        'initial',
+        undefined,
+        'اولین ثبت خودرو'
+      );
+    }
+
     return {
       id: newVehicle.vehicle_id.toString(),
       userId: newVehicle.user_id,
@@ -243,6 +301,80 @@ const vehicleServiceSupabase: IVehicleService = {
   async updateKm(id: string, km: number): Promise<Vehicle> {
     return this.update(id, { currentKm: km });
   },
+
+  async addKmHistory(id: string, km: number, sourceType: KmHistorySource, sourceId?: string, note?: string): Promise<Vehicle> {
+    if (!supabase) throw new Error('Supabase client not available. Check VITE_BACKEND_TYPE and environment variables.');
+    
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) throw new Error('کاربر لاگین نشده است');
+
+    // Start transaction using Supabase RPC or sequential calls
+    // First, update vehicle current_km
+    const { data: updatedVehicle, error: updateError } = await supabase
+      .from('vehicles')
+      .update({ current_km: km })
+      .eq('vehicle_id', id)
+      .eq('user_id', user.id)
+      .select()
+      .single();
+
+    if (updateError) throw new Error(updateError.message);
+
+    // Then, insert into history
+    const { error: historyError } = await supabase
+      .from('vehicle_km_history')
+      .insert({
+        vehicle_id: id,
+        km: km,
+        source_type: sourceType,
+        source_id: sourceId || null,
+        note: note || null,
+      });
+
+    if (historyError) throw new Error(historyError.message);
+
+    return {
+      id: updatedVehicle.vehicle_id.toString(),
+      userId: updatedVehicle.user_id,
+      model: updatedVehicle.model,
+      year: updatedVehicle.year,
+      plateNumber: updatedVehicle.plate_number,
+      currentKm: updatedVehicle.current_km,
+      note: updatedVehicle.description || undefined,
+      createdAt: updatedVehicle.created_at,
+      updatedAt: updatedVehicle.updated_at,
+    };
+  },
+
+  async getKmHistory(id: string): Promise<KmHistoryRecord[]> {
+    if (!supabase) throw new Error('Supabase client not available. Check VITE_BACKEND_TYPE and environment variables.');
+    
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) throw new Error('کاربر لاگین نشده است');
+
+    const { data, error } = await supabase
+      .from('vehicle_km_history')
+      .select('*')
+      .eq('vehicle_id', id)
+      .order('recorded_at', { ascending: false });
+
+    if (error) throw new Error(error.message);
+
+    return data.map((h) => ({
+      id: h.id.toString(),
+      vehicleId: h.vehicle_id.toString(),
+      km: h.km,
+      recordedAt: h.recorded_at,
+      sourceType: h.source_type,
+      sourceId: h.source_id?.toString(),
+      note: h.note || undefined,
+      createdAt: h.created_at,
+    }));
+  },
 };
 
 // ============================================
@@ -276,6 +408,21 @@ const vehicleServiceDjango: IVehicleService = {
 
   async updateKm(id: string, km: number): Promise<Vehicle> {
     const response = await api.patch<ApiResponse<Vehicle>>(`/vehicles/${id}/km/`, { km });
+    return response.data.data;
+  },
+
+  async addKmHistory(id: string, km: number, sourceType: KmHistorySource, sourceId?: string, note?: string): Promise<Vehicle> {
+    const response = await api.post<ApiResponse<Vehicle>>(`/vehicles/${id}/km-history/`, {
+      km,
+      sourceType,
+      sourceId,
+      note,
+    });
+    return response.data.data;
+  },
+
+  async getKmHistory(id: string): Promise<KmHistoryRecord[]> {
+    const response = await api.get<ApiResponse<KmHistoryRecord[]>>(`/vehicles/${id}/km-history/`);
     return response.data.data;
   },
 };

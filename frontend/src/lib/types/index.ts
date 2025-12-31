@@ -279,6 +279,29 @@ export interface ReportSummary {
 }
 
 // ========================================
+// KM History Types
+// ========================================
+
+export type KmHistorySource = 'manual' | 'service' | 'expense' | 'initial';
+
+export interface KmHistoryRecord {
+  id: string;
+  vehicleId: string;
+  km: number;
+  recordedAt: string;
+  sourceType: KmHistorySource;
+  sourceId?: string;
+  note?: string;
+  createdAt: string;
+}
+
+export interface KmHistoryState {
+  history: KmHistoryRecord[];
+  isLoading: boolean;
+  error: string | null;
+}
+
+// ========================================
 // API Response Types
 // ========================================
 

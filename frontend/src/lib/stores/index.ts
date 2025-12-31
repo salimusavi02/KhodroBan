@@ -10,4 +10,13 @@ export {
   nearDueReminders,
   reminderStats,
 } from './reminders';
+export {
+  kmHistoryStore,
+  lastKmRecord,
+  lastKm,
+  kmHistoryCount,
+  manualKmRecords,
+  serviceKmRecords,
+  expenseKmRecords,
+} from './kmHistory';
 export { toastStore, modalStore, loadingStore, sidebarStore } from './ui';

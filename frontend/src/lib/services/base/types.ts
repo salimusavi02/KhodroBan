@@ -20,6 +20,8 @@ import type {
   ReminderCreateData,
   ReportFilter,
   ReportSummary,
+  KmHistoryRecord,
+  KmHistorySource,
 } from '../../types';
 
 // ============================================
@@ -49,6 +51,8 @@ export interface IVehicleService {
   update(id: string, data: Partial<VehicleFormData>): Promise<Vehicle>;
   delete(id: string): Promise<void>;
   updateKm(id: string, km: number): Promise<Vehicle>;
+  addKmHistory(id: string, km: number, sourceType: KmHistorySource, sourceId?: string, note?: string): Promise<Vehicle>;
+  getKmHistory(id: string): Promise<KmHistoryRecord[]>;
 }
 
 // ============================================

@@ -3,6 +3,8 @@ import api from './api';
 import type { Expense, ExpenseFormData, ApiResponse } from '../types';
 import { selectService } from './base/router';
 import type { IExpenseService } from './base/types';
+import { vehicleService } from './vehicleService';
+import { EXPENSE_CATEGORIES } from '../utils/constants';
 
 // ============================================
 // MOCK IMPLEMENTATION
@@ -91,6 +93,19 @@ const expenseServiceMock: IExpenseService = {
       updatedAt: new Date().toISOString(),
     };
     mockExpenses.unshift(newExpense);
+    
+    // ثبت کیلومتر در تاریخچه (اگر کیلومتر وارد شده باشد)
+    if (data.km) {
+      const categoryText = EXPENSE_CATEGORIES[data.category] || data.category;
+      await vehicleService.addKmHistory(
+        data.vehicleId,
+        data.km,
+        'expense',
+        newExpense.id,
+        `هزینه: ${categoryText}`
+      );
+    }
+    
     return newExpense;
   },
 
@@ -230,8 +245,27 @@ const expenseServiceSupabase: IExpenseService = {
     if (error) throw new Error(error.message);
 
     const newExpenseData = newExpense as any;
+    const expenseId = newExpenseData.expense_id.toString();
+    
+    // ثبت کیلومتر در تاریخچه (اگر کیلومتر وارد شده باشد)
+    if (data.km) {
+      const categoryText = EXPENSE_CATEGORIES[data.category] || data.category;
+      try {
+        await vehicleService.addKmHistory(
+          data.vehicleId,
+          data.km,
+          'expense',
+          expenseId,
+          `هزینه: ${categoryText}`
+        );
+      } catch (error) {
+        // Log error but don't fail the expense creation
+        console.error('Failed to add KM history:', error);
+      }
+    }
+
     return {
-      id: newExpenseData.expense_id.toString(),
+      id: expenseId,
       vehicleId: newExpenseData.vehicle_id.toString(),
       date: newExpenseData.expense_date,
       amount: newExpenseData.amount,
@@ -260,7 +294,8 @@ const expenseServiceSupabase: IExpenseService = {
     // @ts-ignore - Supabase type inference issue
     const { data: updatedExpense, error } = await supabase
       .from('daily_expenses')
-      .update(updates as any)
+      // @ts-ignore
+      .update(updates)
       .eq('expense_id', id)
       .select(
         `
