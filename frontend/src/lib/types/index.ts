@@ -326,3 +326,16 @@ export interface MenuItem {
   icon: string;
   badge?: number;
 }
+
+// ========================================
+// AI Chat Types
+// ========================================
+
+export interface ChatMessage {
+  role: 'user' | 'model';
+  text: string;
+  image?: string;
+  isThinking?: boolean;
+  mode?: 'expert' | 'fast' | 'maps';
+  groundingLinks?: { title: string; uri: string }[];
+}
