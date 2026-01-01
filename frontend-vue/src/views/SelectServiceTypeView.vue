@@ -1,4 +1,188 @@
 <script setup>
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useVehicleStore } from '../stores/vehicle'
+
+const router = useRouter()
+const vehicleStore = useVehicleStore()
+
+// State
+const selectedServiceTypes = ref([])
+const searchQuery = ref('')
+const expandedCategories = ref(['oil']) // Start with oil category expanded
+
+// Service categories and types
+const serviceCategories = [
+  {
+    id: 'oil',
+    title: 'روغن موتور',
+    icon: 'oil_barrel',
+    color: 'orange',
+    services: [
+      { id: 'oil_change', title: 'تعویض روغن موتور', description: 'شامل اجرت تعویض و بازرسی' },
+      { id: 'filter', title: 'فیلتر روغن', description: 'تعویض فیلتر روغن اصلی' },
+      { id: 'filter', title: 'فیلتر هوا', description: 'تعویض فیلتر هوای موتور' }
+    ]
+  },
+  {
+    id: 'tire',
+    title: 'تایر و چرخ',
+    icon: 'tire_repair',
+    color: 'blue',
+    services: [
+      { id: 'tire', title: 'تعویض تایر', description: 'تعویض یک یا چند تایر' },
+      { id: 'alignment', title: 'بالانس و تنظیم زاویه', description: 'تنظیم زاویه چرخ‌ها' },
+      { id: 'tire', title: 'پنچرگیری', description: 'تعمیر پنچری تایر' },
+      { id: 'tire', title: 'چرخ‌گیری', description: 'جابجایی تایرها' }
+    ]
+  },
+  {
+    id: 'battery',
+    title: 'باتری و برق',
+    icon: 'battery_charging_full',
+    color: 'red',
+    services: [
+      { id: 'battery', title: 'تعویض باتری', description: 'نصب باتری جدید' },
+      { id: 'electrical', title: 'تعمیر دینام', description: 'بررسی و تعمیر دینام' }
+    ]
+  },
+  {
+    id: 'transmission',
+    title: 'گیربکس و انتقال قدرت',
+    icon: 'settings_b_roll',
+    color: 'slate',
+    services: [
+      { id: 'transmission', title: 'تعویض روغن گیربکس', description: 'روغن گیربکس دستی یا اتوماتیک' },
+      { id: 'clutch', title: 'کلاچ', description: 'تعمیر یا تعویض کلاچ' },
+      { id: 'transmission', title: 'دیفرانسیل', description: 'سرویس دیفرانسیل' }
+    ]
+  },
+  {
+    id: 'brakes',
+    title: 'ترمز و ایمنی',
+    icon: 'security',
+    color: 'green',
+    services: [
+      { id: 'brakes', title: 'لنت ترمز جلو', description: 'تعویض لنت جلو' },
+      { id: 'brakes', title: 'لنت ترمز عقب', description: 'تعویض لنت عقب' },
+      { id: 'brakes', title: 'دیسک ترمز', description: 'تعویض دیسک ترمز' },
+      { id: 'brakes', title: 'روغن ترمز', description: 'تعویض روغن ترمز' },
+      { id: 'suspension', title: 'کمک فنر', description: 'تعمیر یا تعویض کمک فنر' }
+    ]
+  },
+  {
+    id: 'ac',
+    title: 'تهویه مطبوع',
+    icon: 'ac_unit',
+    color: 'purple',
+    services: [
+      { id: 'ac', title: 'شارژ گاز کولر', description: 'شارژ مجدد گاز کولر' }
+    ]
+  },
+  {
+    id: 'body',
+    title: 'بدنه و ظاهر',
+    icon: 'car_crash',
+    color: 'teal',
+    services: [
+      { id: 'body', title: 'کارواش', description: 'شستشوی کامل خودرو' },
+      { id: 'body', title: 'صافکاری', description: 'تعمیر ضربه بدنه' }
+    ]
+  }
+]
+
+// Computed
+const selectedVehicle = computed(() => {
+  return vehicleStore.selectedVehicle || vehicleStore.vehicles[0]
+})
+
+const filteredCategories = computed(() => {
+  if (!searchQuery.value) return serviceCategories
+  
+  const query = searchQuery.value.toLowerCase()
+  return serviceCategories.map(category => ({
+    ...category,
+    services: category.services.filter(service => 
+      service.title.includes(query) || 
+      service.description.includes(query)
+    )
+  })).filter(category => category.services.length > 0)
+})
+
+const hasSelectedServices = computed(() => {
+  return selectedServiceTypes.value.length > 0
+})
+
+// Methods
+const toggleCategory = (categoryId) => {
+  const index = expandedCategories.value.indexOf(categoryId)
+  if (index > -1) {
+    expandedCategories.value.splice(index, 1)
+  } else {
+    expandedCategories.value.push(categoryId)
+  }
+}
+
+const isCategoryExpanded = (categoryId) => {
+  return expandedCategories.value.includes(categoryId)
+}
+
+const selectService = (serviceId, serviceTitle) => {
+  const existingIndex = selectedServiceTypes.value.findIndex(s => s.id === serviceId && s.title === serviceTitle)
+  
+  if (existingIndex > -1) {
+    selectedServiceTypes.value.splice(existingIndex, 1)
+  } else {
+    selectedServiceTypes.value.push({ id: serviceId, title: serviceTitle })
+  }
+}
+
+const isServiceSelected = (serviceId, serviceTitle) => {
+  return selectedServiceTypes.value.some(s => s.id === serviceId && s.title === serviceTitle)
+}
+
+const getColorClasses = (color) => {
+  const colorMap = {
+    orange: 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400',
+    blue: 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400',
+    red: 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400',
+    slate: 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300',
+    green: 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400',
+    purple: 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400',
+    teal: 'bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400'
+  }
+  return colorMap[color] || colorMap.blue
+}
+
+const handleContinue = () => {
+  if (selectedServiceTypes.value.length === 0) return
+  
+  // Navigate to add service with selected types
+  const serviceTypes = selectedServiceTypes.value.map(s => s.id)
+  const queryParams = new URLSearchParams()
+  queryParams.set('types', serviceTypes.join(','))
+  if (selectedVehicle.value) {
+    queryParams.set('vehicleId', selectedVehicle.value.id)
+  }
+  
+  router.push(`/add-service?${queryParams.toString()}`)
+}
+
+const handleBack = () => {
+  router.back()
+}
+
+// Lifecycle
+onMounted(async () => {
+  // Fetch vehicles if not already loaded
+  if (vehicleStore.vehicles.length === 0) {
+    try {
+      await vehicleStore.fetchVehicles()
+    } catch (error) {
+      console.error('Error fetching vehicles:', error)
+    }
+  }
+})
 </script>
 
 <template>
