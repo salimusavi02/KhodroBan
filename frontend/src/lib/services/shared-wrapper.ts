@@ -5,7 +5,7 @@
  * تا frontend فعلی بدون تغییر کار کند
  */
 
-import { setErrorHandlers } from '../../../shared/services/api';
+import { setErrorHandlers } from '@shared/services/api';
 import { authStore } from '../stores/auth';
 import { toastStore } from '../stores/ui';
 
@@ -29,7 +29,7 @@ setErrorHandlers({
 });
 
 // Import services from shared
-import { authService as sharedAuthService } from '../../../shared/services/authService';
+import { authService as sharedAuthService } from '@shared/services/authService';
 import type { User, LoginCredentials, RegisterData } from '../types';
 
 // Wrapper برای authService که stores را به‌روز می‌کند
@@ -80,10 +80,10 @@ export const authService = {
 };
 
 // سایر services را مستقیماً از shared export می‌کنیم (بدون wrapper)
-export { vehicleService } from '../../../shared/services/vehicleService';
-export { serviceService } from '../../../shared/services/serviceService';
-export { expenseService } from '../../../shared/services/expenseService';
-export { reminderService } from '../../../shared/services/reminderService';
-export { reportService } from '../../../shared/services/reportService';
-export { upgradeService } from '../../../shared/services/upgradeService';
-export { notificationService } from '../../../shared/services/notificationService';
+export { vehicleService } from '@shared/services/vehicleService';
+export { serviceService } from '@shared/services/serviceService';
+export { expenseService } from '@shared/services/expenseService';
+export { reminderService } from '@shared/services/reminderService';
+export { reportService } from '@shared/services/reportService';
+export { upgradeService } from '@shared/services/upgradeService';
+export { notificationService } from '@shared/services/notificationService';

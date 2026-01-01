@@ -2,9 +2,13 @@
 // Formatting Utilities
 // ========================================
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-import PersianDate from 'persian-date';
+// Dynamic import for persian-date (browser-only, not available in SSR)
+let PersianDate: any = null;
+if (typeof window !== 'undefined') {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  PersianDate = require('persian-date');
+}
 
 /**
  * Format number with Persian digits and thousand separators
@@ -57,6 +61,7 @@ export function toEnglishDigits(str: string): string {
  * Get current Jalali date
  */
 export function getCurrentJalaliDate(): string {
+  if (!PersianDate) return new Date().toISOString().split('T')[0]; // SSR fallback
   const pd = new PersianDate();
   return pd.format('YYYY/MM/DD');
 }
@@ -66,6 +71,7 @@ export function getCurrentJalaliDate(): string {
  */
 export function addMonths(dateStr: string, months: number): string {
   if (!dateStr) return '';
+  if (!PersianDate) return dateStr; // SSR fallback
   const pd = new PersianDate(dateStr);
   return pd.add('month', months).format('YYYY/MM/DD');
 }
@@ -75,6 +81,7 @@ export function addMonths(dateStr: string, months: number): string {
  */
 export function addDays(dateStr: string, days: number): string {
   if (!dateStr) return '';
+  if (!PersianDate) return dateStr; // SSR fallback
   const pd = new PersianDate(dateStr);
   return pd.add('day', days).format('YYYY/MM/DD');
 }
@@ -92,6 +99,7 @@ export function formatJalaliDate(dateStr: string): string {
 
   // Convert from Gregorian to Jalali
   try {
+    if (!PersianDate) return dateStr; // SSR fallback
     const pd = new PersianDate(new Date(dateStr));
     return pd.format('YYYY/MM/DD');
   } catch {
@@ -104,6 +112,7 @@ export function formatJalaliDate(dateStr: string): string {
  */
 export function formatJalaliDateTime(dateStr: string): string {
   if (!dateStr) return '';
+  if (!PersianDate) return dateStr; // SSR fallback
 
   try {
     const date = new Date(dateStr);
@@ -127,6 +136,7 @@ export function formatJalaliDateTime(dateStr: string): string {
  * Parse Jalali date to Date object
  */
 export function parseJalaliDate(jalaliStr: string): Date {
+  if (!PersianDate) return new Date(); // SSR fallback
   const pd = new PersianDate().parse(jalaliStr.replace(/\//g, '-'));
   return pd.toDate();
 }
@@ -157,6 +167,7 @@ export function getRelativeTime(dateStr: string): string {
  */
 export function formatDateFull(dateStr: string): string {
   if (!dateStr) return '';
+  if (!PersianDate) return dateStr; // SSR fallback
 
   try {
     const pd =
@@ -174,6 +185,7 @@ export function formatDateFull(dateStr: string): string {
  * Get current Jalali year
  */
 export function getCurrentJalaliYear(): number {
+  if (!PersianDate) return new Date().getFullYear(); // SSR fallback (Gregorian year)
   const pd = new PersianDate();
   return pd.year();
 }

@@ -1,8 +1,8 @@
 // Re-export all services
-// Note: برای استفاده از shared services، از shared-wrapper استفاده کنید
-// فعلاً services فعلی را نگه می‌داریم برای سازگاری
+// Note: فعلاً از services محلی استفاده می‌کنیم
+// Shared services برای frontend-vue آماده است و در آینده می‌توانیم migrate کنیم
 
-// Option 1: استفاده از services فعلی (موجود)
+// Option 1: استفاده از services فعلی (موجود) - فعال
 export { default as api, getErrorMessage } from './api';
 export { authService } from './authService';
 export { vehicleService } from './vehicleService';
@@ -12,9 +12,10 @@ export { reminderService } from './reminderService';
 export { reportService } from './reportService';
 export { upgradeService } from './upgradeService';
 
-// Option 2: استفاده از shared services (برای آینده)
+// Option 2: استفاده از shared services (برای آینده - غیرفعال)
 // Uncomment when ready to migrate:
-// export { authService, vehicleService, serviceService, expenseService, reminderService, reportService, upgradeService } from './shared-wrapper';
+// export { default as api, getErrorMessage } from '@shared/services/api';
+// export { authService, vehicleService, serviceService, expenseService, reminderService, reportService, upgradeService, notificationService } from './shared-wrapper';
 
 export {
   analyzeCarIssue,
