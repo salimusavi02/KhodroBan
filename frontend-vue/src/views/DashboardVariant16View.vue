@@ -1,4 +1,7 @@
-<script setup>\n</script>\n\n<template>
+<script setup>
+</script>
+
+<template>
   <div class="flex h-screen w-full relative">
     <!-- Sidebar (Right side in RTL) -->
     <aside class="hidden lg:flex w-72 flex-col justify-between border-l border-white/5 bg-[#111b22] p-6 shrink-0 z-20">

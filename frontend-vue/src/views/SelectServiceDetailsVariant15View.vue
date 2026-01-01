@@ -1,3 +1,7 @@
+<script setup>
+</script>
+
+<template>
   <div class="relative flex min-h-screen w-full flex-col overflow-x-hidden">
     <header class="sticky top-0 z-50 flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#e0f0e0] dark:border-slate-800 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md px-4 sm:px-10 py-3 transition-colors duration-200">
       <div class="flex items-center gap-4 text-[#121317] dark:text-white">

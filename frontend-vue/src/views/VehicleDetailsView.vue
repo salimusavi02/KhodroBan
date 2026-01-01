@@ -1,4 +1,7 @@
-<script setup>\n</script>\n\n<template>
+<script setup>
+</script>
+
+<template>
   <div class="relative flex h-auto min-h-screen w-full flex-col">
     <header class="sticky top-0 z-50 flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#f1f1f4] bg-white dark:bg-[#1e2330] dark:border-[#2a2f3d] px-10 py-3 shadow-sm">
       <div class="flex items-center gap-8">
