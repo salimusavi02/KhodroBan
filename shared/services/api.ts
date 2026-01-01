@@ -1,5 +1,24 @@
 import axios, { type AxiosInstance, type AxiosError } from 'axios';
 
+// Callback types for error handling (optional - can be set by framework-specific wrappers)
+type OnAuthErrorCallback = () => void;
+type OnToastCallback = (message: string, type?: 'error' | 'warning' | 'info') => void;
+
+// Global callbacks (will be set by framework-specific wrappers)
+let onAuthError: OnAuthErrorCallback | null = null;
+let onToast: OnToastCallback | null = null;
+
+/**
+ * Set callbacks for error handling (called by framework-specific wrappers)
+ */
+export function setErrorHandlers(callbacks: {
+  onAuthError?: OnAuthErrorCallback;
+  onToast?: OnToastCallback;
+}) {
+  if (callbacks.onAuthError) onAuthError = callbacks.onAuthError;
+  if (callbacks.onToast) onToast = callbacks.onToast;
+}
+
 // Create axios instance
 const api: AxiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api',
@@ -31,23 +50,32 @@ api.interceptors.response.use(
 
     // Handle 401 Unauthorized
     if (error.response?.status === 401) {
-      // Clear token
       localStorage.removeItem('token');
-      // Redirect to login (will be handled by router)
-      if (window.location.pathname !== '/login') {
-        window.location.href = '/login';
+      if (onAuthError) {
+        onAuthError();
+      } else {
+        // Fallback: redirect to login
+        if (typeof window !== 'undefined') {
+          window.location.href = '/login';
+        }
+      }
+      if (onToast) {
+        onToast('نشست شما منقضی شده است. لطفاً دوباره وارد شوید.', 'error');
       }
     }
 
     // Handle 403 Forbidden (e.g., Pro feature for free user)
     if (error.response?.status === 403) {
-      // Will be handled by UI layer
-      console.warn('Pro feature access denied');
+      if (onToast) {
+        onToast('این قابلیت برای کاربران Pro در دسترس است.', 'warning');
+      }
     }
 
     // Handle network errors
     if (!error.response) {
-      console.error('Network error:', error.message);
+      if (onToast) {
+        onToast('خطا در اتصال به سرور. لطفاً اتصال اینترنت خود را بررسی کنید.', 'error');
+      }
     }
 
     return Promise.reject(error);
@@ -87,4 +115,3 @@ function getErrorMessage(error: AxiosError): string {
 
 export default api;
 export { getErrorMessage };
-

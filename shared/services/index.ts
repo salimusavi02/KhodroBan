@@ -1,9 +1,7 @@
 // Re-export all services
-// Note: برای استفاده از shared services، از shared-wrapper استفاده کنید
-// فعلاً services فعلی را نگه می‌داریم برای سازگاری
-
-// Option 1: استفاده از services فعلی (موجود)
-export { default as api, getErrorMessage } from './api';
+export { default as api, getErrorMessage, setErrorHandlers } from './api';
+export { supabase } from './supabase';
+export { config, BACKEND_TYPE, type BackendType } from './config';
 export { authService } from './authService';
 export { vehicleService } from './vehicleService';
 export { serviceService } from './serviceService';
@@ -11,11 +9,17 @@ export { expenseService } from './expenseService';
 export { reminderService } from './reminderService';
 export { reportService } from './reportService';
 export { upgradeService } from './upgradeService';
-
-// Option 2: استفاده از shared services (برای آینده)
-// Uncomment when ready to migrate:
-// export { authService, vehicleService, serviceService, expenseService, reminderService, reportService, upgradeService } from './shared-wrapper';
-
+export { notificationService } from './notificationService';
+export {
+  analyzeCarIssue,
+  getCurrentProviderInfo,
+  isAIServiceConfigured,
+  resetAIProvider,
+  type AIModelMode,
+  type AIProvider,
+  type AIRequestParams,
+  type AIResponse,
+} from './ai';
 export {
   analyzeCarIssue,
   getCurrentProviderInfo,
