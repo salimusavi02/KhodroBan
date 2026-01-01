@@ -76,21 +76,6 @@
     {/each}
   </div>
 
-  <!-- Legend -->
-  <div class="legend">
-    <div class="legend-item">
-      <span class="legend-icon legend-yes">✓</span>
-      <span>دارد</span>
-    </div>
-    <div class="legend-item">
-      <span class="legend-icon legend-no">✗</span>
-      <span>ندارد</span>
-    </div>
-    <div class="legend-item">
-      <span class="legend-icon legend-text">•</span>
-      <span>مقدار عددی</span>
-    </div>
-  </div>
 </div>
 
 <style>

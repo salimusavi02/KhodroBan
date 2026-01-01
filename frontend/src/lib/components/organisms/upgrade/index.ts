@@ -7,3 +7,4 @@ export { default as UpgradeHero } from './UpgradeHero.svelte';
 export { default as PricingCard } from './PricingCard.svelte';
 export { default as FeatureComparison } from './FeatureComparison.svelte';
 export { default as FAQSection } from './FAQSection.svelte';
+export { default as PaymentInfo } from './PaymentInfo.svelte';

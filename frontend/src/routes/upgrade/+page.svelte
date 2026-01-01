@@ -5,6 +5,7 @@
   import { PricingCard } from '$lib/components/organisms/upgrade';
   import { FeatureComparison } from '$lib/components/organisms/upgrade';
   import { FAQSection } from '$lib/components/organisms/upgrade';
+  import { PaymentInfo } from '$lib/components/organisms/upgrade';
   import { upgradeService } from '$lib/services/upgradeService';
   import { toastStore } from '$lib/stores';
   import { navigateTo } from '$lib/utils/navigation';
@@ -69,6 +70,9 @@
 
     <!-- FAQ Section -->
     <FAQSection />
+
+    <!-- Payment Info Section -->
+    <PaymentInfo />
 
     <!-- CTA Section -->
     <div class="cta-section">
