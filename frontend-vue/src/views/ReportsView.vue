@@ -1,39 +1,11 @@
 <script setup>
+import MainLayout from '../components/MainLayout.vue'
 </script>
 
 <template>
-  <div class="relative flex h-auto min-h-screen w-full flex-col">
-    <header class="sticky top-0 z-50 flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#f1f1f4] bg-white/80 backdrop-blur-md dark:bg-[#1e2330]/80 dark:border-[#2a2f3d] px-10 py-3 shadow-sm">
-      <div class="flex items-center gap-8">
-        <div class="flex items-center gap-4 text-[#121317] dark:text-white">
-          <div class="size-8 text-primary flex items-center justify-center">
-            <span class="material-symbols-outlined text-3xl">local_taxi</span>
-          </div>
-          <h2 class="text-[#121317] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">اتومیت</h2>
-        </div>
-        <div class="hidden md:flex items-center gap-9">
-          <a class="text-[#121317] dark:text-gray-300 hover:text-primary text-sm font-medium leading-normal transition-colors" href="#">داشبورد</a>
-          <a class="text-[#121317] dark:text-gray-300 hover:text-primary text-sm font-medium leading-normal transition-colors" href="#">گاراژ من</a>
-          <a class="text-primary text-sm font-bold leading-normal" href="#">گزارش‌ها</a>
-          <a class="text-[#121317] dark:text-gray-300 hover:text-primary text-sm font-medium leading-normal transition-colors" href="#">تنظیمات</a>
-        </div>
-      </div>
-      <div class="flex flex-1 justify-end gap-8">
-        <label class="hidden md:flex flex-col min-w-40 !h-10 max-w-64">
-          <div class="flex w-full flex-1 items-stretch rounded-xl h-full">
-            <div class="text-[#666e85] flex border-none bg-[#f1f1f4] dark:bg-[#2a2f3d] items-center justify-center ps-4 rounded-s-xl border-e-0">
-              <span class="material-symbols-outlined text-[20px]">search</span>
-            </div>
-            <input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#121317] dark:text-white focus:outline-0 focus:ring-0 border-none bg-[#f1f1f4] dark:bg-[#2a2f3d] focus:border-none h-full placeholder:text-[#666e85] px-4 rounded-s-none border-s-0 ps-2 text-sm font-normal leading-normal" placeholder="جستجوی گزارش‌ها..." value="" />
-          </div>
-        </label>
-        <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 ring-2 ring-white dark:ring-[#2a2f3d]" data-alt="User profile avatar showing a smiling person" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAA8wY3dAQZ2tlXshnCLYPNCxKCvhsRR1DfgTfFGe1pyAw3SCJ9xLJTzNJNLfcxdayHF6thIvfo5szGwpFDOu5BGlorlg2lbjut6sW2LABR3kCyNp3wOws7SvmoMxUODGpHPVL-9LaX4HT-rdonQ7Wbw318nh9iSoKnb2ZHhBDgBKFEzwZC3W5Pq6dxk93ckryNnW6aNqmlNbhVwnqZFg3tiSvBcN3b_geCFzTqKrYF_AJn7Jcw7S1jItJOs41PTpdHsVPnFdWqKz8");'></div>
-      </div>
-    </header>
-    <div class="layout-container flex h-full grow flex-col">
-      <div class="px-4 md:px-10 lg:px-40 flex flex-1 justify-center py-5">
-        <div class="layout-content-container flex flex-col max-w-[1200px] flex-1 gap-6">
-          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 px-1">
+  <MainLayout>
+    <div class="flex flex-col gap-6">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div class="flex flex-wrap gap-2">
               <a class="text-[#666e85] dark:text-gray-400 hover:text-primary text-sm font-medium leading-normal" href="#">خانه</a>
               <span class="text-[#666e85] dark:text-gray-600 text-sm font-medium leading-normal">/</span>
@@ -328,8 +300,6 @@
               </div>
             </div>
           </div>
-        </div>
-      </div>
     </div>
-  </div>
+  </MainLayout>
 </template>

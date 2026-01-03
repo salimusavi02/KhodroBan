@@ -1,63 +1,64 @@
 <script setup>
+import MainLayout from '../components/MainLayout.vue'
 </script>
 
 <template>
-  <div class="flex h-screen w-full flex-row overflow-hidden">
-    <aside class="w-80 flex-shrink-0 flex flex-col justify-between bg-white dark:bg-[#1a202e] border-l border-[#dbdee6] dark:border-gray-800 h-full p-6 z-20 shadow-sm">
-      <div class="flex flex-col gap-6">
-        <div class="flex gap-4 items-center p-3 rounded-xl bg-background-light dark:bg-background-dark/50">
-          <div class="relative">
-            <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-12 shadow-sm border-2 border-white dark:border-gray-700" data-alt="User profile picture of a man with a beard" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBYEsN-vh7_rGY0L282TKIu7KcW718azqR_JWvzj3aidI0rg4w2inSRo2UgviIBeC7srUS-vS6z6d5Bysx0pUHR5BpC6qb2HHA_mZhpV5rIdCHjlRSbUu7hqESkfDCF195wNvhyMcvHUUUhAF7NwHIh6KWs2AQSjjznUJvlI0jP29yi81GJdyfhUDG2KL9CC_xPOfshLlKjFoz9fDraAuwzgB0BlNq-RiEPK870p6EE0wD7swn1oaG9ogzePdYmxP8C5m09o2j6GTA");'>
-            </div>
-            <div class="absolute bottom-0 right-0 size-3 bg-green-500 border-2 border-white dark:border-gray-800 rounded-full"></div>
-          </div>
-          <div class="flex flex-col">
-            <h1 class="text-[#111318] dark:text-white text-lg font-bold leading-tight">آرش صادقی</h1>
-            <p class="text-[#616c89] dark:text-gray-400 text-xs font-medium px-2 py-0.5 rounded-full bg-gray-200 dark:bg-gray-700 w-fit mt-1">طرح رایگان</p>
-          </div>
-        </div>
-        <nav class="flex flex-col gap-2">
-          <a class="flex items-center gap-4 px-4 py-3 rounded-xl bg-primary/10 text-primary transition-all" href="#">
-            <span class="material-symbols-outlined text-[24px]">person</span>
-            <p class="text-sm font-bold leading-normal">تنظیمات پروفایل</p>
-          </a>
-          <a class="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-[#616c89] dark:text-gray-400 hover:text-[#111318] dark:hover:text-white transition-all" href="#">
-            <span class="material-symbols-outlined text-[24px]">garage_home</span>
-            <p class="text-sm font-medium leading-normal">خودروهای من</p>
-          </a>
-          <a class="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-[#616c89] dark:text-gray-400 hover:text-[#111318] dark:hover:text-white transition-all" href="#">
-            <span class="material-symbols-outlined text-[24px]">notifications_active</span>
-            <p class="text-sm font-medium leading-normal">یادآورها</p>
-          </a>
-          <a class="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-[#616c89] dark:text-gray-400 hover:text-[#111318] dark:hover:text-white transition-all" href="#">
-            <span class="material-symbols-outlined text-[24px]">workspace_premium</span>
-            <div class="flex flex-1 justify-between items-center">
-              <p class="text-sm font-medium leading-normal">اشتراک</p>
-              <span class="text-[10px] font-bold text-white bg-gradient-to-r from-orange-400 to-pink-500 px-2 py-0.5 rounded-full">PRO</span>
-            </div>
-          </a>
-          <a class="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-[#616c89] dark:text-gray-400 hover:text-[#111318] dark:hover:text-white transition-all" href="#">
-            <span class="material-symbols-outlined text-[24px]">shield</span>
-            <p class="text-sm font-medium leading-normal">امنیت</p>
-          </a>
-        </nav>
+  <MainLayout>
+    <div class="flex flex-col gap-8">
+      <div class="flex flex-col gap-2">
+        <h1 class="text-[#111318] dark:text-white text-3xl font-black leading-tight tracking-tight">تنظیمات</h1>
+        <p class="text-[#616c89] dark:text-gray-400 text-base font-normal">مدیریت حساب کاربری، تنظیمات خودرو و اعلان‌ها.</p>
       </div>
-      <button class="flex w-full cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-xl h-12 px-4 bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-900/20 dark:hover:bg-red-900/30 dark:text-red-400 text-sm font-bold leading-normal transition-colors mt-auto">
-        <span class="material-symbols-outlined text-[20px]">logout</span>
-        <span class="truncate">خروج از حساب</span>
-      </button>
-    </aside>
-    <main class="flex-1 flex flex-col h-full overflow-hidden relative">
-      <header class="flex-shrink-0 px-8 py-6 bg-white/50 dark:bg-[#1a202e]/50 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800 z-10 sticky top-0">
-        <div class="max-w-[1000px] mx-auto w-full">
-          <div class="flex flex-col gap-2">
-            <h1 class="text-[#111318] dark:text-white text-3xl font-black leading-tight tracking-tight">تنظیمات</h1>
-            <p class="text-[#616c89] dark:text-gray-400 text-base font-normal">مدیریت حساب کاربری، تنظیمات خودرو و اعلان‌ها.</p>
+      
+      <div class="flex flex-col lg:flex-row gap-6">
+        <!-- Settings Sidebar -->
+        <aside class="w-full lg:w-80 flex-shrink-0 flex flex-col gap-6 bg-white dark:bg-[#1a202e] rounded-2xl border border-gray-100 dark:border-gray-800 p-6 shadow-sm">
+          <div class="flex flex-col gap-6">
+            <div class="flex gap-4 items-center p-3 rounded-xl bg-background-light dark:bg-background-dark/50">
+              <div class="relative">
+                <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-12 shadow-sm border-2 border-white dark:border-gray-700" data-alt="User profile picture of a man with a beard" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBYEsN-vh7_rGY0L282TKIu7KcW718azqR_JWvzj3aidI0rg4w2inSRo2UgviIBeC7srUS-vS6z6d5Bysx0pUHR5BpC6qb2HHA_mZhpV5rIdCHjlRSbUu7hqESkfDCF195wNvhyMcvHUUUhAF7NwHIh6KWs2AQSjjznUJvlI0jP29yi81GJdyfhUDG2KL9CC_xPOfshLlKjFoz9fDraAuwzgB0BlNq-RiEPK870p6EE0wD7swn1oaG9ogzePdYmxP8C5m09o2j6GTA");'>
+                </div>
+                <div class="absolute bottom-0 right-0 size-3 bg-green-500 border-2 border-white dark:border-gray-800 rounded-full"></div>
+              </div>
+              <div class="flex flex-col">
+                <h1 class="text-[#111318] dark:text-white text-lg font-bold leading-tight">آرش صادقی</h1>
+                <p class="text-[#616c89] dark:text-gray-400 text-xs font-medium px-2 py-0.5 rounded-full bg-gray-200 dark:bg-gray-700 w-fit mt-1">طرح رایگان</p>
+              </div>
+            </div>
+            <nav class="flex flex-col gap-2">
+              <a class="flex items-center gap-4 px-4 py-3 rounded-xl bg-primary/10 text-primary transition-all" href="#">
+                <span class="material-symbols-outlined text-[24px]">person</span>
+                <p class="text-sm font-bold leading-normal">تنظیمات پروفایل</p>
+              </a>
+              <a class="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-[#616c89] dark:text-gray-400 hover:text-[#111318] dark:hover:text-white transition-all" href="#">
+                <span class="material-symbols-outlined text-[24px]">garage_home</span>
+                <p class="text-sm font-medium leading-normal">خودروهای من</p>
+              </a>
+              <a class="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-[#616c89] dark:text-gray-400 hover:text-[#111318] dark:hover:text-white transition-all" href="#">
+                <span class="material-symbols-outlined text-[24px]">notifications_active</span>
+                <p class="text-sm font-medium leading-normal">یادآورها</p>
+              </a>
+              <a class="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-[#616c89] dark:text-gray-400 hover:text-[#111318] dark:hover:text-white transition-all" href="#">
+                <span class="material-symbols-outlined text-[24px]">workspace_premium</span>
+                <div class="flex flex-1 justify-between items-center">
+                  <p class="text-sm font-medium leading-normal">اشتراک</p>
+                  <span class="text-[10px] font-bold text-white bg-gradient-to-r from-orange-400 to-pink-500 px-2 py-0.5 rounded-full">PRO</span>
+                </div>
+              </a>
+              <a class="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-[#616c89] dark:text-gray-400 hover:text-[#111318] dark:hover:text-white transition-all" href="#">
+                <span class="material-symbols-outlined text-[24px]">shield</span>
+                <p class="text-sm font-medium leading-normal">امنیت</p>
+              </a>
+            </nav>
           </div>
-        </div>
-      </header>
-      <div class="flex-1 overflow-y-auto p-8">
-        <div class="max-w-[1000px] mx-auto w-full flex flex-col gap-8 pb-20">
+          <button class="flex w-full cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-xl h-12 px-4 bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-900/20 dark:hover:bg-red-900/30 dark:text-red-400 text-sm font-bold leading-normal transition-colors mt-auto">
+            <span class="material-symbols-outlined text-[20px]">logout</span>
+            <span class="truncate">خروج از حساب</span>
+          </button>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col gap-8">
           <section class="bg-white dark:bg-[#1a202e] rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-800">
             <div class="flex items-center justify-between mb-6">
               <h2 class="text-[#111318] dark:text-white text-xl font-bold">اطلاعات کاربری</h2>
@@ -182,25 +183,27 @@
                 </div>
               </div>
               <div class="flex-shrink-0">
-                <button class="group relative flex items-center gap-3 px-8 py-4 bg-[#111318] dark:bg-white text-white dark:text-[#111318] rounded-xl font-bold shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300">
+                <router-link to="/upgrade-pro" class="group relative flex items-center gap-3 px-8 py-4 bg-[#111318] dark:bg-white text-white dark:text-[#111318] rounded-xl font-bold shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300">
                   <span>ارتقا حساب</span>
                   <span class="material-symbols-outlined group-hover:-translate-x-1 transition-transform">arrow_back</span>
-                </button>
+                </router-link>
                 <p class="text-center text-xs text-gray-500 mt-3">۷ روز استفاده رایگان، لغو در هر زمان.</p>
               </div>
             </div>
           </section>
+          
+          <!-- Action Buttons -->
+          <div class="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-800">
+            <button class="px-6 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+              انصراف
+            </button>
+            <button class="px-8 py-2.5 rounded-lg bg-primary text-white font-bold shadow-lg shadow-primary/30 hover:bg-blue-700 transition-colors flex items-center gap-2">
+              <span class="material-symbols-outlined text-[18px]">save</span>
+              ذخیره تغییرات
+            </button>
+          </div>
         </div>
       </div>
-      <div class="border-t border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-[#1a202e]/80 backdrop-blur p-4 flex justify-end gap-3 z-30 absolute bottom-0 w-full">
-        <button class="px-6 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-          انصراف
-        </button>
-        <button class="px-8 py-2.5 rounded-lg bg-primary text-white font-bold shadow-lg shadow-primary/30 hover:bg-blue-700 transition-colors flex items-center gap-2">
-          <span class="material-symbols-outlined text-[18px]">save</span>
-          ذخیره تغییرات
-        </button>
-      </div>
-    </main>
-  </div>
+    </div>
+  </MainLayout>
 </template>
