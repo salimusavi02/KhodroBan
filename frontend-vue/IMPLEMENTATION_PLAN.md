@@ -12,6 +12,18 @@
   - SettingsView
 - [x] اصلاح لینک‌های سایدبار با `router-link`
 - [x] ساختار پایه State Management با Pinia
+- [x] **احراز هویت (Authentication)**
+  - [x] اتصال `authStore.login()` به `authService` با Supabase
+  - [x] اتصال `authStore.register()` به `authService`
+  - [x] اتصال `authStore.logout()` به `authService`
+  - [x] پیاده‌سازی `authStore.loginWithGoogle()` برای OAuth
+  - [x] ایجاد `AuthCallbackView` برای handle کردن OAuth callback
+  - [x] بهبود error handling برای خطاهای شبکه در authService
+  - [x] مدیریت Session و Token Storage
+  - [x] اتصال فرم Login به `authStore.login()`
+  - [x] اتصال فرم Login به `authStore.loginWithGoogle()`
+- [x] Route Guards برای صفحات محافظت شده
+- [x] محلی‌سازی فونت Material Symbols Outlined
 
 ### ⚠️ کارهای ناتمام
 
@@ -45,36 +57,41 @@
 ## 🔐 فاز ۲: احراز هویت و امنیت (Authentication & Security)
 
 ### ۲.۱ پیاده‌سازی Authentication Store
-- [ ] اتصال `authStore.login()` به `authService`
-- [ ] اتصال `authStore.register()` به `authService`
-- [ ] اتصال `authStore.logout()` به `authService`
-- [ ] پیاده‌سازی `authStore.refreshToken()`
-- [ ] مدیریت Session و Token Storage
-- [ ] پیاده‌سازی Auto-logout در صورت انقضای Token
+- [x] اتصال `authStore.login()` به `authService`
+- [x] اتصال `authStore.register()` به `authService`
+- [x] اتصال `authStore.logout()` به `authService`
+- [x] پیاده‌سازی `authStore.loginWithGoogle()` برای OAuth با Google
+- [x] مدیریت Session و Token Storage
+- [x] بهبود error handling برای خطاهای شبکه (ERR_CONNECTION_CLOSED, ERR_NETWORK_CHANGED, etc.)
+- [ ] پیاده‌سازی `authStore.refreshToken()` (optional - برای آینده)
+- [ ] پیاده‌سازی Auto-logout در صورت انقضای Token (optional - برای آینده)
 
 **اولویت:** خیلی بالا  
-**زمان تخمینی:** ۲ روز
+**وضعیت:** ✅ تکمیل شده
 
 ### ۲.۲ Route Guards
-- [ ] ایجاد `router/beforeEach` guard برای صفحات محافظت شده
-- [ ] Redirect به `/login` در صورت عدم احراز هویت
-- [ ] Redirect به `/dashboard` در صورت احراز هویت (برای صفحات login/signup)
+- [x] ایجاد `router/beforeEach` guard برای صفحات محافظت شده
+- [x] Redirect به `/login` در صورت عدم احراز هویت
+- [x] Redirect به `/dashboard` در صورت احراز هویت (برای صفحات login/signup)
+- [x] ایجاد route `/auth/callback` برای OAuth callback
 - [ ] مدیریت دسترسی بر اساس Tier (Free/Pro)
 - [ ] ایجاد Middleware برای صفحات Pro-only
 
 **اولویت:** خیلی بالا  
-**زمان تخمینی:** ۱ روز
+**وضعیت:** ✅ تکمیل شده (به جز Tier-based access control)
 
 ### ۲.۳ صفحات Login و SignUp
-- [ ] اتصال فرم Login به `authStore.login()`
-- [ ] اتصال فرم SignUp به `authStore.register()`
-- [ ] اضافه کردن اعتبارسنجی فرم‌ها
-- [ ] نمایش پیام‌های خطا
-- [ ] مدیریت Loading States
-- [ ] اضافه کردن "فراموشی رمز عبور"
+- [x] اتصال فرم Login به `authStore.login()`
+- [x] اتصال فرم Login به `authStore.loginWithGoogle()` (دکمه ورود با گوگل)
+- [x] اتصال فرم SignUp به `authStore.register()`
+- [x] اضافه کردن اعتبارسنجی فرم‌ها
+- [x] نمایش پیام‌های خطا (از طریق toast و error state)
+- [x] مدیریت Loading States
+- [x] ایجاد `AuthCallbackView` برای handle کردن OAuth callback از Google
+- [ ] اضافه کردن "فراموشی رمز عبور" (optional - برای آینده)
 
 **اولویت:** خیلی بالا  
-**زمان تخمینی:** ۲ روز
+**وضعیت:** ✅ تکمیل شده (به جز فراموشی رمز عبور)
 
 ## 🚗 فاز ۳: مدیریت خودروها (Vehicle Management)
 
@@ -405,8 +422,12 @@
 ## 🎯 اولویت‌بندی کلی
 
 ### 🔴 اولویت خیلی بالا (باید فوراً انجام شود)
-1. Authentication و Route Guards
-2. صفحات Login/SignUp
+1. ✅ Authentication و Route Guards (تکمیل شده)
+2. ✅ صفحات Login/SignUp (تکمیل شده)
+   - Login با email/password
+   - Login با Google OAuth
+   - Register
+   - Logout
 3. Vehicle Management (CRUD)
 4. Service Management (CRUD)
 

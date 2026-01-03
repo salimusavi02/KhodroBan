@@ -11,11 +11,13 @@
 - **Task 2.1-2.2**: Testing Setup (Vitest, fast-check نصب و پیکربندی شده)
 - **Task 3.1**: Error Handler (پیاده‌سازی کامل)
 - **Task 4.1**: UI Store (کامل با Toast system)
+- **Task 5.1**: Auth Store (کامل - login, register, logout, loginWithGoogle)
+- **Task 5.2**: LoginView و SignUpView (اتصال به Auth Store + OAuth Google)
+- **Task 6.1**: Router Navigation Guards (beforeEach guards پیاده‌سازی شده)
 - **Task 9.1**: Service Store (کامل و متصل به serviceService)
 
 ### ⚠️ کارهای نیمه‌تمام (Partially Completed)
 - **Task 4.2**: Toast Component (فقط export، فایل کامپوننت ایجاد نشده)
-- **Task 5.1**: Auth Store (ساختار ایجاد شده، actions placeholder)
 - **Task 8.1**: Vehicle Store (ساختار ایجاد شده، actions placeholder)
 - **Task 10.1**: Expense Store (ساختار ایجاد شده، actions placeholder)
 - **Task 13.1**: Dashboard Store (ساختار ایجاد شده، actions placeholder)
@@ -26,16 +28,17 @@
 
 ### 📋 کارهای انجام نشده (Not Started)
 - تمام Property Tests (marked with *)
-- Router Navigation Guards
-- اتصال Stores به Services (به جز Service Store)
+- اتصال Stores به Services (به جز Service Store و Auth Store)
 - ایجاد Components (Toast, LoadingSpinner, Modal, etc.)
-- اتصال Views به Stores
+- اتصال Views به Stores (به جز LoginView و SignUpView)
 
 ### 📊 پیشرفت کلی
-- **تقریبی**: 25-30% از کارهای ساختاری
-- **Stores**: 10/10 ایجاد شده (1 کامل، 9 placeholder)
-- **Views**: 17/17 ایجاد شده (5 استفاده از MainLayout)
-- **Components**: MainLayout, Header, Sidebar ایجاد شده
+- **تقریبی**: 35-40% از کارهای ساختاری
+- **Stores**: 10/10 ایجاد شده (3 کامل: UI, Auth, Service - 7 placeholder)
+- **Views**: 18/18 ایجاد شده (5 استفاده از MainLayout + AuthCallbackView جدید)
+- **Components**: MainLayout, Header, Sidebar, AuthCallbackView ایجاد شده
+- **Authentication**: ✅ کامل (Login, Register, Logout, Google OAuth)
+- **Router**: ✅ Navigation Guards پیاده‌سازی شده
 
 ## Tasks
 
@@ -82,18 +85,24 @@
 
     - **Property 23: Error Handling and User Feedback**
     - **Validates: Requirements 9.5, 2.6**
-- [-] 
-  - [-] 5.1 ایجاد Auth Store
+- [X] 
+  - [X] 5.1 ایجاد Auth Store
 
     - مدیریت user state، token، loading و error states
-    - پیاده‌سازی login، register، logout actions
+    - پیاده‌سازی login، register، logout، loginWithGoogle actions
+    - اتصال به authService با Supabase backend
+    - بهبود error handling برای خطاهای شبکه
+    - مدیریت Session و Token Storage
     - _Requirements: 1.1, 1.2, 1.3, 1.5_
-    - **وضعیت:** Store ایجاد شده اما actions هنوز placeholder هستند
-  - [ ] 5.2 بهبود LoginView و SignUpView Components
+    - **وضعیت:** ✅ تکمیل شده
+  - [X] 5.2 بهبود LoginView و SignUpView Components
 
     - اتصال فرم‌های موجود به Auth Store
     - پیاده‌سازی form validation و error handling
+    - اضافه کردن دکمه ورود با Google (OAuth)
+    - ایجاد AuthCallbackView برای handle کردن OAuth callback
     - _Requirements: 1.1, 1.2_
+    - **وضعیت:** ✅ تکمیل شده
   - [ ]* 5.3 نوشتن property test برای Authentication State
 
     - **Property 1: Authentication State Consistency**
@@ -103,12 +112,14 @@
     - **Property 3: Authentication Error Handling**
     - **Validates: Requirements 1.2**
 - [ ] 
-  - [ ] 6.1 بازسازی Router با Navigation Guards
+  - [X] 6.1 بازسازی Router با Navigation Guards
 
     - بازنویسی router configuration با proper route structure
     - محافظت از routes که نیاز به احراز هویت دارند
     - هدایت کاربران غیر احراز هویت شده به صفحه login
+    - اضافه کردن route `/auth/callback` برای OAuth callback
     - _Requirements: 1.4_
+    - **وضعیت:** ✅ تکمیل شده
   - [ ]* 6.2 نوشتن property test برای Navigation Guards
 
     - **Property 2: Navigation Guard Protection**
