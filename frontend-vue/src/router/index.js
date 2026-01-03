@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useAuthStore } from '../stores/auth'
 import LoginView from '../views/LoginView.vue'
 import DashboardView from '../views/DashboardView.vue'
 import SelectServiceTypeView from '../views/SelectServiceTypeView.vue'
@@ -24,17 +25,20 @@ const router = createRouter({
     {
       path: '/',
       name: 'dashboard',
-      component: DashboardView
+      component: DashboardView,
+      meta: { requiresAuth: true }
     },
     {
       path: '/login',
       name: 'login',
-      component: LoginView
+      component: LoginView,
+      meta: { requiresGuest: true }
     },
     {
       path: '/select-service',
       name: 'select-service',
-      component: SelectServiceTypeView
+      component: SelectServiceTypeView,
+      meta: { requiresAuth: true }
     },
     {
       path: '/dashboard-variant-3',
@@ -54,7 +58,8 @@ const router = createRouter({
     {
       path: '/reminders',
       name: 'reminders',
-      component: RemindersView
+      component: RemindersView,
+      meta: { requiresAuth: true }
     },
     {
       path: '/select-service-details',
@@ -64,32 +69,38 @@ const router = createRouter({
     {
       path: '/settings',
       name: 'settings',
-      component: SettingsView
+      component: SettingsView,
+      meta: { requiresAuth: true }
     },
     {
       path: '/add-service',
       name: 'add-service',
-      component: AddServiceView
+      component: AddServiceView,
+      meta: { requiresAuth: true }
     },
     {
       path: '/vehicle-list',
       name: 'vehicle-list',
-      component: VehicleListView
+      component: VehicleListView,
+      meta: { requiresAuth: true }
     },
     {
       path: '/reports',
       name: 'reports',
-      component: ReportsView
+      component: ReportsView,
+      meta: { requiresAuth: true }
     },
     {
       path: '/signup',
       name: 'signup',
-      component: SignUpView
+      component: SignUpView,
+      meta: { requiresGuest: true }
     },
     {
       path: '/upgrade-pro',
       name: 'upgrade-pro',
-      component: UpgradeProView
+      component: UpgradeProView,
+      meta: { requiresAuth: true }
     },
     {
       path: '/select-service-details-variant-15',
@@ -104,14 +115,40 @@ const router = createRouter({
     {
       path: '/vehicle-details',
       name: 'vehicle-details',
-      component: VehicleDetailsView
+      component: VehicleDetailsView,
+      meta: { requiresAuth: true }
     },
     {
       path: '/smart-assistant',
       name: 'smart-assistant',
-      component: SmartAssistantView
+      component: SmartAssistantView,
+      meta: { requiresAuth: true }
     }
   ]
+})
+
+// Navigation Guards
+router.beforeEach(async (to, from, next) => {
+  const authStore = useAuthStore()
+
+  // Initialize auth store if not already done
+  if (!authStore.user && authStore.token) {
+    await authStore.initialize()
+  }
+
+  // Check if route requires authentication
+  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+    next({ name: 'login', query: { redirect: to.fullPath } })
+    return
+  }
+
+  // Check if route requires guest (redirect to dashboard if already logged in)
+  if (to.meta.requiresGuest && authStore.isAuthenticated) {
+    next({ name: 'dashboard' })
+    return
+  }
+
+  next()
 })
 
 export default router

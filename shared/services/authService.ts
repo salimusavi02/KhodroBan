@@ -13,35 +13,107 @@ import { config } from './config';
  * تبدیل Supabase User به User type اپلیکیشن
  */
 async function mapSupabaseUserToAppUser(supabaseUser: any): Promise<User> {
-  // دریافت پروفایل کاربر
-  const { data: profile } = await supabase
-    .from('user_profiles')
-    .select('*')
-    .eq('id', supabaseUser.id)
-    .single();
-
-  // دریافت subscription فعال کاربر
-  const { data: subscription } = await supabase
-    .from('user_subscriptions')
-    .select('plan_id')
-    .eq('user_id', supabaseUser.id)
-    .eq('is_active', true)
-    .single();
-
-  // دریافت plan_code
-  let planCode = 'free';
-  const subscriptionData = subscription as any;
-  if (subscriptionData?.plan_id) {
-    const { data: plan } = await supabase
-      .from('subscription_plans')
-      .select('plan_code')
-      .eq('plan_id', subscriptionData.plan_id)
-      .single();
-
-    planCode = (plan as any)?.plan_code || 'free';
+  if (!supabase) {
+    throw new Error('Supabase client not available');
   }
 
-  const profileData = profile as any;
+  let profileData: any = null;
+  let planCode = 'free';
+
+  try {
+    // دریافت پروفایل کاربر
+    const { data: profile, error: profileError } = await supabase
+      .from('user_profiles')
+      .select('*')
+      .eq('id', supabaseUser.id)
+      .maybeSingle();
+
+    // اگر خطای شبکه یا خطای غیر از "no rows found" وجود داشت، لاگ کن
+    if (profileError) {
+      // PGRST116 = no rows returned
+      if (profileError.code !== 'PGRST116') {
+        console.warn('Error fetching profile:', profileError);
+      }
+    } else if (profile) {
+      profileData = profile;
+    }
+  } catch (error: any) {
+    // Handle network errors - اگر خطای شبکه بود، از مقادیر پیش‌فرض استفاده کن
+    const isNetworkError = 
+      error.message?.includes('Failed to fetch') ||
+      error.message?.includes('ERR_NETWORK_CHANGED') ||
+      error.message?.includes('ERR_NAME_NOT_RESOLVED') ||
+      error.message?.includes('ERR_CONNECTION_CLOSED') ||
+      error.name === 'TypeError';
+    
+    if (isNetworkError) {
+      console.warn('Network error while fetching profile, using defaults:', error);
+    } else {
+      console.warn('Error fetching profile, using defaults:', error);
+    }
+  }
+
+  try {
+    // دریافت subscription فعال کاربر
+    const { data: subscription, error: subscriptionError } = await supabase
+      .from('user_subscriptions')
+      .select('plan_id')
+      .eq('user_id', supabaseUser.id)
+      .eq('is_active', true)
+      .maybeSingle();
+
+    // اگر خطای شبکه یا خطای غیر از "no rows found" وجود داشت، لاگ کن
+    if (subscriptionError) {
+      // PGRST116 = no rows returned
+      if (subscriptionError.code !== 'PGRST116') {
+        console.warn('Error fetching subscription:', subscriptionError);
+      }
+    } else if (subscription?.plan_id) {
+      try {
+        const { data: plan, error: planError } = await supabase
+          .from('subscription_plans')
+          .select('plan_code')
+          .eq('plan_id', subscription.plan_id)
+          .maybeSingle();
+
+        if (planError) {
+          if (planError.code !== 'PGRST116') {
+            console.warn('Error fetching plan:', planError);
+          }
+        } else if (plan) {
+          planCode = (plan as any)?.plan_code || 'free';
+        }
+      } catch (error: any) {
+        // Handle network errors
+        const isNetworkError = 
+          error.message?.includes('Failed to fetch') ||
+          error.message?.includes('ERR_NETWORK_CHANGED') ||
+          error.message?.includes('ERR_NAME_NOT_RESOLVED') ||
+          error.message?.includes('ERR_CONNECTION_CLOSED') ||
+          error.name === 'TypeError';
+        
+        if (isNetworkError) {
+          console.warn('Network error while fetching plan, using free tier:', error);
+        } else {
+          console.warn('Error fetching plan, using free tier:', error);
+        }
+      }
+    }
+  } catch (error: any) {
+    // Handle network errors - اگر خطای شبکه بود، از free tier استفاده کن
+    const isNetworkError = 
+      error.message?.includes('Failed to fetch') ||
+      error.message?.includes('ERR_NETWORK_CHANGED') ||
+      error.message?.includes('ERR_NAME_NOT_RESOLVED') ||
+      error.message?.includes('ERR_CONNECTION_CLOSED') ||
+      error.name === 'TypeError';
+    
+    if (isNetworkError) {
+      console.warn('Network error while fetching subscription, using free tier:', error);
+    } else {
+      console.warn('Error fetching subscription, using free tier:', error);
+    }
+  }
 
   return {
     id: supabaseUser.id,
@@ -165,6 +237,18 @@ const authServiceSupabase: IAuthService = {
 
       return { user, token };
     } catch (error: any) {
+      // Handle network errors
+      const isNetworkError = 
+        error.message?.includes('Failed to fetch') || 
+        error.message?.includes('ERR_CONNECTION_CLOSED') ||
+        error.message?.includes('ERR_NETWORK_CHANGED') ||
+        error.message?.includes('ERR_NAME_NOT_RESOLVED') ||
+        error.message?.includes('NetworkError') ||
+        error.name === 'TypeError';
+      
+      if (isNetworkError) {
+        throw new Error('خطا در اتصال به سرور. لطفاً اتصال اینترنت خود را بررسی کنید و دوباره تلاش کنید.');
+      }
       throw new Error(error.message || 'خطا در ورود');
     }
   },
