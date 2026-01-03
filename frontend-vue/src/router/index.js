@@ -119,7 +119,7 @@ const router = createRouter({
       component: DashboardVariant16View
     },
     {
-      path: '/vehicle-details',
+      path: '/vehicle-details/:id',
       name: 'vehicle-details',
       component: VehicleDetailsView,
       meta: { requiresAuth: true }

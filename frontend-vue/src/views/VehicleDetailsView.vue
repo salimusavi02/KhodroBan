@@ -1,257 +1,336 @@
 <script setup>
+import { onMounted, ref, computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import MainLayout from '../components/MainLayout.vue'
+import { useVehicleStore } from '../stores/vehicle'
+import { useServiceStore } from '../stores/service'
+import { useUIStore } from '../stores/ui'
+
+const route = useRoute()
+const router = useRouter()
+const vehicleStore = useVehicleStore()
+const serviceStore = useServiceStore()
+const uiStore = useUIStore()
+
+const vehicleId = computed(() => route.params.id)
+const vehicle = computed(() => vehicleStore.vehicleById(vehicleId.value))
+const isEditMode = computed(() => route.query.edit === 'true')
+const activeTab = ref('services')
+
+const servicesForVehicle = computed(() => {
+  if (!vehicleId.value) return []
+  return serviceStore.servicesByVehicle(vehicleId.value)
+    .sort((a, b) => new Date(b.date) - new Date(a.date))
+})
+
+onMounted(async () => {
+  // Fetch vehicle if not in store
+  if (!vehicle.value && vehicleId.value) {
+    try {
+      await vehicleStore.getVehicleById(vehicleId.value)
+    } catch (error) {
+      uiStore.showToast({
+        message: error.message || 'خطا در دریافت اطلاعات خودرو',
+        type: 'error'
+      })
+      router.push('/vehicle-list')
+      return
+    }
+  }
+
+  // Fetch services for this vehicle
+  if (vehicleId.value) {
+    try {
+      await serviceStore.fetchServices(vehicleId.value)
+    } catch (error) {
+      console.error('Error fetching services:', error)
+    }
+  }
+})
+
+const handleEdit = () => {
+  router.push({ 
+    name: 'vehicle-management', 
+    query: { action: 'edit', id: vehicleId.value } 
+  })
+}
+
+const handleDelete = async () => {
+  if (!confirm('آیا مطمئن هستید که می‌خواهید این خودرو را حذف کنید؟')) {
+    return
+  }
+
+  try {
+    await vehicleStore.deleteVehicle(vehicleId.value)
+    uiStore.showToast({
+      message: 'خودرو با موفقیت حذف شد',
+      type: 'success'
+    })
+    router.push('/vehicle-list')
+  } catch (error) {
+    uiStore.showToast({
+      message: error.message || 'خطا در حذف خودرو',
+      type: 'error'
+    })
+  }
+}
+
+const handleAddRecord = () => {
+  router.push({ 
+    name: 'add-service', 
+    query: { vehicleId: vehicleId.value } 
+  })
+}
+
+const formatDate = (dateString) => {
+  if (!dateString) return '-'
+  const date = new Date(dateString)
+  if (isNaN(date.getTime())) {
+    return dateString // Return original string if invalid date
+  }
+  try {
+    // Simple date format: YYYY-MM-DD or DD/MM/YYYY
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    return `${year}/${month}/${day}`
+  } catch (error) {
+    // Fallback to ISO string
+    return date.toISOString().split('T')[0]
+  }
+}
+
+const formatCurrency = (amount) => {
+  if (!amount) return '۰'
+  return new Intl.NumberFormat('fa-IR').format(amount)
+}
 </script>
 
 <template>
-  <div class="relative flex h-auto min-h-screen w-full flex-col">
-    <header class="sticky top-0 z-50 flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#f1f1f4] bg-white dark:bg-[#1e2330] dark:border-[#2a2f3d] px-10 py-3 shadow-sm">
-      <div class="flex items-center gap-8">
-        <div class="flex items-center gap-4 text-[#121317] dark:text-white">
-          <div class="size-8 text-primary flex items-center justify-center">
-            <span class="material-symbols-outlined text-3xl">local_taxi</span>
-          </div>
-          <h2 class="text-[#121317] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">اتومیت</h2>
-        </div>
-        <div class="hidden md:flex items-center gap-9">
-          <a class="text-[#121317] dark:text-gray-300 hover:text-primary text-sm font-medium leading-normal transition-colors" href="#">داشبورد</a>
-          <a class="text-primary text-sm font-bold leading-normal" href="#">گاراژ من</a>
-          <a class="text-[#121317] dark:text-gray-300 hover:text-primary text-sm font-medium leading-normal transition-colors" href="#">گزارش‌ها</a>
-          <a class="text-[#121317] dark:text-gray-300 hover:text-primary text-sm font-medium leading-normal transition-colors" href="#">تنظیمات</a>
+  <MainLayout>
+    <div class="flex flex-col gap-8">
+      <!-- Breadcrumb -->
+      <div class="flex flex-wrap gap-2">
+        <router-link to="/" class="text-[#666e85] dark:text-gray-400 hover:text-primary text-sm font-medium">خانه</router-link>
+        <span class="text-[#666e85] dark:text-gray-600 text-sm">/</span>
+        <router-link to="/vehicle-list" class="text-[#666e85] dark:text-gray-400 hover:text-primary text-sm font-medium">گاراژ من</router-link>
+        <span class="text-[#666e85] dark:text-gray-600 text-sm">/</span>
+        <span class="text-[#121317] dark:text-white text-sm font-medium">{{ vehicle?.model || 'در حال بارگذاری...' }}</span>
+      </div>
+
+      <!-- Loading State -->
+      <div v-if="vehicleStore.isLoading && !vehicle" class="flex justify-center items-center py-12">
+        <div class="flex flex-col items-center gap-4">
+          <div class="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          <p class="text-gray-500 dark:text-gray-400">در حال بارگذاری...</p>
         </div>
       </div>
-      <div class="flex flex-1 justify-end gap-8">
-        <label class="hidden md:flex flex-col min-w-40 !h-10 max-w-64">
-          <div class="flex w-full flex-1 items-stretch rounded-xl h-full">
-            <div class="text-[#666e85] flex border-none bg-[#f1f1f4] dark:bg-[#2a2f3d] items-center justify-center ps-4 rounded-s-xl border-e-0">
-              <span class="material-symbols-outlined text-[20px]">search</span>
-            </div>
-            <input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#121317] dark:text-white focus:outline-0 focus:ring-0 border-none bg-[#f1f1f4] dark:bg-[#2a2f3d] focus:border-none h-full placeholder:text-[#666e85] px-4 rounded-s-none border-s-0 ps-2 text-sm font-normal leading-normal" placeholder="جستجوی خودرو..." value="" />
-          </div>
-        </label>
-        <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 ring-2 ring-white dark:ring-[#2a2f3d]" data-alt="User profile avatar showing a smiling person" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAA8wY3dAQZ2tlXshnCLYPNCxKCvhsRR1DfgTfFGe1pyAw3SCJ9xLJTzNJNLfcxdayHF6thIvfo5szGwpFDOu5BGlorlg2lbjut6sW2LABR3kCyNp3wOws7SvmoMxUODGpHPVL-9LaX4HT-rdonQ7Wbw318nh9iSoKnb2ZHhBDgBKFEzwZC3W5Pq6dxk93ckryNnW6aNqmlNbhVwnqZFg3tiSvBcN3b_geCFzTqKrYF_AJn7Jcw7S1jItJOs41PTpdHsVPnFdWqKz8");'></div>
+
+      <!-- Error State -->
+      <div v-else-if="!vehicle" class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-xl text-sm">
+        خودرو یافت نشد
+        <router-link to="/vehicle-list" class="mr-2 text-primary hover:underline">بازگشت به لیست</router-link>
       </div>
-    </header>
-    <div class="layout-container flex h-full grow flex-col">
-      <div class="px-4 md:px-10 lg:px-40 flex flex-1 justify-center py-5">
-        <div class="layout-content-container flex flex-col max-w-[1200px] flex-1 gap-6">
-          <div class="flex flex-wrap gap-2 px-4">
-            <a class="text-[#666e85] dark:text-gray-400 hover:text-primary text-sm font-medium leading-normal" href="#">خانه</a>
-            <span class="text-[#666e85] dark:text-gray-600 text-sm font-medium leading-normal">/</span>
-            <a class="text-[#666e85] dark:text-gray-400 hover:text-primary text-sm font-medium leading-normal" href="#">گاراژ من</a>
-            <span class="text-[#666e85] dark:text-gray-600 text-sm font-medium leading-normal">/</span>
-            <span class="text-[#121317] dark:text-white text-sm font-medium leading-normal">تویوتا کمری ۲۰۱۹ SE</span>
-          </div>
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div class="lg:col-span-2 rounded-xl border border-[#dcdfe4] dark:border-[#2a2f3d] bg-white dark:bg-[#1e2330] p-5 shadow-sm">
-              <div class="flex flex-col sm:flex-row gap-6 justify-between items-start sm:items-center h-full">
-                <div class="flex gap-5 items-center">
-                  <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-xl w-24 h-24 sm:w-32 sm:h-32 shrink-0 border border-gray-100 dark:border-gray-700" data-alt="Silver 2019 Toyota Camry side view" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAb4c1md6ukKGNA54DMlcNmg4B5xy-wsmNsRPsMS4BkaJ9ewvmCIemjriGw-tpCIkFwpUKSH-bgN4Ks3DZHfZ36rAQwWbeVurWJjDpxEfbpIizZHk5g-vAtVxLd9IdBHRitNOmuXGCTdEZtUKkBPiFrbJEM6awJjEHhqYRZvT-E9M-1ksNpiclYRgmo5ETmcuPLym16uRy9xYj8nkCt1-NINJz8bJXRoAXupguGb1SCusOpBCgUOAEf3lf_rHeZAb0WP8Or5N4_EUg");'></div>
-                  <div class="flex flex-col gap-1">
-                    <div class="flex items-center gap-2">
-                      <h1 class="text-[#121317] dark:text-white text-2xl sm:text-3xl font-bold leading-tight tracking-tight">تویوتا کمری ۲۰۱۹ SE</h1>
-                      <span class="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 text-xs px-2 py-1 rounded-full font-bold">شرایط خوب</span>
-                    </div>
-                    <p class="text-[#666e85] dark:text-gray-400 text-sm font-normal">پلاک: <span class="text-[#121317] dark:text-gray-200 font-medium">۱۲۳۴-الف</span></p>
-                    <p class="text-[#666e85] dark:text-gray-400 text-sm font-normal">شماره شاسی: <span class="text-[#121317] dark:text-gray-200 font-medium font-mono text-xs text-left" dir="ltr">4T1B11HK...X892</span></p>
-                    <div class="flex gap-2 mt-2">
-                      <button class="text-sm text-primary font-medium hover:underline flex items-center gap-1">
-                        <span class="material-symbols-outlined text-[18px]">edit</span> ویرایش جزئیات
-                      </button>
-                    </div>
-                  </div>
+
+      <!-- Vehicle Details -->
+      <div v-else class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Vehicle Info Card -->
+        <div class="lg:col-span-2 rounded-xl border border-[#dcdfe4] dark:border-[#2a2f3d] bg-white dark:bg-[#1e2330] p-5 shadow-sm">
+          <div class="flex flex-col sm:flex-row gap-6 justify-between items-start sm:items-center h-full">
+            <div class="flex gap-5 items-center">
+              <div class="size-24 sm:size-32 rounded-xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center shrink-0 border border-gray-200 dark:border-gray-600">
+                <span class="material-symbols-outlined text-5xl sm:text-6xl text-gray-400">directions_car</span>
+              </div>
+              <div class="flex flex-col gap-1">
+                <div class="flex items-center gap-2">
+                  <h1 class="text-[#121317] dark:text-white text-2xl sm:text-3xl font-bold leading-tight tracking-tight">{{ vehicle.model }}</h1>
+                  <span class="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 text-xs px-2 py-1 rounded-full font-bold">شرایط خوب</span>
                 </div>
-                <div class="flex flex-row sm:flex-col gap-3 w-full sm:w-auto">
-                  <button class="flex-1 sm:flex-none flex items-center justify-center rounded-xl h-10 px-4 bg-primary text-white text-sm font-bold leading-normal hover:bg-primary/90 transition-colors shadow-sm gap-2">
-                    <span class="material-symbols-outlined text-[20px]">add</span>
-                    <span>افزودن رکورد</span>
+                <p class="text-[#666e85] dark:text-gray-400 text-sm font-normal">پلاک: <span class="text-[#121317] dark:text-gray-200 font-medium">{{ vehicle.plateNumber }}</span></p>
+                <p class="text-[#666e85] dark:text-gray-400 text-sm font-normal">سال ساخت: <span class="text-[#121317] dark:text-gray-200 font-medium">{{ vehicle.year }}</span></p>
+                <div class="flex gap-2 mt-2">
+                  <button 
+                    @click="handleEdit"
+                    class="text-sm text-primary font-medium hover:underline flex items-center gap-1"
+                  >
+                    <span class="material-symbols-outlined text-[18px]">edit</span> ویرایش جزئیات
                   </button>
-                  <button class="flex-1 sm:flex-none flex items-center justify-center rounded-xl h-10 px-4 bg-[#f1f1f4] dark:bg-[#2a2f3d] text-[#121317] dark:text-gray-200 text-sm font-bold leading-normal hover:bg-gray-200 dark:hover:bg-[#353b4d] transition-colors">
-                    <span class="truncate">تنظیمات</span>
+                  <button 
+                    @click="handleDelete"
+                    class="text-sm text-red-600 dark:text-red-400 font-medium hover:underline flex items-center gap-1"
+                  >
+                    <span class="material-symbols-outlined text-[18px]">delete</span> حذف
                   </button>
                 </div>
               </div>
             </div>
-            <div class="lg:col-span-1 flex flex-col justify-center rounded-xl border border-[#dcdfe4] dark:border-[#2a2f3d] bg-white dark:bg-[#1e2330] p-6 shadow-sm relative overflow-hidden group">
-              <div class="absolute top-0 right-0 -mr-4 -mt-4 w-24 h-24 bg-primary/5 rounded-full blur-2xl group-hover:bg-primary/10 transition-all"></div>
-              <div class="flex items-center gap-3 mb-2">
-                <div class="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-primary">
-                  <span class="material-symbols-outlined">speed</span>
-                </div>
-                <h3 class="text-[#666e85] dark:text-gray-400 text-sm font-bold uppercase tracking-wider">کیلومتر فعلی</h3>
-              </div>
-              <div class="flex items-baseline gap-1 my-3">
-                <span class="text-[#121317] dark:text-white text-4xl font-black tracking-tight">۴۵,۲۳۰</span>
-                <span class="text-[#666e85] dark:text-gray-400 text-lg font-medium">کیلومتر</span>
-              </div>
-              <div class="flex items-center justify-between mt-auto pt-4 border-t border-gray-100 dark:border-gray-800">
-                <p class="text-[#666e85] dark:text-gray-500 text-xs font-normal">بروزرسانی: ۲ روز پیش</p>
-                <button class="text-primary text-sm font-bold hover:underline">بروزرسانی</button>
-              </div>
+            <div class="flex flex-row sm:flex-col gap-3 w-full sm:w-auto">
+              <button 
+                @click="handleAddRecord"
+                class="flex-1 sm:flex-none flex items-center justify-center rounded-xl h-10 px-4 bg-primary text-white text-sm font-bold leading-normal hover:bg-primary/90 transition-colors shadow-sm gap-2"
+              >
+                <span class="material-symbols-outlined text-[20px]">add</span>
+                <span>افزودن رکورد</span>
+              </button>
             </div>
           </div>
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div class="lg:col-span-2 flex flex-col gap-4">
-              <div class="border-b border-gray-200 dark:border-gray-700">
-                <nav aria-label="Tabs" class="-mb-px flex gap-8">
-                  <button class="border-primary text-primary whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium flex items-center gap-2">
-                    <span class="material-symbols-outlined text-[18px]">build</span>
-                    تاریخچه سرویس
-                  </button>
-                  <button class="border-transparent text-gray-500 dark:text-gray-400 hover:border-gray-300 hover:text-gray-700 dark:hover:text-gray-200 whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium flex items-center gap-2">
-                    <span class="material-symbols-outlined text-[18px]">local_gas_station</span>
-                    گزارش سوخت
-                  </button>
-                  <button class="border-transparent text-gray-500 dark:text-gray-400 hover:border-gray-300 hover:text-gray-700 dark:hover:text-gray-200 whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium flex items-center gap-2">
-                    <span class="material-symbols-outlined text-[18px]">attach_money</span>
-                    هزینه‌ها
-                  </button>
-                </nav>
-              </div>
-              <div class="bg-white dark:bg-[#1e2330] rounded-xl border border-[#dcdfe4] dark:border-[#2a2f3d] shadow-sm overflow-hidden">
-                <div class="overflow-x-auto">
-                  <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                    <thead class="bg-gray-50 dark:bg-[#252a38]">
-                      <tr>
-                        <th class="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider" scope="col">تاریخ</th>
-                        <th class="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider" scope="col">خدمت</th>
-                        <th class="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider" scope="col">کیلومترشمار</th>
-                        <th class="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider" scope="col">هزینه</th>
-                        <th class="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider" scope="col">وضعیت</th>
-                        <th class="relative px-6 py-3" scope="col">
-                          <span class="sr-only">عملیات</span>
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody class="bg-white dark:bg-[#1e2330] divide-y divide-gray-200 dark:divide-gray-700">
-                      <tr>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white font-medium text-start">۲۰ مهر ۱۴۰۲</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300 text-start">
-                          <div class="flex items-center gap-2">
-                            <span class="material-symbols-outlined text-gray-400 text-[18px]">water_drop</span>
-                            تعویض روغن
-                          </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300 text-start">۴۵,۰۰۰ کیلومتر</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white text-start">۶۵.۰۰ دلار</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-start">
-                          <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300">تکمیل شده</span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-end text-sm font-medium">
-                          <a class="text-gray-400 hover:text-primary" href="#"><span class="material-symbols-outlined">more_vert</span></a>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white font-medium text-start">۱۴ شهریور ۱۴۰۲</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300 text-start">
-                          <div class="flex items-center gap-2">
-                            <span class="material-symbols-outlined text-gray-400 text-[18px]">sync</span>
-                            جابجایی لاستیک
-                          </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300 text-start">۴۴,۲۰۰ کیلومتر</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white text-start">۰.۰۰ دلار</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-start">
-                          <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300">تکمیل شده</span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-end text-sm font-medium">
-                          <a class="text-gray-400 hover:text-primary" href="#"><span class="material-symbols-outlined">more_vert</span></a>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white font-medium text-start">۲۵ خرداد ۱۴۰۲</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300 text-start">
-                          <div class="flex items-center gap-2">
-                            <span class="material-symbols-outlined text-gray-400 text-[18px]">directions_car</span>
-                            بازرسی کلی
-                          </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300 text-start">۴۰,۱۰۰ کیلومتر</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white text-start">۱۲۰.۰۰ دلار</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-start">
-                          <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300">تکمیل شده</span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-end text-sm font-medium">
-                          <a class="text-gray-400 hover:text-primary" href="#"><span class="material-symbols-outlined">more_vert</span></a>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-                <div class="bg-gray-50 dark:bg-[#252a38] px-6 py-3 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
-                  <p class="text-sm text-gray-500 dark:text-gray-400">نمایش ۳ از ۱۲ مورد</p>
-                  <div class="flex gap-2">
-                    <button class="p-1 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 disabled:opacity-50"><span class="material-symbols-outlined text-[20px]">chevron_right</span></button>
-                    <button class="p-1 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 disabled:opacity-50"><span class="material-symbols-outlined text-[20px]">chevron_left</span></button>
-                  </div>
-                </div>
+        </div>
+
+        <!-- Current KM Card -->
+        <div class="lg:col-span-1 flex flex-col justify-center rounded-xl border border-[#dcdfe4] dark:border-[#2a2f3d] bg-white dark:bg-[#1e2330] p-6 shadow-sm relative overflow-hidden group">
+          <div class="absolute top-0 right-0 -mr-4 -mt-4 w-24 h-24 bg-primary/5 rounded-full blur-2xl group-hover:bg-primary/10 transition-all"></div>
+          <div class="flex items-center gap-3 mb-2">
+            <div class="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-primary">
+              <span class="material-symbols-outlined">speed</span>
+            </div>
+            <h3 class="text-[#666e85] dark:text-gray-400 text-sm font-bold uppercase tracking-wider">کیلومتر فعلی</h3>
+          </div>
+          <div class="flex items-baseline gap-1 my-3">
+            <span class="text-[#121317] dark:text-white text-4xl font-black tracking-tight dir-ltr font-mono">{{ vehicle.currentKm.toLocaleString() }}</span>
+            <span class="text-[#666e85] dark:text-gray-400 text-lg font-medium">کیلومتر</span>
+          </div>
+          <div class="flex items-center justify-between mt-auto pt-4 border-t border-gray-100 dark:border-gray-800">
+            <p class="text-[#666e85] dark:text-gray-500 text-xs font-normal">آخرین بروزرسانی</p>
+            <button 
+              @click="handleEdit"
+              class="text-primary text-sm font-bold hover:underline"
+            >
+              بروزرسانی
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabs and Content -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 flex flex-col gap-4">
+          <!-- Tabs -->
+          <div class="border-b border-gray-200 dark:border-gray-700">
+            <nav aria-label="Tabs" class="-mb-px flex gap-8">
+              <button 
+                @click="activeTab = 'services'"
+                :class="[
+                  'whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium flex items-center gap-2 transition-colors',
+                  activeTab === 'services' 
+                    ? 'border-primary text-primary' 
+                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:border-gray-300 hover:text-gray-700 dark:hover:text-gray-200'
+                ]"
+              >
+                <span class="material-symbols-outlined text-[18px]">build</span>
+                تاریخچه سرویس
+              </button>
+              <button 
+                @click="activeTab = 'fuel'"
+                :class="[
+                  'whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium flex items-center gap-2 transition-colors',
+                  activeTab === 'fuel' 
+                    ? 'border-primary text-primary' 
+                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:border-gray-300 hover:text-gray-700 dark:hover:text-gray-200'
+                ]"
+              >
+                <span class="material-symbols-outlined text-[18px]">local_gas_station</span>
+                گزارش سوخت
+              </button>
+              <button 
+                @click="activeTab = 'expenses'"
+                :class="[
+                  'whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium flex items-center gap-2 transition-colors',
+                  activeTab === 'expenses' 
+                    ? 'border-primary text-primary' 
+                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:border-gray-300 hover:text-gray-700 dark:hover:text-gray-200'
+                ]"
+              >
+                <span class="material-symbols-outlined text-[18px]">attach_money</span>
+                هزینه‌ها
+              </button>
+            </nav>
+          </div>
+
+          <!-- Services Tab Content -->
+          <div v-if="activeTab === 'services'" class="bg-white dark:bg-[#1e2330] rounded-xl border border-[#dcdfe4] dark:border-[#2a2f3d] shadow-sm overflow-hidden">
+            <div v-if="serviceStore.isLoading" class="flex justify-center items-center py-12">
+              <div class="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+            </div>
+            <div v-else-if="servicesForVehicle.length === 0" class="flex flex-col items-center justify-center py-12 text-center">
+              <span class="material-symbols-outlined text-5xl text-gray-400 mb-4">build</span>
+              <p class="text-gray-500 dark:text-gray-400">هنوز سرویسی ثبت نشده است</p>
+              <button 
+                @click="handleAddRecord"
+                class="mt-4 px-4 py-2 bg-primary text-white rounded-lg text-sm font-bold hover:bg-primary/90 transition-colors"
+              >
+                افزودن اولین سرویس
+              </button>
+            </div>
+            <div v-else class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead class="bg-gray-50 dark:bg-[#252a38]">
+                  <tr>
+                    <th class="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider" scope="col">تاریخ</th>
+                    <th class="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider" scope="col">خدمت</th>
+                    <th class="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider" scope="col">کیلومترشمار</th>
+                    <th class="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider" scope="col">هزینه</th>
+                    <th class="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider" scope="col">وضعیت</th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white dark:bg-[#1e2330] divide-y divide-gray-200 dark:divide-gray-700">
+                  <tr v-for="service in servicesForVehicle" :key="service.id">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white font-medium text-start">{{ formatDate(service.date) }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300 text-start">
+                      <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-gray-400 text-[18px]">build</span>
+                        {{ service.types?.join('، ') || service.type || 'سرویس' }}
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300 text-start dir-ltr font-mono">{{ service.km.toLocaleString() }} km</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white text-start">{{ formatCurrency(service.cost) }} تومان</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-start">
+                      <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300">تکمیل شده</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Fuel Tab Content -->
+          <div v-if="activeTab === 'fuel'" class="bg-white dark:bg-[#1e2330] rounded-xl border border-[#dcdfe4] dark:border-[#2a2f3d] shadow-sm p-6 text-center">
+            <span class="material-symbols-outlined text-5xl text-gray-400 mb-4">local_gas_station</span>
+            <p class="text-gray-500 dark:text-gray-400">گزارش سوخت به زودی اضافه خواهد شد</p>
+          </div>
+
+          <!-- Expenses Tab Content -->
+          <div v-if="activeTab === 'expenses'" class="bg-white dark:bg-[#1e2330] rounded-xl border border-[#dcdfe4] dark:border-[#2a2f3d] shadow-sm p-6 text-center">
+            <span class="material-symbols-outlined text-5xl text-gray-400 mb-4">attach_money</span>
+            <p class="text-gray-500 dark:text-gray-400">گزارش هزینه‌ها به زودی اضافه خواهد شد</p>
+          </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="lg:col-span-1 flex flex-col gap-6">
+          <!-- Reminders Card -->
+          <div class="bg-white dark:bg-[#1e2330] rounded-xl border border-[#dcdfe4] dark:border-[#2a2f3d] shadow-sm p-5">
+            <h3 class="text-[#121317] dark:text-white text-base font-bold mb-4 flex items-center gap-2">
+              <span class="material-symbols-outlined text-yellow-500">notifications_active</span>
+              یادآورهای آتی
+            </h3>
+            <div class="flex flex-col gap-3">
+              <div class="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700 text-center">
+                <p class="text-sm text-gray-500 dark:text-gray-400">یادآورها به زودی اضافه خواهند شد</p>
               </div>
             </div>
-            <div class="lg:col-span-1 flex flex-col gap-6">
-              <div class="bg-white dark:bg-[#1e2330] rounded-xl border border-[#dcdfe4] dark:border-[#2a2f3d] shadow-sm p-5">
-                <h3 class="text-[#121317] dark:text-white text-base font-bold mb-4 flex items-center gap-2">
-                  <span class="material-symbols-outlined text-yellow-500">notifications_active</span>
-                  یادآورهای آتی
-                </h3>
-                <div class="flex flex-col gap-3">
-                  <div class="flex items-start gap-3 p-3 bg-yellow-50 dark:bg-yellow-900/10 rounded-lg border border-yellow-100 dark:border-yellow-900/20">
-                    <div class="size-2 rounded-full bg-yellow-500 mt-2 shrink-0"></div>
-                    <div>
-                      <p class="text-sm font-bold text-[#121317] dark:text-white">تعویض روغن</p>
-                      <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">انقضا در ۴,۸۰۰ کیلومتر</p>
-                    </div>
-                  </div>
-                  <div class="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700">
-                    <div class="size-2 rounded-full bg-gray-400 mt-2 shrink-0"></div>
-                    <div>
-                      <p class="text-sm font-bold text-[#121317] dark:text-white">تمدید بیمه</p>
-                      <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">سررسید: ۲۴ آذر ۱۴۰۲</p>
-                    </div>
-                  </div>
-                </div>
-                <button class="w-full mt-4 text-center text-sm text-primary font-medium hover:underline">مشاهده همه یادآورها</button>
-              </div>
-              <div class="bg-white dark:bg-[#1e2330] rounded-xl border border-[#dcdfe4] dark:border-[#2a2f3d] shadow-sm p-5">
-                <h3 class="text-[#121317] dark:text-white text-base font-bold mb-4">خلاصه هزینه (سالانه)</h3>
-                <div class="flex items-end gap-2 mb-4">
-                  <span class="text-3xl font-black text-[#121317] dark:text-white">۱,۲۴۵ دلار</span>
-                  <span class="text-sm text-gray-500 dark:text-gray-400 mb-1">کل هزینه</span>
-                </div>
-                <div class="space-y-3">
-                  <div>
-                    <div class="flex justify-between text-xs mb-1">
-                      <span class="text-gray-600 dark:text-gray-400">خدمت</span>
-                      <span class="font-medium dark:text-white">۴۵۰ دلار (۳۶٪)</span>
-                    </div>
-                    <div class="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-1.5">
-                      <div class="bg-blue-500 h-1.5 rounded-full" style="width: 36%"></div>
-                    </div>
-                  </div>
-                  <div>
-                    <div class="flex justify-between text-xs mb-1">
-                      <span class="text-gray-600 dark:text-gray-400">سوخت</span>
-                      <span class="font-medium dark:text-white">۷۹۵ دلار (۶۴٪)</span>
-                    </div>
-                    <div class="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-1.5">
-                      <div class="bg-orange-500 h-1.5 rounded-full" style="width: 64%"></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="bg-gradient-to-br from-[#121620] to-[#1e3b8a] rounded-xl shadow-lg p-5 text-white relative overflow-hidden">
-                <div class="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16"></div>
-                <div class="relative z-10">
-                  <div class="flex items-center gap-2 mb-2 text-yellow-400">
-                    <span class="material-symbols-outlined">star</span>
-                    <span class="text-xs font-bold uppercase tracking-wider">پریمیوم</span>
-                  </div>
-                  <h3 class="text-lg font-bold leading-tight mb-2">دریافت گزارش سرویس‌ها</h3>
-                  <p class="text-sm text-gray-300 mb-4">ایجاد گزارش‌های PDF دقیق برای فروش خودرو یا ادعای خسارت بیمه.</p>
-                  <button class="w-full py-2 bg-white text-[#121620] text-sm font-bold rounded-lg hover:bg-gray-100 transition-colors">ارتقا برای باز کردن قفل</button>
-                </div>
-              </div>
+          </div>
+
+          <!-- Summary Card -->
+          <div class="bg-white dark:bg-[#1e2330] rounded-xl border border-[#dcdfe4] dark:border-[#2a2f3d] shadow-sm p-5">
+            <h3 class="text-[#121317] dark:text-white text-base font-bold mb-4">خلاصه هزینه (سالانه)</h3>
+            <div class="flex items-end gap-2 mb-4">
+              <span class="text-3xl font-black text-[#121317] dark:text-white">{{ formatCurrency(serviceStore.totalServiceCost) }}</span>
+              <span class="text-sm text-gray-500 dark:text-gray-400 mb-1">تومان</span>
             </div>
+            <p class="text-xs text-gray-500 dark:text-gray-400">هزینه کل سرویس‌های این خودرو</p>
           </div>
         </div>
       </div>
     </div>
-  </div>
+  </MainLayout>
 </template>
