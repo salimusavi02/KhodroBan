@@ -18,6 +18,7 @@ import SelectServiceDetailsVariant15View from '../views/SelectServiceDetailsVari
 import DashboardVariant16View from '../views/DashboardVariant16View.vue'
 import VehicleDetailsView from '../views/VehicleDetailsView.vue'
 import SmartAssistantView from '../views/SmartAssistantView.vue'
+import AuthCallbackView from '../views/AuthCallbackView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -33,6 +34,11 @@ const router = createRouter({
       name: 'login',
       component: LoginView,
       meta: { requiresGuest: true }
+    },
+    {
+      path: '/auth/callback',
+      name: 'auth-callback',
+      component: AuthCallbackView
     },
     {
       path: '/select-service',

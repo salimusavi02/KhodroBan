@@ -9,4 +9,5 @@ export { reminderService } from '@services/reminderService';
 export { reportService } from '@services/reportService';
 export { upgradeService } from '@services/upgradeService';
 export { notificationService } from '@services/notificationService';
+export { supabase } from '@services/supabase';
 

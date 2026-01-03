@@ -66,6 +66,21 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  const loginWithGoogle = async () => {
+    isLoading.value = true
+    error.value = null
+
+    try {
+      await authService.loginWithGoogle()
+      // OAuth redirect will happen, so we don't need to return anything
+    } catch (err) {
+      error.value = err.message || 'خطا در ورود با Google'
+      throw err
+    } finally {
+      isLoading.value = false
+    }
+  }
+
   const logout = async () => {
     isLoading.value = true
     error.value = null
@@ -141,9 +156,12 @@ export const useAuthStore = defineStore('auth', () => {
     // Actions
     login,
     register,
+    loginWithGoogle,
     logout,
     refreshToken,
     updateProfile,
-    initialize
+    initialize,
+    // Helpers (for internal use)
+    saveToken
   }
 })
