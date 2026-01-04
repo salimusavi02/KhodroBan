@@ -42,6 +42,16 @@
   - [x] Accessibility (ARIA attributes)
   - [x] Responsive Design
   - [x] تست در صفحات Login/SignUp
+- [x] **Semantic HTML Components**
+  - [x] ایجاد کامپوننت Button.vue با Semantic HTML
+  - [x] ایجاد کامپوننت Input.vue با Semantic HTML
+  - [x] ایجاد کامپوننت Select.vue با Semantic HTML
+  - [x] بهبود کامپوننت Card.vue با Semantic HTML
+  - [x] ایجاد کامپوننت Form.vue با Semantic HTML
+  - [x] یکپارچه‌سازی در صفحات Login و SignUp
+  - [x] پشتیبانی از Accessibility (ARIA attributes)
+  - [x] پشتیبانی از RTL/LTR
+  - [x] تست در صفحات Login/SignUp
 
 ### ⚠️ کارهای ناتمام
 
@@ -91,13 +101,13 @@
 **هدف:** ایجاد زیرساخت مشترک برای همه صفحات
 
 **کارهای Foundation:**
-1. **i18n Infrastructure** (یکبار برای همه) - ۱-۲ روز
-2. **Toast Component** (یکبار برای همه) - ۰.۵ روز
-3. **Semantic HTML Components** (یکبار برای همه) - ۱-۲ روز
-4. **Accessibility Utilities** (یکبار برای همه) - ۱ روز
+1. ✅ **i18n Infrastructure** (یکبار برای همه) - ۱-۲ روز (تکمیل شده)
+2. ✅ **Toast Component** (یکبار برای همه) - ۰.۵ روز (تکمیل شده)
+3. ✅ **Semantic HTML Components** (یکبار برای همه) - ۱-۲ روز (تکمیل شده)
+4. **Accessibility Utilities** (یکبار برای همه) - ۱ روز (گام بعدی)
 5. **PWA Foundation** (اولویت بالا) - ۱ روز
 
-**جمع Foundation:** ۴.۵-۶.۵ روز
+**جمع Foundation:** ۴.۵-۶.۵ روز (۳.۵-۴.۵ روز تکمیل شده)
 
 #### فاز ۲: Feature Complete (صفحه‌محور)
 **هدف:** تکمیل کامل هر صفحه با استفاده از Foundation
@@ -631,14 +641,17 @@
 ## ♿ فاز ۱۶: دسترسی‌پذیری (Accessibility - WCAG 2.1 AA)
 
 ### ۱۶.۱ پیاده‌سازی Semantic HTML
-- [ ] بررسی و اصلاح تمام کامپوننت‌ها برای استفاده از Semantic HTML
-- [ ] استفاده از `<button>` به جای `<div>` برای دکمه‌ها
-- [ ] استفاده از `<nav>`, `<main>`, `<header>`, `<footer>` در Layout
-- [ ] Heading hierarchy صحیح (h1 → h2 → h3)
+- [x] بررسی و اصلاح تمام کامپوننت‌ها برای استفاده از Semantic HTML
+- [x] استفاده از `<button>` به جای `<div>` برای دکمه‌ها (Button Component)
+- [x] استفاده از `<input>`, `<select>`, `<form>` با Semantic HTML (Input, Select, Form Components)
+- [x] بهبود کامپوننت Card با Semantic HTML (header, body, footer slots)
+- [x] یکپارچه‌سازی در صفحات Login و SignUp
+- [ ] استفاده از `<nav>`, `<main>`, `<header>`, `<footer>` در Layout (باقی‌مانده)
+- [ ] Heading hierarchy صحیح (h1 → h2 → h3) در تمام صفحات
 - [ ] Landmarks برای navigation
 
 **اولویت:** بالا  
-**زمان تخمینی:** ۲ روز
+**وضعیت:** 🔄 در حال انجام (کامپوننت‌های پایه تکمیل شده)
 
 ### ۱۶.۲ ARIA Attributes و Screen Reader Support
 - [ ] اضافه کردن `aria-label` برای icon-only buttons
@@ -1075,22 +1088,37 @@
    - ✅ پشتیبانی از RTL/LTR و Dark Mode
    - ✅ انیمیشن‌ها و Accessibility
    - ✅ تست در صفحات Login/SignUp
-3. **Semantic HTML Components** (گام بعدی) - ۱-۲ روز
-4. **Accessibility Utilities** (چهارم) - ۱ روز
+3. ✅ **Semantic HTML Components** (تکمیل شده) - ۱-۲ روز
+   - ✅ ایجاد کامپوننت Button.vue
+   - ✅ ایجاد کامپوننت Input.vue
+   - ✅ ایجاد کامپوننت Select.vue
+   - ✅ بهبود کامپوننت Card.vue
+   - ✅ ایجاد کامپوننت Form.vue
+   - ✅ یکپارچه‌سازی در صفحات Login و SignUp
+   - ✅ پشتیبانی از Accessibility
+4. **Accessibility Utilities** (گام بعدی) - ۱ روز
+   - ایجاد composable برای keyboard navigation (useKeyboardNavigation)
+   - ایجاد composable برای focus management (useFocusTrap, useFocus)
+   - ایجاد composable برای skip links (useSkipLink)
+   - ایجاد composable برای ARIA attributes (useAria)
+   - ایجاد composable برای reduced motion (useReducedMotion)
+   - ایجاد composable برای color contrast checking (useColorContrast)
+   - ایجاد utility functions برای accessibility helpers
 5. **PWA Foundation** (پنجم) ⭐ - ۱ روز
 
 ### گام ۲: Feature Complete (بعد از Foundation)
 بعد از Foundation، صفحه Login را کامل می‌کنیم:
 
 1. ✅ استفاده از i18n در Login (تکمیل شده)
-2. استفاده از Toast در Login
-3. استفاده از Semantic Components در Login
+2. ✅ استفاده از Toast در Login (تکمیل شده)
+3. ✅ استفاده از Semantic Components در Login (تکمیل شده)
 4. استفاده از Accessibility در Login
 5. تست کامل Login
 
 ---
 
 **آخرین به‌روزرسانی:** ۱۴۰۳/۰۹/XX  
-**وضعیت:** در حال بررسی و برنامه‌ریزی  
-**استراتژی:** Foundation First, Feature Complete (Hybrid Approach)
+**وضعیت:** در حال پیاده‌سازی Foundation  
+**استراتژی:** Foundation First, Feature Complete (Hybrid Approach)  
+**پیشرفت:** ۳ از ۵ مرحله Foundation تکمیل شده (i18n ✅, Toast ✅, Semantic HTML ✅)
 

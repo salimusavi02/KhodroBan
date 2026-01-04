@@ -5,6 +5,7 @@ import { useAuthStore } from '../stores/auth'
 import { useUIStore } from '../stores/ui'
 import { useI18n } from 'vue-i18n'
 import LanguageSwitcherCard from '../components/LanguageSwitcherCard.vue'
+import { Input, Button } from '../components/ui'
 
 const router = useRouter()
 const route = useRoute()
@@ -108,66 +109,53 @@ const handleGoogleLogin = async () => {
         </div>
         
         <form @submit="handleSubmit" class="flex flex-col gap-5">
-          <div class="space-y-1.5">
-            <label class="block text-sm font-bold text-[#121317] dark:text-gray-200 mr-1" for="email">{{ t('auth.email') }}</label>
-            <div class="relative group">
-              <input 
-                v-model="email"
-                :class="[
-                  'w-full px-5 py-3.5 pr-12 rounded-xl bg-white/60 dark:bg-black/20 border focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all placeholder:text-gray-400 text-sm font-medium',
-                  errors.email ? 'border-red-500 dark:border-red-500' : 'border-gray-200 dark:border-gray-700'
-                ]"
-                dir="ltr" 
-                id="email" 
-                name="email" 
-                :placeholder="t('auth.email')" 
-                type="email"
-                :disabled="isLoading"
-              />
-              <span class="material-symbols-outlined absolute top-3.5 right-4 text-gray-400 group-focus-within:text-primary transition-colors">mail</span>
-            </div>
-            <p v-if="errors.email" class="text-red-500 text-xs mr-1">{{ errors.email }}</p>
-          </div>
+          <Input
+            v-model="email"
+            :label="t('auth.email')"
+            name="email"
+            type="email"
+            :placeholder="t('auth.email')"
+            :error="errors.email"
+            :disabled="isLoading"
+            :required="true"
+            icon="mail"
+            dir="ltr"
+            input-class="bg-white/60 dark:bg-black/20"
+          />
           
           <div class="space-y-1.5">
-            <div class="flex justify-between items-center mr-1 ml-1">
+            <div class="flex justify-between items-center">
               <label class="block text-sm font-bold text-[#121317] dark:text-gray-200" for="password">{{ t('auth.password') }}</label>
               <a class="text-xs font-bold text-primary hover:text-primary-light transition-colors" href="#">{{ t('auth.forgotPassword') }}</a>
             </div>
-            <div class="relative group">
-              <input 
-                v-model="password"
-                :class="[
-                  'w-full px-5 py-3.5 pr-12 rounded-xl bg-white/60 dark:bg-black/20 border focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all placeholder:text-gray-400 text-sm font-medium',
-                  errors.password ? 'border-red-500 dark:border-red-500' : 'border-gray-200 dark:border-gray-700'
-                ]"
-                dir="rtl" 
-                id="password" 
-                name="password" 
-                placeholder="••••••••" 
-                type="password"
-                :disabled="isLoading"
-              />
-              <span class="material-symbols-outlined absolute top-3.5 right-4 text-gray-400 group-focus-within:text-primary transition-colors">lock</span>
-            </div>
-            <p v-if="errors.password" class="text-red-500 text-xs mr-1">{{ errors.password }}</p>
+            <Input
+              v-model="password"
+              name="password"
+              type="password"
+              placeholder="••••••••"
+              :error="errors.password"
+              :disabled="isLoading"
+              :required="true"
+              icon="lock"
+              dir="rtl"
+              input-class="bg-white/60 dark:bg-black/20"
+            />
           </div>
           
           <div class="pt-2">
-            <button 
-              :disabled="isLoading"
-              :class="[
-                'w-full py-3.5 rounded-xl text-white font-bold text-base transition-all shadow-lg flex items-center justify-center gap-2',
-                isLoading 
-                  ? 'bg-gray-400 cursor-not-allowed' 
-                  : 'bg-primary hover:bg-primary-light active:scale-[0.98] shadow-primary/25'
-              ]"
+            <Button
               type="submit"
+              variant="primary"
+              size="lg"
+              :disabled="isLoading"
+              :loading="isLoading"
+              :full-width="true"
+              :icon="!isLoading ? 'arrow_right_alt' : ''"
+              :aria-label="isLoading ? t('common.loading') : t('auth.login')"
+              className="shadow-lg shadow-primary/25"
             >
-              <span v-if="!isLoading">{{ t('auth.login') }}</span>
-              <span v-else>{{ t('common.loading') }}</span>
-              <span v-if="!isLoading" class="material-symbols-outlined text-[20px] rotate-180">arrow_right_alt</span>
-            </button>
+              {{ isLoading ? t('common.loading') : t('auth.login') }}
+            </Button>
           </div>
         </form>
         
@@ -176,19 +164,24 @@ const handleGoogleLogin = async () => {
           <div class="flex-grow border-t border-gray-300 dark:border-gray-700"></div>
         </div>
         
-        <button 
-          @click="handleGoogleLogin"
+        <Button
+          type="button"
+          variant="outline"
+          size="md"
           :disabled="isLoading"
-          class="w-full py-3 rounded-xl bg-white dark:bg-[#1e293b] border border-gray-200 dark:border-gray-700 text-[#121317] dark:text-white font-bold text-sm hover:bg-gray-50 dark:hover:bg-slate-800 transition-all flex items-center justify-center gap-3 group shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          :full-width="true"
+          @click="handleGoogleLogin"
+          :aria-label="t('auth.loginWithGoogle')"
+          className="bg-white dark:bg-[#1e293b] border-gray-200 dark:border-gray-700"
         >
-          <svg class="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"></path>
             <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"></path>
             <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"></path>
             <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"></path>
           </svg>
-          <span class="group-hover:text-primary transition-colors">{{ t('auth.loginWithGoogle') }}</span>
-        </button>
+          {{ t('auth.loginWithGoogle') }}
+        </Button>
         
         <div class="text-center">
           <p class="text-sm text-[#666e85] dark:text-gray-400 font-medium">

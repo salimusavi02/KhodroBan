@@ -5,6 +5,7 @@ import { useAuthStore } from '../stores/auth'
 import { useUIStore } from '../stores/ui'
 import { useI18n } from 'vue-i18n'
 import LanguageSwitcherCard from '../components/LanguageSwitcherCard.vue'
+import { Input, Button, Select, Form } from '../components/ui'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -162,19 +163,24 @@ const handleGoogleRegister = async () => {
             <p class="text-slate-500 dark:text-slate-400 text-base">{{ t('auth.subtitle') }}</p>
           </div>
           
-          <button 
-            @click="handleGoogleRegister"
+          <Button
+            type="button"
+            variant="outline"
+            size="md"
             :disabled="isLoading"
-            class="w-full flex items-center justify-center gap-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-white font-medium h-12 rounded-xl transition-all duration-200 mb-6 group disabled:opacity-50 disabled:cursor-not-allowed"
+            :full-width="true"
+            @click="handleGoogleRegister"
+            :aria-label="t('auth.loginWithGoogle')"
+            className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 mb-6"
           >
-            <svg class="w-5 h-5 group-hover:scale-110 transition-transform" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"></path>
               <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"></path>
               <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"></path>
               <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"></path>
             </svg>
-            <span>{{ t('auth.loginWithGoogle') }}</span>
-          </button>
+            {{ t('auth.loginWithGoogle') }}
+          </Button>
           
           <div class="relative flex py-2 items-center mb-6">
             <div class="flex-grow border-t border-slate-200 dark:border-slate-700"></div>
@@ -182,113 +188,83 @@ const handleGoogleRegister = async () => {
             <div class="flex-grow border-t border-slate-200 dark:border-slate-700"></div>
           </div>
           
-          <form @submit="handleSubmit" class="space-y-5">
+          <Form @submit="handleSubmit" class="space-y-5">
             <div class="flex flex-col md:flex-row gap-5">
-              <div class="flex-1 space-y-2">
-                <label class="text-sm font-medium text-slate-700 dark:text-slate-300 mr-1" for="firstName">{{ t('auth.firstName') }}</label>
-                <input 
-                  v-model="firstName"
-                  :class="[
-                    'w-full h-12 px-4 rounded-xl border bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all',
-                    errors.firstName ? 'border-red-500 dark:border-red-500' : 'border-slate-200 dark:border-slate-600'
-                  ]"
-                  id="firstName" 
-                  :placeholder="t('auth.firstName')" 
-                  type="text" 
-                />
-                <p v-if="errors.firstName" class="text-red-500 text-xs">{{ errors.firstName }}</p>
-              </div>
-              <div class="flex-1 space-y-2">
-                <label class="text-sm font-medium text-slate-700 dark:text-slate-300 mr-1" for="lastName">{{ t('auth.lastName') }}</label>
-                <input 
-                  v-model="lastName"
-                  :class="[
-                    'w-full h-12 px-4 rounded-xl border bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all',
-                    errors.lastName ? 'border-red-500 dark:border-red-500' : 'border-slate-200 dark:border-slate-600'
-                  ]"
-                  id="lastName" 
-                  :placeholder="t('auth.lastName')" 
-                  type="text" 
-                />
-                <p v-if="errors.lastName" class="text-red-500 text-xs">{{ errors.lastName }}</p>
-              </div>
+              <Input
+                v-model="firstName"
+                :label="t('auth.firstName')"
+                name="firstName"
+                type="text"
+                :placeholder="t('auth.firstName')"
+                :error="errors.firstName"
+                :required="true"
+                wrapper-class="flex-1"
+                input-class="bg-slate-50 dark:bg-slate-800"
+              />
+              <Input
+                v-model="lastName"
+                :label="t('auth.lastName')"
+                name="lastName"
+                type="text"
+                :placeholder="t('auth.lastName')"
+                :error="errors.lastName"
+                :required="true"
+                wrapper-class="flex-1"
+                input-class="bg-slate-50 dark:bg-slate-800"
+              />
             </div>
             
-            <div class="space-y-2">
-              <label class="text-sm font-medium text-slate-700 dark:text-slate-300 mr-1" for="email">{{ t('auth.email') }}</label>
-              <div class="relative">
-                <input 
-                  v-model="email"
-                  :class="[
-                    'w-full h-12 pl-4 pr-10 rounded-xl border bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all text-left',
-                    errors.email ? 'border-red-500 dark:border-red-500' : 'border-slate-200 dark:border-slate-600'
-                  ]"
-                  dir="ltr" 
-                  id="email" 
-                  :placeholder="t('auth.email')" 
-                  type="email" 
-                />
-                <span class="material-symbols-outlined absolute right-3 top-3 text-slate-400 pointer-events-none">mail</span>
-              </div>
-              <p v-if="errors.email" class="text-red-500 text-xs">{{ errors.email }}</p>
-            </div>
+            <Input
+              v-model="email"
+              :label="t('auth.email')"
+              name="email"
+              type="email"
+              :placeholder="t('auth.email')"
+              :error="errors.email"
+              :required="true"
+              icon="mail"
+              dir="ltr"
+              input-class="bg-slate-50 dark:bg-slate-800"
+            />
             
-            <div class="space-y-2">
-              <label class="text-sm font-medium text-slate-700 dark:text-slate-300 mr-1" for="phoneNumber">{{ t('auth.phone') }}</label>
-              <div class="relative">
-                <input 
-                  v-model="phoneNumber"
-                  :class="[
-                    'w-full h-12 pl-4 pr-10 rounded-xl border bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all text-left',
-                    errors.phoneNumber ? 'border-red-500 dark:border-red-500' : 'border-slate-200 dark:border-slate-600'
-                  ]"
-                  dir="ltr" 
-                  id="phoneNumber" 
-                  placeholder="0912 345 6789" 
-                  type="tel" 
-                />
-                <span class="material-symbols-outlined absolute right-3 top-3 text-slate-400 pointer-events-none">smartphone</span>
-              </div>
-              <p v-if="errors.phoneNumber" class="text-red-500 text-xs">{{ errors.phoneNumber }}</p>
-            </div>
+            <Input
+              v-model="phoneNumber"
+              :label="t('auth.phone')"
+              name="phoneNumber"
+              type="tel"
+              placeholder="0912 345 6789"
+              :error="errors.phoneNumber"
+              :required="true"
+              icon="smartphone"
+              dir="ltr"
+              input-class="bg-slate-50 dark:bg-slate-800"
+            />
             
-            <div class="space-y-2">
-              <label class="text-sm font-medium text-slate-700 dark:text-slate-300 mr-1" for="password">{{ t('auth.password') }}</label>
-              <div class="relative group/pass">
-                <input 
-                  v-model="password"
-                  :class="[
-                    'w-full h-12 pl-4 pr-10 rounded-xl border bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all text-left',
-                    errors.password ? 'border-red-500 dark:border-red-500' : 'border-slate-200 dark:border-slate-600'
-                  ]"
-                  dir="ltr" 
-                  id="password" 
-                  placeholder="********" 
-                  type="password" 
-                />
-                <span class="material-symbols-outlined absolute right-3 top-3 text-slate-400 pointer-events-none group-focus-within/pass:text-primary transition-colors">lock</span>
-              </div>
-              <p v-if="errors.password" class="text-red-500 text-xs">{{ errors.password }}</p>
-            </div>
+            <Input
+              v-model="password"
+              :label="t('auth.password')"
+              name="password"
+              type="password"
+              placeholder="********"
+              :error="errors.password"
+              :required="true"
+              icon="lock"
+              dir="ltr"
+              input-class="bg-slate-50 dark:bg-slate-800"
+            />
             
-            <div class="space-y-2">
-              <label class="text-sm font-medium text-slate-700 dark:text-slate-300 mr-1" for="confirm-password">{{ t('auth.confirmPassword') }}</label>
-              <div class="relative group/confirm">
-                <input 
-                  v-model="confirmPassword"
-                  :class="[
-                    'w-full h-12 pl-4 pr-10 rounded-xl border bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all text-left',
-                    errors.confirmPassword ? 'border-red-500 dark:border-red-500' : 'border-slate-200 dark:border-slate-600'
-                  ]"
-                  dir="ltr" 
-                  id="confirm-password" 
-                  placeholder="********" 
-                  type="password" 
-                />
-                <span class="material-symbols-outlined absolute right-3 top-3 text-slate-400 pointer-events-none group-focus-within/confirm:text-primary transition-colors">lock_reset</span>
-              </div>
-              <p v-if="errors.confirmPassword" class="text-red-500 text-xs">{{ errors.confirmPassword }}</p>
-            </div>
+            <Input
+              v-model="confirmPassword"
+              :label="t('auth.confirmPassword')"
+              name="confirmPassword"
+              type="password"
+              placeholder="********"
+              :error="errors.confirmPassword"
+              :required="true"
+              icon="lock_reset"
+              dir="ltr"
+              input-class="bg-slate-50 dark:bg-slate-800"
+            />
             
             <div class="flex items-start gap-3 mt-2">
               <div class="flex items-center h-5">
@@ -296,7 +272,9 @@ const handleGoogleRegister = async () => {
                   v-model="terms"
                   class="w-4 h-4 border border-slate-300 rounded bg-slate-50 focus:ring-3 focus:ring-primary/30 dark:bg-slate-700 dark:border-slate-600 dark:focus:ring-primary/60 dark:ring-offset-slate-800 text-primary" 
                   id="terms" 
-                  type="checkbox" 
+                  type="checkbox"
+                  :required="true"
+                  :aria-invalid="!terms ? 'true' : undefined"
                 />
               </div>
               <label class="text-sm font-light text-slate-500 dark:text-slate-400" for="terms">
@@ -304,19 +282,22 @@ const handleGoogleRegister = async () => {
               </label>
             </div>
             
-            <button 
-              :disabled="isLoading"
-              :class="[
-                'w-full bg-primary hover:bg-primary-dark text-white font-bold h-12 rounded-xl shadow-lg shadow-primary/30 hover:shadow-primary/50 transition-all duration-300 flex items-center justify-center gap-2 mt-4',
-                isLoading ? 'opacity-70 cursor-not-allowed' : ''
-              ]" 
-              type="submit"
-            >
-              <span v-if="!isLoading">{{ t('auth.register') }}</span>
-              <span v-else>{{ t('common.loading') }}</span>
-              <span v-if="!isLoading" class="material-symbols-outlined text-sm">arrow_back</span>
-            </button>
-          </form>
+            <div class="mt-4">
+              <Button
+                type="submit"
+                variant="primary"
+                size="lg"
+                :disabled="isLoading"
+                :loading="isLoading"
+                :full-width="true"
+                :icon="!isLoading ? 'arrow_back' : ''"
+                :aria-label="isLoading ? t('common.loading') : t('auth.register')"
+                className="shadow-lg shadow-primary/30"
+              >
+                {{ isLoading ? t('common.loading') : t('auth.register') }}
+              </Button>
+            </div>
+          </Form>
           
           <div class="text-center mt-8">
             <p class="text-sm text-slate-500 dark:text-slate-400">
