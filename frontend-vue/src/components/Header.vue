@@ -4,10 +4,11 @@
       <span class="material-symbols-outlined">menu</span>
     </button>
     <div class="hidden md:flex flex-col">
-      <h2 class="text-xl font-bold text-[#121317] dark:text-white">نمای کلی</h2>
+      <h2 class="text-xl font-bold text-[#121317] dark:text-white">{{ $t('dashboard.title') }}</h2>
       <p class="text-sm text-[#666e85]">چهارشنبه، ۲ آبان</p>
     </div>
     <div class="flex items-center gap-4 mr-auto">
+      <LanguageSwitcher />
       <button class="flex items-center justify-center w-10 h-10 rounded-full bg-white dark:bg-[#1e293b] text-[#666e85] hover:text-primary shadow-sm transition-colors border border-gray-100 dark:border-gray-700">
         <span class="material-symbols-outlined text-[20px]">search</span>
       </button>
@@ -27,3 +28,7 @@
     </div>
   </header>
 </template>
+
+<script setup>
+import LanguageSwitcher from './LanguageSwitcher.vue'
+</script>
