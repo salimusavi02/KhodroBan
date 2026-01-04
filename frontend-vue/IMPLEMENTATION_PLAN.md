@@ -154,7 +154,7 @@
 ✅ Toast Component (تکمیل شده)
 ✅ Semantic HTML Components (Button, Input, Card, Form) (تکمیل شده)
 ✅ Accessibility Utilities (تکمیل شده)
-□ PWA Foundation (Service Worker, Manifest) ⭐ (گام بعدی)
+✅ PWA Foundation (Service Worker, Manifest) ⭐ (تکمیل شده)
 ```
 
 #### مرحله ۲: Feature Complete (هفته ۲-۴)
@@ -707,31 +707,52 @@
 > **⚠️ اولویت بسیار بالا:** تبدیل این برنامه به اپلیکیشن قابل نصب روی موبایل (Android و iOS) از اولویت‌های اصلی پروژه است. تمام تصمیم‌های طراحی و پیاده‌سازی باید با در نظر گیری PWA و Native App انجام شود.
 
 ### ۱۷.۱ Service Worker و Offline Support
-- [ ] نصب و پیکربندی `vite-plugin-pwa`
-- [ ] ایجاد Service Worker برای caching
-- [ ] پیاده‌سازی Offline Strategy (Cache First, Network First)
-- [ ] Cache کردن static assets (HTML, CSS, JS, Images)
-- [ ] Cache کردن API responses برای کار آفلاین
-- [ ] نمایش Offline Indicator در UI
-- [ ] مدیریت Sync برای داده‌های آفلاین
-- [ ] Background Sync برای ارسال داده‌های pending
+- [x] نصب و پیکربندی `vite-plugin-pwa`
+- [x] ایجاد Service Worker برای caching
+- [x] پیاده‌سازی Offline Strategy (Cache First, Network First)
+- [x] Cache کردن static assets (HTML, CSS, JS, Images)
+- [x] Cache کردن API responses برای کار آفلاین
+- [ ] **نمایش Offline Indicator در UI** (اولویت متوسط)
+  - [ ] ایجاد composable useNetworkStatus
+  - [ ] ایجاد کامپوننت OfflineIndicator.vue
+  - [ ] یکپارچه‌سازی در App.vue یا Header.vue
+  - [ ] تست نمایش در حالت offline
+- [ ] مدیریت Sync برای داده‌های آفلاین (اختیاری)
+- [ ] Background Sync برای ارسال داده‌های pending (اختیاری)
 
 **اولویت:** خیلی بالا ⭐  
-**زمان تخمینی:** ۳ روز
+**وضعیت:** ✅ تکمیل شده (به جز Offline Indicator - اختیاری)
 
 ### ۱۷.۲ Web App Manifest
-- [ ] ایجاد `manifest.json` با اطلاعات کامل
-- [ ] اضافه کردن Icons در سایزهای مختلف (192x192, 512x512, و سایزهای iOS)
-- [ ] تنظیم Theme Color و Background Color
-- [ ] تنظیم Display Mode (standalone, fullscreen)
-- [ ] تنظیم Orientation (portrait, landscape)
-- [ ] پشتیبانی از "Add to Home Screen"
-- [ ] تست نصب PWA روی Android (Chrome, Samsung Internet)
-- [ ] تست نصب PWA روی iOS (Safari)
-- [ ] تست نصب PWA روی Desktop (Chrome, Edge)
+- [x] ایجاد `manifest.json` با اطلاعات کامل (از طریق vite-plugin-pwa)
+- [x] اضافه کردن Icons در سایزهای مختلف (192x192, 512x512, و سایزهای iOS)
+- [x] تنظیم Theme Color و Background Color
+- [x] تنظیم Display Mode (standalone, fullscreen)
+- [x] تنظیم Orientation (portrait, landscape)
+- [x] اضافه کردن لینک manifest به index.html
+- [x] پشتیبانی از "Add to Home Screen"
+- [ ] **جایگزینی Icons placeholder با Icons واقعی** ⭐ (اولویت بالا)
+  - [ ] طراحی Icon اصلی (512x512) با آیکون تاکسی و رنگ #3b82f6
+  - [ ] ساخت pwa-192x192.png
+  - [ ] ساخت pwa-512x512.png
+  - [ ] ساخت apple-touch-icon.png (180x180)
+  - [ ] ساخت favicon.ico
+  - [ ] جایگزینی فایل‌ها در public/
+  - [ ] تست نمایش icons در manifest
+- [ ] **تست PWA در Lighthouse** ⭐ (اولویت بالا)
+  - [ ] Build production
+  - [ ] اجرای Lighthouse با گزینه PWA
+  - [ ] بررسی امتیاز PWA (هدف: > 90)
+  - [ ] رفع مشکلات احتمالی
+- [ ] **تست Add to Home Screen** ⭐ (اولویت بالا)
+  - [ ] تست روی Android (Chrome)
+  - [ ] تست روی iOS (Safari)
+  - [ ] تست روی Desktop (Chrome, Edge)
+  - [ ] بررسی عملکرد در حالت standalone
+  - [ ] تست Offline mode
 
 **اولویت:** خیلی بالا ⭐  
-**زمان تخمینی:** ۱ روز
+**وضعیت:** ✅ Foundation تکمیل شده - در انتظار Icons واقعی و تست
 
 ### ۱۷.۳ Push Notifications (PWA)
 - [ ] پیاده‌سازی Web Push API
@@ -1127,30 +1148,82 @@
    - ✅ یکپارچه‌سازی در Modal.vue (Focus Trap, Keyboard Navigation)
    - ✅ یکپارچه‌سازی در LoginView.vue (Keyboard Navigation, Auto Focus)
    - ✅ تست و رفع باگ‌ها
-5. **PWA Foundation** (گام بعدی) ⭐ - ۱ روز
+5. ✅ **PWA Foundation** (Foundation تکمیل شده) ⭐ - ۱ روز
+   - ✅ نصب و پیکربندی vite-plugin-pwa
+   - ✅ ایجاد Service Worker برای caching
+   - ✅ پیاده‌سازی Offline Strategy (Cache First, Network First)
+   - ✅ Cache کردن static assets (HTML, CSS, JS, Images)
+   - ✅ Cache کردن API responses برای کار آفلاین
+   - ✅ ایجاد Web App Manifest با اطلاعات کامل
+   - ✅ اضافه کردن Icons placeholder در سایزهای مختلف (192x192, 512x512)
+   - ✅ تنظیم Theme Color و Background Color
+   - ✅ تنظیم Display Mode (standalone)
+   - ✅ تنظیم Orientation (portrait)
+   - ✅ اضافه کردن لینک manifest به index.html
+   - ✅ پشتیبانی از "Add to Home Screen"
+   - ✅ ایجاد راهنمای ساخت Icons (PWA_ICONS_GUIDE.md)
+   - ✅ ایجاد راهنمای تست PWA (PWA_TESTING_GUIDE.md)
+   - ⏳ **جایگزینی Icons placeholder با Icons واقعی** (اولویت بالا)
+   - ⏳ **تست PWA در Lighthouse** (اولویت بالا)
+   - ⏳ **تست Add to Home Screen** روی Android/iOS/Desktop (اولویت بالا)
+   - ⏳ نمایش Offline Indicator در UI (اولویت متوسط - اختیاری)
 
-### گام ۲: Feature Complete (بعد از Foundation)
-بعد از Foundation، صفحه Login را کامل می‌کنیم:
+### گام ۲: Feature Complete (بعد از Foundation) ⭐
+**وضعیت:** آماده برای شروع  
+**هدف:** تکمیل کامل صفحات با استفاده از Foundation
 
-1. ✅ استفاده از i18n در Login (تکمیل شده)
-2. ✅ استفاده از Toast در Login (تکمیل شده)
-3. ✅ استفاده از Semantic Components در Login (تکمیل شده)
-4. ✅ استفاده از Accessibility در Login (تکمیل شده)
+#### ۲.۱ صفحه Login (اولویت بالا)
+**وضعیت:** ✅ تقریباً کامل (Foundation یکپارچه شده)
+
+**تکمیل شده:**
+1. ✅ استفاده از i18n در Login
+2. ✅ استفاده از Toast در Login
+3. ✅ استفاده از Semantic Components در Login
+4. ✅ استفاده از Accessibility در Login
    - ✅ Auto focus روی email input
    - ✅ Keyboard navigation (Enter key)
    - ✅ Skip links
    - ✅ Reduced motion support
-5. تست کامل Login
+
+**باقی‌مانده (اختیاری):**
+- [ ] تست کامل Login (E2E)
+- [ ] بهبود UX (loading states, error handling)
+
+#### ۲.۲ صفحه Dashboard (اولویت بالا) ⭐ گام بعدی
+**هدف:** تکمیل صفحه Dashboard با استفاده از Foundation
+
+**کارهای پیشنهادی:**
+1. اتصال Dashboard به API
+2. نمایش داده‌های واقعی
+3. استفاده از i18n
+4. استفاده از Toast برای notifications
+5. استفاده از Semantic Components
+6. استفاده از Accessibility features
+7. Responsive design
+8. Loading states
+9. Error handling
+
+**زمان تخمینی:** ۲-۳ روز
 
 ---
 
-**آخرین به‌روزرسانی:** ۱۴۰۳/۰۹/XX  
-**وضعیت:** در حال پیاده‌سازی Foundation  
+**آخرین به‌روزرسانی:** ۱۴۰۳/۰۹/۱۴  
+**وضعیت:** Foundation تکمیل شده ✅ - آماده برای Feature Complete  
 **استراتژی:** Foundation First, Feature Complete (Hybrid Approach)  
-**پیشرفت:** ۴ از ۵ مرحله Foundation تکمیل شده  
+**پیشرفت:** ۵ از ۵ مرحله Foundation تکمیل شده ✅  
 - ✅ i18n Infrastructure  
 - ✅ Toast Component  
 - ✅ Semantic HTML Components  
 - ✅ Accessibility Utilities (با یکپارچه‌سازی و تست)  
-- ⏳ PWA Foundation (گام بعدی) ⭐
+- ✅ PWA Foundation (Foundation تکمیل شده) ⭐
+
+**PWA Foundation:** ✅ تکمیل شده
+- ✅ Service Worker با Workbox
+- ✅ Web App Manifest
+- ✅ Caching Strategy
+- ✅ Offline Support
+- ⏳ Icons واقعی (بعداً - placeholder موجود است)
+- ⏳ تست PWA (بعداً - راهنما: PWA_TESTING_GUIDE.md)
+
+**گام بعدی:** Feature Complete - تکمیل صفحات با استفاده از Foundation
 

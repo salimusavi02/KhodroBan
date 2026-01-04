@@ -1,24 +1,31 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
-import LoginView from '../views/LoginView.vue'
-import DashboardView from '../views/DashboardView.vue'
-import SelectServiceTypeView from '../views/SelectServiceTypeView.vue'
-import DashboardVariant3View from '../views/DashboardVariant3View.vue'
-import VehicleManagementView from '../views/VehicleManagementView.vue'
-import SelectServiceTypeVariant5View from '../views/SelectServiceTypeVariant5View.vue'
-import RemindersView from '../views/RemindersView.vue'
-import SelectServiceDetailsView from '../views/SelectServiceDetailsView.vue'
-import SettingsView from '../views/SettingsView.vue'
-import AddServiceView from '../views/AddServiceView.vue'
-import VehicleListView from '../views/VehicleListView.vue'
-import ReportsView from '../views/ReportsView.vue'
-import SignUpView from '../views/SignUpView.vue'
-import UpgradeProView from '../views/UpgradeProView.vue'
-import SelectServiceDetailsVariant15View from '../views/SelectServiceDetailsVariant15View.vue'
-import DashboardVariant16View from '../views/DashboardVariant16View.vue'
-import VehicleDetailsView from '../views/VehicleDetailsView.vue'
-import SmartAssistantView from '../views/SmartAssistantView.vue'
-import AuthCallbackView from '../views/AuthCallbackView.vue'
+
+// Lazy load components for better performance
+// Critical routes (loaded immediately)
+const LoginView = () => import('../views/LoginView.vue')
+const AuthCallbackView = () => import('../views/AuthCallbackView.vue')
+const SignUpView = () => import('../views/SignUpView.vue')
+
+// Main app routes (lazy loaded)
+const DashboardView = () => import('../views/DashboardView.vue')
+const VehicleListView = () => import('../views/VehicleListView.vue')
+const VehicleDetailsView = () => import('../views/VehicleDetailsView.vue')
+const VehicleManagementView = () => import('../views/VehicleManagementView.vue')
+const RemindersView = () => import('../views/RemindersView.vue')
+const ReportsView = () => import('../views/ReportsView.vue')
+const SettingsView = () => import('../views/SettingsView.vue')
+const AddServiceView = () => import('../views/AddServiceView.vue')
+const SelectServiceTypeView = () => import('../views/SelectServiceTypeView.vue')
+const SelectServiceDetailsView = () => import('../views/SelectServiceDetailsView.vue')
+const SmartAssistantView = () => import('../views/SmartAssistantView.vue')
+const UpgradeProView = () => import('../views/UpgradeProView.vue')
+
+// Variant views (lazy loaded, lower priority)
+const DashboardVariant3View = () => import('../views/DashboardVariant3View.vue')
+const DashboardVariant16View = () => import('../views/DashboardVariant16View.vue')
+const SelectServiceTypeVariant5View = () => import('../views/SelectServiceTypeVariant5View.vue')
+const SelectServiceDetailsVariant15View = () => import('../views/SelectServiceDetailsVariant15View.vue')
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
