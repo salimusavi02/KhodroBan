@@ -83,13 +83,13 @@ const handleGoogleLogin = async () => {
 </script>
 
 <template>
-  <div class="bg-background-light dark:bg-background-dark font-display text-[#121317] dark:text-white h-screen overflow-hidden selection:bg-primary selection:text-white flex items-center justify-center relative">
+  <div class="bg-background-light dark:bg-background-dark font-display text-[#121317] dark:text-white min-h-screen overflow-y-auto selection:bg-primary selection:text-white flex items-center justify-center relative py-8">
     <div class="fixed top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
       <div class="absolute top-[-10%] right-[-5%] w-[600px] h-[600px] bg-primary/10 rounded-full blur-[100px]"></div>
       <div class="absolute bottom-[-10%] left-[-10%] w-[700px] h-[700px] bg-blue-400/10 rounded-full blur-[120px]"></div>
       <div class="absolute top-[40%] left-[20%] w-[300px] h-[300px] bg-purple-500/5 rounded-full blur-[80px]"></div>
     </div>
-    <main class="w-full max-w-md p-6 relative z-10">
+    <main class="w-full max-w-md p-6 relative z-10 my-auto">
       <div class="glass-panel p-8 rounded-3xl shadow-2xl flex flex-col gap-8 border-t border-white/80 dark:border-white/10">
         <!-- Language Switcher at the top -->
         <LanguageSwitcherCard />
