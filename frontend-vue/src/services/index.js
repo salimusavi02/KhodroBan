@@ -10,4 +10,5 @@ export { reportService } from '@services/reportService';
 export { upgradeService } from '@services/upgradeService';
 export { notificationService } from '@services/notificationService';
 export { supabase } from '@services/supabase';
+export { dashboardService } from './dashboardService';
 

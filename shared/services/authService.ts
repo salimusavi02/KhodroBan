@@ -70,21 +70,44 @@ async function mapSupabaseUserToAppUser(supabaseUser: any): Promise<User> {
       }
     } else if (subscription?.plan_id) {
       try {
-        const { data: plan, error: planError } = await supabase
+        // Add timeout for subscription_plans query (3 seconds)
+        // اگر این query timeout شود، از free tier استفاده می‌کنیم
+        const timeoutPromise = new Promise<never>((_, reject) => 
+          setTimeout(() => reject(new Error('Subscription plan query timeout')), 3000)
+        );
+        
+        const planQuery = supabase
           .from('subscription_plans')
           .select('plan_code')
           .eq('plan_id', subscription.plan_id)
           .maybeSingle();
 
-        if (planError) {
-          if (planError.code !== 'PGRST116') {
-            console.warn('Error fetching plan:', planError);
+        const queryPromise = Promise.resolve(planQuery).then(result => result).catch((err: any) => ({ error: err, data: null }));
+
+        const result = await Promise.race([
+          queryPromise,
+          timeoutPromise
+        ]) as any;
+
+        // Check if result is from timeout (error thrown) or from query
+        if (result && result.error) {
+          // Check if it's a timeout error
+          if (result.error.message?.includes('timeout') || result.error.message?.includes('Timeout')) {
+            console.debug('Subscription plan query timeout, using free tier');
+          } else if (result.error.code !== 'PGRST116') {
+            // Only log non-"no rows found" errors
+            console.warn('Error fetching plan:', result.error);
           }
-        } else if (plan) {
-          planCode = (plan as any)?.plan_code || 'free';
+        } else if (result && result.data) {
+          // Query succeeded
+          const plan = result.data;
+          if (plan) {
+            planCode = (plan as any)?.plan_code || 'free';
+          }
         }
       } catch (error: any) {
-        // Handle network errors
+        // Handle timeout errors - silently use free tier
+        const isTimeout = error.message?.includes('timeout') || error.message?.includes('Timeout');
         const isNetworkError = 
           error.message?.includes('Failed to fetch') ||
           error.message?.includes('ERR_NETWORK_CHANGED') ||
@@ -92,8 +115,9 @@ async function mapSupabaseUserToAppUser(supabaseUser: any): Promise<User> {
           error.message?.includes('ERR_CONNECTION_CLOSED') ||
           error.name === 'TypeError';
         
-        if (isNetworkError) {
-          console.warn('Network error while fetching plan, using free tier:', error);
+        if (isTimeout || isNetworkError) {
+          // Silently use free tier - this is expected behavior
+          console.debug('Subscription plan query timeout or network error, using free tier');
         } else {
           console.warn('Error fetching plan, using free tier:', error);
         }
@@ -214,14 +238,58 @@ function ensureSupabase() {
   if (!supabase) throw new Error('Supabase client not available. Check VITE_BACKEND_TYPE and environment variables.');
 }
 
+/**
+ * Helper function to get user with timeout
+ */
+async function getUserWithTimeout(timeoutMs: number = 5000) {
+  ensureSupabase();
+  
+  const timeoutPromise = new Promise<never>((_, reject) => 
+    setTimeout(() => reject(new Error('Authentication timeout')), timeoutMs)
+  );
+  
+  const getUserPromise = supabase!.auth.getUser();
+  
+  try {
+    return await Promise.race([
+      getUserPromise,
+      timeoutPromise
+    ]);
+  } catch (error: any) {
+    // If timeout or network error, throw a more user-friendly error
+    const isTimeout = error.message?.includes('timeout') || error.message?.includes('Timeout');
+    const isNetworkError = 
+      error.message?.includes('Failed to fetch') ||
+      error.message?.includes('ERR_NETWORK_CHANGED') ||
+      error.message?.includes('ERR_NAME_NOT_RESOLVED') ||
+      error.message?.includes('ERR_CONNECTION_CLOSED') ||
+      error.name === 'TypeError';
+    
+    if (isTimeout || isNetworkError) {
+      throw new Error('خطا در اتصال به سرور. لطفاً اتصال اینترنت خود را بررسی کنید.');
+    }
+    throw error;
+  }
+}
+
 const authServiceSupabase: IAuthService = {
   async login(credentials: LoginCredentials): Promise<{ user: User; token: string }> {
     ensureSupabase();
     try {
-      const { data, error } = await supabase!.auth.signInWithPassword({
+      // Add timeout for login request (10 seconds)
+      const timeoutPromise = new Promise<never>((_, reject) => 
+        setTimeout(() => reject(new Error('Login timeout')), 10000)
+      );
+      
+      const loginPromise = supabase!.auth.signInWithPassword({
         email: credentials.email,
         password: credentials.password,
       });
+
+      const { data, error } = await Promise.race([
+        loginPromise,
+        timeoutPromise
+      ]) as any;
 
       if (error) {
         throw new Error(error.message || 'ایمیل یا رمز عبور اشتباه است');
@@ -237,7 +305,8 @@ const authServiceSupabase: IAuthService = {
 
       return { user, token };
     } catch (error: any) {
-      // Handle network errors
+      // Handle network errors and timeout
+      const isTimeout = error.message?.includes('timeout') || error.message?.includes('Timeout');
       const isNetworkError = 
         error.message?.includes('Failed to fetch') || 
         error.message?.includes('ERR_CONNECTION_CLOSED') ||
@@ -246,7 +315,7 @@ const authServiceSupabase: IAuthService = {
         error.message?.includes('NetworkError') ||
         error.name === 'TypeError';
       
-      if (isNetworkError) {
+      if (isTimeout || isNetworkError) {
         throw new Error('خطا در اتصال به سرور. لطفاً اتصال اینترنت خود را بررسی کنید و دوباره تلاش کنید.');
       }
       throw new Error(error.message || 'خطا در ورود');
@@ -334,12 +403,11 @@ const authServiceSupabase: IAuthService = {
   },
 
   async getProfile(): Promise<User> {
-    ensureSupabase();
     try {
       const {
         data: { user },
         error,
-      } = await supabase!.auth.getUser();
+      } = await getUserWithTimeout(5000); // 5 second timeout
 
       if (error || !user) {
         throw new Error('کاربر لاگین نشده است');
@@ -347,18 +415,22 @@ const authServiceSupabase: IAuthService = {
 
       return await mapSupabaseUserToAppUser(user);
     } catch (error: any) {
+      // Re-throw with better error message if it's already a user-friendly error
+      if (error.message?.includes('اتصال به سرور')) {
+        throw error;
+      }
       throw new Error(error.message || 'خطا در دریافت پروفایل');
     }
   },
 
   async updateProfile(data: Partial<{ firstName: string; lastName: string }>): Promise<User> {
-    ensureSupabase();
     try {
       const {
         data: { user },
-      } = await supabase!.auth.getUser();
+        error: getUserError,
+      } = await getUserWithTimeout(5000); // 5 second timeout
 
-      if (!user) {
+      if (getUserError || !user) {
         throw new Error('کاربر لاگین نشده است');
       }
 

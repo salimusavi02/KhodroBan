@@ -144,9 +144,38 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
 
-  // Initialize auth store if not already done
-  if (!authStore.user && authStore.token) {
-    await authStore.initialize()
+  // Initialize auth store on first navigation
+  // Check if we have a token but no user (e.g., after page refresh)
+  if (!authStore.user && (authStore.token || localStorage.getItem('token'))) {
+    try {
+      // Use a longer timeout and let initialize handle its own race conditions
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Router guard timeout')), 12000) // Increased to 12 seconds
+      )
+      
+      await Promise.race([
+        authStore.initialize(),
+        timeoutPromise
+      ])
+      
+      // After initialization, check if user was successfully loaded
+      // If not, it might be a network issue - don't clear token immediately
+      // The initialize function will handle token clearing for auth errors
+    } catch (err) {
+      // If initialization fails or times out, check if it's a real auth error
+      console.debug('Auth initialization failed or timeout in router guard:', err.message || err)
+      
+      // Only clear token if it's an authentication error, not just a timeout
+      const isAuthError = err.message?.includes('کاربر لاگین نشده') || 
+                          err.message?.includes('Invalid') ||
+                          err.message?.includes('JWT') ||
+                          err.message?.includes('Unauthorized');
+      
+      if (isAuthError) {
+        authStore.saveToken(null)
+      }
+      // Continue navigation - user will be redirected to login if route requires auth
+    }
   }
 
   // Check if route requires authentication

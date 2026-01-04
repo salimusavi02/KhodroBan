@@ -27,9 +27,10 @@ export function useKeyboardNavigation() {
     } = options
 
     const keyArray = Array.isArray(keys) ? keys : [keys]
-    const normalizedKeys = keyArray.map(key => key.toLowerCase())
+    const normalizedKeys = keyArray.map(key => key ? key.toLowerCase() : '').filter(Boolean)
 
     const handler = (event) => {
+      if (!event || !event.key) return
       const eventKey = event.key.toLowerCase()
       
       if (normalizedKeys.includes(eventKey)) {
@@ -77,9 +78,10 @@ export function useKeyboardNavigation() {
     } = options
 
     const keyArray = Array.isArray(keys) ? keys : [keys]
-    const normalizedKeys = keyArray.map(key => key.toLowerCase())
+    const normalizedKeys = keyArray.map(key => key ? key.toLowerCase() : '').filter(Boolean)
 
     const handler = (event) => {
+      if (!event || !event.key) return
       const eventKey = event.key.toLowerCase()
       
       if (normalizedKeys.includes(eventKey)) {
