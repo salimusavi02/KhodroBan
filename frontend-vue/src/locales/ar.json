@@ -50,7 +50,12 @@
     "termsPrefix": "أوافق على",
     "terms": "الشروط والأحكام",
     "termsSuffix": "khodroban.",
-    "alreadyHaveAccount": "هل لديك حساب؟"
+    "alreadyHaveAccount": "هل لديك حساب؟",
+    "heroTitle1": "إدارة ذكية",
+    "heroTitle2": "لتكاليف وخدمات",
+    "heroTitle3": "مركبتك",
+    "heroDescription": "مع khodroban، لا تقلق أبدًا بشأن نسيان تغييرات الزيت أو تجديد التأمين. نحن نهتم بمركبتك.",
+    "heroFeature": "أمان عالي ووصول سهل"
   },
   "dashboard": {
     "title": "لوحة التحكم",

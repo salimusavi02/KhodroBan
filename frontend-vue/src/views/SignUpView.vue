@@ -128,12 +128,12 @@ const handleGoogleRegister = async () => {
             <h1 class="text-2xl font-bold tracking-tight">{{ t('auth.subtitle') }}</h1>
           </div>
           <h2 class="text-white text-4xl font-extrabold leading-tight mb-6">
-            {{ t('dashboard.title') }}<br />
-            {{ t('dashboard.totalExpenses') }}<br />
-            {{ t('dashboard.totalServices') }}
+            {{ t('auth.heroTitle1') }}<br />
+            {{ t('auth.heroTitle2') }}<br />
+            {{ t('auth.heroTitle3') }}
           </h2>
           <p class="text-white/80 text-lg font-light leading-relaxed max-w-sm">
-            {{ t('dashboard.welcome') }}
+            {{ t('auth.heroDescription') }}
           </p>
         </div>
         <div class="relative z-10 mt-auto w-full aspect-video rounded-xl overflow-hidden bg-white/10 backdrop-blur-sm border border-white/20 shadow-lg flex items-center justify-center group">
@@ -141,7 +141,7 @@ const handleGoogleRegister = async () => {
           <div class="absolute inset-0 bg-gradient-to-t from-primary to-transparent opacity-60"></div>
           <div class="absolute bottom-4 right-4 text-white font-medium flex items-center gap-2">
             <span class="material-symbols-outlined text-sm">verified_user</span>
-            <span>{{ t('dashboard.noData') }}</span>
+            <span>{{ t('auth.heroFeature') }}</span>
           </div>
         </div>
       </div>
