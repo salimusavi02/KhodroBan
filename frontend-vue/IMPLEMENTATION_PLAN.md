@@ -32,6 +32,16 @@
   - [x] چندزبانه کردن صفحات Login و SignUp
   - [x] ذخیره زبان انتخابی در localStorage
   - [x] بارگذاری زبان از localStorage در startup
+- [x] **Toast Component**
+  - [x] ایجاد کامپوننت Toast.vue با پشتیبانی از ۴ نوع (success, error, warning, info)
+  - [x] ایجاد کامپوننت ToastContainer.vue برای نمایش چند Toast همزمان
+  - [x] بهبود UI Store با helper methods (success, error, warning, info)
+  - [x] ایجاد composable useToast برای استفاده آسان‌تر
+  - [x] پشتیبانی از RTL/LTR و Dark Mode
+  - [x] انیمیشن‌های smooth و Progress bar
+  - [x] Accessibility (ARIA attributes)
+  - [x] Responsive Design
+  - [x] تست در صفحات Login/SignUp
 
 ### ⚠️ کارهای ناتمام
 
@@ -433,13 +443,24 @@
 **زمان تخمینی:** ۳ روز
 
 ### ۱۱.۴ Toast Notifications
-- [ ] ایجاد کامپوننت Toast
-- [ ] نمایش پیام‌های موفقیت
-- [ ] نمایش پیام‌های خطا
-- [ ] نمایش پیام‌های اطلاعاتی
+- [x] ایجاد کامپوننت Toast
+- [x] ایجاد کامپوننت ToastContainer
+- [x] بهبود UI Store با helper methods
+- [x] ایجاد composable useToast
+- [x] نمایش پیام‌های موفقیت
+- [x] نمایش پیام‌های خطا
+- [x] نمایش پیام‌های اطلاعاتی
+- [x] نمایش پیام‌های هشدار
+- [x] پشتیبانی از RTL/LTR
+- [x] پشتیبانی از Dark Mode
+- [x] انیمیشن‌های smooth
+- [x] Progress bar برای نمایش زمان
+- [x] Accessibility (ARIA attributes)
+- [x] Responsive Design
+- [x] یکپارچه‌سازی با i18n
 
 **اولویت:** متوسط  
-**زمان تخمینی:** ۱ روز
+**وضعیت:** ✅ تکمیل شده
 
 ### ۱۱.۵ Modal و Dialog
 - [ ] ایجاد کامپوننت Modal قابل استفاده مجدد
@@ -1046,8 +1067,15 @@
    - ✅ ذخیره زبان در localStorage
    - ✅ ایجاد کامپوننت LanguageSwitcher و LanguageSwitcherCard
    - ✅ چندزبانه کردن صفحات Login و SignUp
-2. **Toast Component** (گام بعدی) - ۰.۵ روز
-3. **Semantic HTML Components** (سوم) - ۱-۲ روز
+2. ✅ **Toast Component** (تکمیل شده) - ۰.۵ روز
+   - ✅ ایجاد کامپوننت Toast.vue
+   - ✅ ایجاد کامپوننت ToastContainer.vue
+   - ✅ بهبود UI Store با helper methods
+   - ✅ ایجاد composable useToast
+   - ✅ پشتیبانی از RTL/LTR و Dark Mode
+   - ✅ انیمیشن‌ها و Accessibility
+   - ✅ تست در صفحات Login/SignUp
+3. **Semantic HTML Components** (گام بعدی) - ۱-۲ روز
 4. **Accessibility Utilities** (چهارم) - ۱ روز
 5. **PWA Foundation** (پنجم) ⭐ - ۱ روز
 

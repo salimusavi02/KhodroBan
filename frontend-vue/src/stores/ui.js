@@ -28,21 +28,26 @@ export const useUIStore = defineStore('ui', () => {
   }
 
   const showToast = (toast) => {
-    const id = Date.now().toString()
+    const id = Date.now().toString() + Math.random().toString(36).substr(2, 9)
     const newToast = {
       id,
       message: toast.message,
       type: toast.type || 'info',
       duration: toast.duration || 5000,
-      visible: true
+      visible: true,
+      showProgress: toast.showProgress !== false
     }
     
     toasts.value.push(newToast)
     
-    // Auto hide after duration
-    setTimeout(() => {
-      hideToast(id)
-    }, newToast.duration)
+    // Auto hide after duration (only if duration > 0)
+    if (newToast.duration > 0) {
+      setTimeout(() => {
+        hideToast(id)
+      }, newToast.duration)
+    }
+    
+    return id
   }
 
   const hideToast = (id) => {
@@ -54,6 +59,23 @@ export const useUIStore = defineStore('ui', () => {
         toasts.value.splice(toastIndex, 1)
       }, 300)
     }
+  }
+
+  // Helper methods for different toast types
+  const success = (message, duration = 5000) => {
+    return showToast({ message, type: 'success', duration })
+  }
+
+  const error = (message, duration = 5000) => {
+    return showToast({ message, type: 'error', duration })
+  }
+
+  const warning = (message, duration = 5000) => {
+    return showToast({ message, type: 'warning', duration })
+  }
+
+  const info = (message, duration = 5000) => {
+    return showToast({ message, type: 'info', duration })
   }
 
   const showModal = (modal) => {
@@ -93,6 +115,10 @@ export const useUIStore = defineStore('ui', () => {
     setTheme,
     showToast,
     hideToast,
+    success,
+    error,
+    warning,
+    info,
     showModal,
     hideModal
   }
