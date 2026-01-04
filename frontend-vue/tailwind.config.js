@@ -24,8 +24,9 @@ export default {
         "danger": "#ff4d4d",
       },
       fontFamily: {
-        "display": ["Vazirmatn", "Inter", "sans-serif"],
-        "body": ["Vazirmatn", "Inter", "sans-serif"],
+        "sans": ["Vazirmatn", "sans-serif"],
+        "display": ["Vazirmatn", "sans-serif"],
+        "body": ["Vazirmatn", "sans-serif"],
       },
       borderRadius: {
         "DEFAULT": "0.5rem",
