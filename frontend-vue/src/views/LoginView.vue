@@ -3,11 +3,14 @@ import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useUIStore } from '../stores/ui'
+import { useI18n } from 'vue-i18n'
+import LanguageSwitcherCard from '../components/LanguageSwitcherCard.vue'
 
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
 const uiStore = useUIStore()
+const { t } = useI18n()
 
 const email = ref('')
 const password = ref('')
@@ -20,17 +23,17 @@ const validateForm = () => {
   errors.value = {}
   
   if (!email.value || !email.value.trim()) {
-    errors.value.email = 'ایمیل الزامی است'
+    errors.value.email = t('validation.required')
     return false
   }
   
   if (!email.value.includes('@')) {
-    errors.value.email = 'ایمیل معتبر نیست'
+    errors.value.email = t('validation.email')
     return false
   }
   
   if (!password.value || password.value.length < 6) {
-    errors.value.password = 'رمز عبور باید حداقل ۶ کاراکتر باشد'
+    errors.value.password = t('validation.minLength', { count: 6 })
     return false
   }
   
@@ -51,7 +54,7 @@ const handleSubmit = async (e) => {
     })
     
     uiStore.showToast({
-      message: 'خوش آمدید!',
+      message: t('auth.welcomeBack'),
       type: 'success'
     })
     
@@ -61,7 +64,7 @@ const handleSubmit = async (e) => {
   } catch (error) {
     // Error is already set in store, but we can show a toast
     uiStore.showToast({
-      message: error.message || 'خطا در ورود به سیستم',
+      message: error.message || t('auth.loginError'),
       type: 'error'
     })
   }
@@ -72,7 +75,7 @@ const handleGoogleLogin = async () => {
     await authStore.loginWithGoogle()
   } catch (error) {
     uiStore.showToast({
-      message: 'خطا در ورود با گوگل',
+      message: t('auth.loginError'),
       type: 'error'
     })
   }
@@ -88,12 +91,15 @@ const handleGoogleLogin = async () => {
     </div>
     <main class="w-full max-w-md p-6 relative z-10">
       <div class="glass-panel p-8 rounded-3xl shadow-2xl flex flex-col gap-8 border-t border-white/80 dark:border-white/10">
+        <!-- Language Switcher at the top -->
+        <LanguageSwitcherCard />
+        
         <div class="text-center flex flex-col items-center">
           <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-primary-light shadow-lg shadow-primary/30 flex items-center justify-center mb-6 text-white rotate-3 hover:rotate-6 transition-transform duration-300">
             <span class="material-symbols-outlined text-[40px] flip-rtl">local_taxi</span>
           </div>
-          <h1 class="text-3xl font-black text-[#121317] dark:text-white tracking-tight mb-2">خودرو‌بان</h1>
-          <p class="text-[#666e85] dark:text-gray-400 text-sm font-medium">به حساب کاربری خود وارد شوید</p>
+          <h1 class="text-3xl font-black text-[#121317] dark:text-white tracking-tight mb-2">{{ t('auth.subtitle') }}</h1>
+          <p class="text-[#666e85] dark:text-gray-400 text-sm font-medium">{{ t('auth.welcome') }}</p>
         </div>
         
         <!-- Error Message -->
@@ -103,7 +109,7 @@ const handleGoogleLogin = async () => {
         
         <form @submit="handleSubmit" class="flex flex-col gap-5">
           <div class="space-y-1.5">
-            <label class="block text-sm font-bold text-[#121317] dark:text-gray-200 mr-1" for="email">ایمیل</label>
+            <label class="block text-sm font-bold text-[#121317] dark:text-gray-200 mr-1" for="email">{{ t('auth.email') }}</label>
             <div class="relative group">
               <input 
                 v-model="email"
@@ -114,7 +120,7 @@ const handleGoogleLogin = async () => {
                 dir="ltr" 
                 id="email" 
                 name="email" 
-                placeholder="example@mail.com" 
+                :placeholder="t('auth.email')" 
                 type="email"
                 :disabled="isLoading"
               />
@@ -125,8 +131,8 @@ const handleGoogleLogin = async () => {
           
           <div class="space-y-1.5">
             <div class="flex justify-between items-center mr-1 ml-1">
-              <label class="block text-sm font-bold text-[#121317] dark:text-gray-200" for="password">رمز عبور</label>
-              <a class="text-xs font-bold text-primary hover:text-primary-light transition-colors" href="#">رمز عبور را فراموش کردید؟</a>
+              <label class="block text-sm font-bold text-[#121317] dark:text-gray-200" for="password">{{ t('auth.password') }}</label>
+              <a class="text-xs font-bold text-primary hover:text-primary-light transition-colors" href="#">{{ t('auth.forgotPassword') }}</a>
             </div>
             <div class="relative group">
               <input 
@@ -158,8 +164,8 @@ const handleGoogleLogin = async () => {
               ]"
               type="submit"
             >
-              <span v-if="!isLoading">ورود به حساب</span>
-              <span v-else>در حال ورود...</span>
+              <span v-if="!isLoading">{{ t('auth.login') }}</span>
+              <span v-else>{{ t('common.loading') }}</span>
               <span v-if="!isLoading" class="material-symbols-outlined text-[20px] rotate-180">arrow_right_alt</span>
             </button>
           </div>
@@ -167,7 +173,6 @@ const handleGoogleLogin = async () => {
         
         <div class="relative flex items-center py-2">
           <div class="flex-grow border-t border-gray-300 dark:border-gray-700"></div>
-          <span class="flex-shrink-0 mx-4 text-gray-400 text-xs font-medium">یا ورود با</span>
           <div class="flex-grow border-t border-gray-300 dark:border-gray-700"></div>
         </div>
         
@@ -182,13 +187,13 @@ const handleGoogleLogin = async () => {
             <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"></path>
             <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"></path>
           </svg>
-          <span class="group-hover:text-primary transition-colors">ورود با گوگل</span>
+          <span class="group-hover:text-primary transition-colors">{{ t('auth.loginWithGoogle') }}</span>
         </button>
         
         <div class="text-center">
           <p class="text-sm text-[#666e85] dark:text-gray-400 font-medium">
-            حساب کاربری ندارید؟
-            <router-link class="font-bold text-primary hover:text-primary-light mr-1 underline decoration-primary/30 underline-offset-4 hover:decoration-primary transition-all" to="/signup">ثبت‌نام کنید</router-link>
+            {{ t('auth.registerPrompt') }}
+            <router-link class="font-bold text-primary hover:text-primary-light mr-1 underline decoration-primary/30 underline-offset-4 hover:decoration-primary transition-all" to="/signup">{{ t('auth.register') }}</router-link>
           </p>
         </div>
       </div>

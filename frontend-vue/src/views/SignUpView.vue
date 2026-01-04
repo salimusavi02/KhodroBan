@@ -1,4 +1,116 @@
 <script setup>
+import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '../stores/auth'
+import { useUIStore } from '../stores/ui'
+import { useI18n } from 'vue-i18n'
+import LanguageSwitcherCard from '../components/LanguageSwitcherCard.vue'
+
+const router = useRouter()
+const authStore = useAuthStore()
+const uiStore = useUIStore()
+const { t } = useI18n()
+
+const firstName = ref('')
+const lastName = ref('')
+const email = ref('')
+const phoneNumber = ref('')
+const password = ref('')
+const confirmPassword = ref('')
+const terms = ref(false)
+const errors = ref({})
+
+const isLoading = computed(() => authStore.isLoading)
+
+const validateForm = () => {
+  errors.value = {}
+  
+  if (!firstName.value.trim()) {
+    errors.value.firstName = t('validation.required')
+    return false
+  }
+  
+  if (!lastName.value.trim()) {
+    errors.value.lastName = t('validation.required')
+    return false
+  }
+  
+  if (!email.value.trim()) {
+    errors.value.email = t('validation.required')
+    return false
+  }
+  
+  if (!email.value.includes('@')) {
+    errors.value.email = t('validation.email')
+    return false
+  }
+  
+  if (!phoneNumber.value.trim()) {
+    errors.value.phoneNumber = t('validation.required')
+    return false
+  }
+  
+  if (!password.value || password.value.length < 6) {
+    errors.value.password = t('validation.minLength', { count: 6 })
+    return false
+  }
+  
+  if (password.value !== confirmPassword.value) {
+    errors.value.confirmPassword = t('auth.passwordsDoNotMatch')
+    return false
+  }
+  
+  if (!terms.value) {
+    uiStore.showToast({
+      message: t('auth.acceptTerms'),
+      type: 'warning'
+    })
+    return false
+  }
+  
+  return true
+}
+
+const handleSubmit = async (e) => {
+  e.preventDefault()
+  
+  if (!validateForm()) {
+    return
+  }
+  
+  try {
+    await authStore.register({
+      firstName: firstName.value.trim(),
+      lastName: lastName.value.trim(),
+      email: email.value.trim(),
+      phoneNumber: phoneNumber.value.trim(),
+      password: password.value
+    })
+    
+    uiStore.showToast({
+      message: t('auth.registerSuccess'),
+      type: 'success'
+    })
+    
+    router.push('/login')
+  } catch (error) {
+    uiStore.showToast({
+      message: error.message || t('auth.registerError'),
+      type: 'error'
+    })
+  }
+}
+
+const handleGoogleRegister = async () => {
+  try {
+    await authStore.loginWithGoogle()
+  } catch (error) {
+    uiStore.showToast({
+      message: t('auth.registerError'),
+      type: 'error'
+    })
+  }
+}
 </script>
 
 <template>
@@ -6,21 +118,22 @@
     <div class="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-primary/20 rounded-full blur-[100px] pointer-events-none"></div>
     <div class="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-purple-400/20 rounded-full blur-[120px] pointer-events-none"></div>
     <div class="w-full max-w-[1280px] h-full min-h-[800px] grid grid-cols-1 lg:grid-cols-12 gap-6 bg-white/90 backdrop-blur-xl dark:bg-[#1a2634]/90 rounded-2xl shadow-2xl overflow-hidden border border-white/50 relative z-10">
+      <!-- Left Side - Info Panel -->
       <div class="hidden lg:flex lg:col-span-5 relative flex-col justify-between bg-primary p-12 overflow-hidden">
         <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(#ffffff 2px, transparent 2px); background-size: 24px 24px;"></div>
         <div class="absolute bottom-0 left-0 right-0 h-2/3 bg-gradient-to-t from-black/20 to-transparent z-0"></div>
         <div class="relative z-10">
           <div class="flex items-center gap-3 text-white mb-12">
             <span class="material-symbols-outlined text-4xl">directions_car</span>
-            <h1 class="text-2xl font-bold tracking-tight">خودروبان</h1>
+            <h1 class="text-2xl font-bold tracking-tight">{{ t('auth.subtitle') }}</h1>
           </div>
           <h2 class="text-white text-4xl font-extrabold leading-tight mb-6">
-            مدیریت هوشمند<br />
-            هزینه‌ها و سرویس‌های<br />
-            خودروی شما
+            {{ t('dashboard.title') }}<br />
+            {{ t('dashboard.totalExpenses') }}<br />
+            {{ t('dashboard.totalServices') }}
           </h2>
           <p class="text-white/80 text-lg font-light leading-relaxed max-w-sm">
-            با خودروبان، دیگر نگران فراموش کردن زمان تعویض روغن یا تمدید بیمه نباشید. ما هوای خودروی شما را داریم.
+            {{ t('dashboard.welcome') }}
           </p>
         </div>
         <div class="relative z-10 mt-auto w-full aspect-video rounded-xl overflow-hidden bg-white/10 backdrop-blur-sm border border-white/20 shadow-lg flex items-center justify-center group">
@@ -28,90 +141,187 @@
           <div class="absolute inset-0 bg-gradient-to-t from-primary to-transparent opacity-60"></div>
           <div class="absolute bottom-4 right-4 text-white font-medium flex items-center gap-2">
             <span class="material-symbols-outlined text-sm">verified_user</span>
-            <span>امنیت بالا و دسترسی آسان</span>
+            <span>{{ t('dashboard.noData') }}</span>
           </div>
         </div>
       </div>
+      
+      <!-- Right Side - Form -->
       <div class="col-span-1 lg:col-span-7 p-6 md:p-12 lg:p-16 flex flex-col justify-center overflow-y-auto">
         <div class="lg:hidden flex items-center gap-2 text-primary mb-8 justify-center">
           <span class="material-symbols-outlined text-3xl">directions_car</span>
-          <h2 class="text-xl font-bold">خودروبان</h2>
+          <h2 class="text-xl font-bold">{{ t('auth.subtitle') }}</h2>
         </div>
+        
         <div class="max-w-[520px] mx-auto w-full">
-          <div class="mb-8 text-center lg:text-right">
-            <h3 class="text-3xl font-bold text-slate-900 dark:text-white mb-3">ساخت حساب کاربری</h3>
-            <p class="text-slate-500 dark:text-slate-400 text-base">اطلاعات خود را وارد کنید تا به خانواده بزرگ خودروبان بپیوندید.</p>
+          <!-- Language Switcher -->
+          <LanguageSwitcherCard />
+          
+          <div class="mb-8 text-center lg:text-right mt-6">
+            <h3 class="text-3xl font-bold text-slate-900 dark:text-white mb-3">{{ t('auth.register') }}</h3>
+            <p class="text-slate-500 dark:text-slate-400 text-base">{{ t('auth.subtitle') }}</p>
           </div>
-          <button class="w-full flex items-center justify-center gap-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-white font-medium h-12 rounded-xl transition-all duration-200 mb-6 group">
+          
+          <button 
+            @click="handleGoogleRegister"
+            :disabled="isLoading"
+            class="w-full flex items-center justify-center gap-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-white font-medium h-12 rounded-xl transition-all duration-200 mb-6 group disabled:opacity-50 disabled:cursor-not-allowed"
+          >
             <svg class="w-5 h-5 group-hover:scale-110 transition-transform" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"></path>
               <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"></path>
               <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"></path>
               <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"></path>
             </svg>
-            <span>ثبت‌نام با گوگل</span>
+            <span>{{ t('auth.loginWithGoogle') }}</span>
           </button>
+          
           <div class="relative flex py-2 items-center mb-6">
             <div class="flex-grow border-t border-slate-200 dark:border-slate-700"></div>
-            <span class="flex-shrink-0 mx-4 text-slate-400 text-sm">یا با ایمیل</span>
+            <span class="flex-shrink-0 mx-4 text-slate-400 text-sm">{{ t('auth.or') }} {{ t('auth.email') }}</span>
             <div class="flex-grow border-t border-slate-200 dark:border-slate-700"></div>
           </div>
-          <form class="space-y-5">
+          
+          <form @submit="handleSubmit" class="space-y-5">
             <div class="flex flex-col md:flex-row gap-5">
               <div class="flex-1 space-y-2">
-                <label class="text-sm font-medium text-slate-700 dark:text-slate-300 mr-1" for="firstName">نام</label>
-                <input class="w-full h-12 px-4 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all" id="firstName" placeholder="نام خود را وارد کنید" type="text" />
+                <label class="text-sm font-medium text-slate-700 dark:text-slate-300 mr-1" for="firstName">{{ t('auth.firstName') }}</label>
+                <input 
+                  v-model="firstName"
+                  :class="[
+                    'w-full h-12 px-4 rounded-xl border bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all',
+                    errors.firstName ? 'border-red-500 dark:border-red-500' : 'border-slate-200 dark:border-slate-600'
+                  ]"
+                  id="firstName" 
+                  :placeholder="t('auth.firstName')" 
+                  type="text" 
+                />
+                <p v-if="errors.firstName" class="text-red-500 text-xs">{{ errors.firstName }}</p>
               </div>
               <div class="flex-1 space-y-2">
-                <label class="text-sm font-medium text-slate-700 dark:text-slate-300 mr-1" for="lastName">نام خانوادگی</label>
-                <input class="w-full h-12 px-4 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all" id="lastName" placeholder="نام خانوادگی" type="text" />
+                <label class="text-sm font-medium text-slate-700 dark:text-slate-300 mr-1" for="lastName">{{ t('auth.lastName') }}</label>
+                <input 
+                  v-model="lastName"
+                  :class="[
+                    'w-full h-12 px-4 rounded-xl border bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all',
+                    errors.lastName ? 'border-red-500 dark:border-red-500' : 'border-slate-200 dark:border-slate-600'
+                  ]"
+                  id="lastName" 
+                  :placeholder="t('auth.lastName')" 
+                  type="text" 
+                />
+                <p v-if="errors.lastName" class="text-red-500 text-xs">{{ errors.lastName }}</p>
               </div>
             </div>
+            
             <div class="space-y-2">
-              <label class="text-sm font-medium text-slate-700 dark:text-slate-300 mr-1" for="email">ایمیل</label>
+              <label class="text-sm font-medium text-slate-700 dark:text-slate-300 mr-1" for="email">{{ t('auth.email') }}</label>
               <div class="relative">
-                <input class="w-full h-12 pl-4 pr-10 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all text-left" dir="ltr" id="email" placeholder="example@email.com" type="email" />
+                <input 
+                  v-model="email"
+                  :class="[
+                    'w-full h-12 pl-4 pr-10 rounded-xl border bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all text-left',
+                    errors.email ? 'border-red-500 dark:border-red-500' : 'border-slate-200 dark:border-slate-600'
+                  ]"
+                  dir="ltr" 
+                  id="email" 
+                  :placeholder="t('auth.email')" 
+                  type="email" 
+                />
                 <span class="material-symbols-outlined absolute right-3 top-3 text-slate-400 pointer-events-none">mail</span>
               </div>
+              <p v-if="errors.email" class="text-red-500 text-xs">{{ errors.email }}</p>
             </div>
+            
             <div class="space-y-2">
-              <label class="text-sm font-medium text-slate-700 dark:text-slate-300 mr-1" for="phoneNumber">شماره تلفن</label>
+              <label class="text-sm font-medium text-slate-700 dark:text-slate-300 mr-1" for="phoneNumber">{{ t('auth.phone') }}</label>
               <div class="relative">
-                <input class="w-full h-12 pl-4 pr-10 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all text-left" dir="ltr" id="phoneNumber" placeholder="0912 345 6789" type="tel" />
+                <input 
+                  v-model="phoneNumber"
+                  :class="[
+                    'w-full h-12 pl-4 pr-10 rounded-xl border bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all text-left',
+                    errors.phoneNumber ? 'border-red-500 dark:border-red-500' : 'border-slate-200 dark:border-slate-600'
+                  ]"
+                  dir="ltr" 
+                  id="phoneNumber" 
+                  placeholder="0912 345 6789" 
+                  type="tel" 
+                />
                 <span class="material-symbols-outlined absolute right-3 top-3 text-slate-400 pointer-events-none">smartphone</span>
               </div>
+              <p v-if="errors.phoneNumber" class="text-red-500 text-xs">{{ errors.phoneNumber }}</p>
             </div>
+            
             <div class="space-y-2">
-              <label class="text-sm font-medium text-slate-700 dark:text-slate-300 mr-1" for="password">رمز عبور</label>
+              <label class="text-sm font-medium text-slate-700 dark:text-slate-300 mr-1" for="password">{{ t('auth.password') }}</label>
               <div class="relative group/pass">
-                <input class="w-full h-12 pl-4 pr-10 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all text-left" dir="ltr" id="password" placeholder="********" type="password" />
+                <input 
+                  v-model="password"
+                  :class="[
+                    'w-full h-12 pl-4 pr-10 rounded-xl border bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all text-left',
+                    errors.password ? 'border-red-500 dark:border-red-500' : 'border-slate-200 dark:border-slate-600'
+                  ]"
+                  dir="ltr" 
+                  id="password" 
+                  placeholder="********" 
+                  type="password" 
+                />
                 <span class="material-symbols-outlined absolute right-3 top-3 text-slate-400 pointer-events-none group-focus-within/pass:text-primary transition-colors">lock</span>
               </div>
+              <p v-if="errors.password" class="text-red-500 text-xs">{{ errors.password }}</p>
             </div>
+            
             <div class="space-y-2">
-              <label class="text-sm font-medium text-slate-700 dark:text-slate-300 mr-1" for="confirm-password">تکرار رمز عبور</label>
+              <label class="text-sm font-medium text-slate-700 dark:text-slate-300 mr-1" for="confirm-password">{{ t('auth.confirmPassword') }}</label>
               <div class="relative group/confirm">
-                <input class="w-full h-12 pl-4 pr-10 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all text-left" dir="ltr" id="confirm-password" placeholder="********" type="password" />
+                <input 
+                  v-model="confirmPassword"
+                  :class="[
+                    'w-full h-12 pl-4 pr-10 rounded-xl border bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all text-left',
+                    errors.confirmPassword ? 'border-red-500 dark:border-red-500' : 'border-slate-200 dark:border-slate-600'
+                  ]"
+                  dir="ltr" 
+                  id="confirm-password" 
+                  placeholder="********" 
+                  type="password" 
+                />
                 <span class="material-symbols-outlined absolute right-3 top-3 text-slate-400 pointer-events-none group-focus-within/confirm:text-primary transition-colors">lock_reset</span>
               </div>
+              <p v-if="errors.confirmPassword" class="text-red-500 text-xs">{{ errors.confirmPassword }}</p>
             </div>
+            
             <div class="flex items-start gap-3 mt-2">
               <div class="flex items-center h-5">
-                <input class="w-4 h-4 border border-slate-300 rounded bg-slate-50 focus:ring-3 focus:ring-primary/30 dark:bg-slate-700 dark:border-slate-600 dark:focus:ring-primary/60 dark:ring-offset-slate-800 text-primary" id="terms" type="checkbox" />
+                <input 
+                  v-model="terms"
+                  class="w-4 h-4 border border-slate-300 rounded bg-slate-50 focus:ring-3 focus:ring-primary/30 dark:bg-slate-700 dark:border-slate-600 dark:focus:ring-primary/60 dark:ring-offset-slate-800 text-primary" 
+                  id="terms" 
+                  type="checkbox" 
+                />
               </div>
               <label class="text-sm font-light text-slate-500 dark:text-slate-400" for="terms">
-                با <a class="font-medium text-primary hover:underline hover:text-primary-dark" href="#">قوانین و مقررات</a> خودروبان موافقم.
+                {{ t('auth.termsPrefix') }} <a class="font-medium text-primary hover:underline hover:text-primary-dark" href="#">{{ t('auth.terms') }}</a> {{ t('auth.termsSuffix') }}
               </label>
             </div>
-            <button class="w-full bg-primary hover:bg-primary-dark text-white font-bold h-12 rounded-xl shadow-lg shadow-primary/30 hover:shadow-primary/50 transition-all duration-300 flex items-center justify-center gap-2 mt-4" type="button">
-              <span>ثبت‌نام</span>
-              <span class="material-symbols-outlined text-sm">arrow_back</span>
+            
+            <button 
+              :disabled="isLoading"
+              :class="[
+                'w-full bg-primary hover:bg-primary-dark text-white font-bold h-12 rounded-xl shadow-lg shadow-primary/30 hover:shadow-primary/50 transition-all duration-300 flex items-center justify-center gap-2 mt-4',
+                isLoading ? 'opacity-70 cursor-not-allowed' : ''
+              ]" 
+              type="submit"
+            >
+              <span v-if="!isLoading">{{ t('auth.register') }}</span>
+              <span v-else>{{ t('common.loading') }}</span>
+              <span v-if="!isLoading" class="material-symbols-outlined text-sm">arrow_back</span>
             </button>
           </form>
+          
           <div class="text-center mt-8">
             <p class="text-sm text-slate-500 dark:text-slate-400">
-              قبلاً ثبت‌نام کرده‌اید؟
-              <a class="font-bold text-primary hover:text-primary-dark hover:underline transition-colors" href="#">وارد شوید</a>
+              {{ t('auth.alreadyHaveAccount') }}
+              <router-link class="font-bold text-primary hover:text-primary-dark hover:underline transition-colors" to="/login">{{ t('auth.login') }}</router-link>
             </p>
           </div>
         </div>

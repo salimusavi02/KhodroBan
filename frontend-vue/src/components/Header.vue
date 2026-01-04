@@ -4,7 +4,7 @@
       <span class="material-symbols-outlined">menu</span>
     </button>
     <div class="hidden md:flex flex-col">
-      <h2 class="text-xl font-bold text-[#121317] dark:text-white">{{ $t('dashboard.title') }}</h2>
+      <h2 class="text-xl font-bold text-[#121317] dark:text-white">{{ t('dashboard.title') }}</h2>
       <p class="text-sm text-[#666e85]">چهارشنبه، ۲ آبان</p>
     </div>
     <div class="flex items-center gap-4 mr-auto">
@@ -31,4 +31,7 @@
 
 <script setup>
 import LanguageSwitcher from './LanguageSwitcher.vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 </script>

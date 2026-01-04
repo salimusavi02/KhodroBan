@@ -41,7 +41,16 @@
     "loginWithTwitter": "(Twitter)",
     "registerPrompt": "Don't have an account?",
     "demoHint": "For testing, enter any email and password",
-    "or": "or"
+    "or": "or",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "phone": "Phone Number",
+    "passwordsDoNotMatch": "Passwords do not match",
+    "acceptTerms": "Please accept the terms and conditions",
+    "termsPrefix": "I agree to the",
+    "terms": "Terms and Conditions",
+    "termsSuffix": "of Khodroban.",
+    "alreadyHaveAccount": "Already have an account?"
   },
   "dashboard": {
     "title": "Dashboard",

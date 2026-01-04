@@ -41,7 +41,16 @@
     "loginWithTwitter": "إكس (تويتر)",
     "registerPrompt": "ليس لديك حساب؟",
     "demoHint": "للاختبار، أدخل أي بريد إلكتروني وكلمة مرور",
-    "or": "أو"
+    "or": "أو",
+    "firstName": "الاسم",
+    "lastName": "اسم العائلة",
+    "phone": "رقم الهاتف",
+    "passwordsDoNotMatch": "كلمات المرور غير متطابقة",
+    "acceptTerms": "يرجى قبول الشروط والأحكام",
+    "termsPrefix": "أوافق على",
+    "terms": "الشروط والأحكام",
+    "termsSuffix": "khodroban.",
+    "alreadyHaveAccount": "هل لديك حساب؟"
   },
   "dashboard": {
     "title": "لوحة التحكم",

@@ -41,7 +41,16 @@
     "loginWithTwitter": "ایکس (توییتر)",
     "registerPrompt": "حساب کاربری ندارید؟",
     "demoHint": "برای تست، هر ایمیل و رمز عبوری وارد کنید",
-    "or": "یا"
+    "or": "یا",
+    "firstName": "نام",
+    "lastName": "نام خانوادگی",
+    "phone": "شماره تلفن",
+    "passwordsDoNotMatch": "رمزهای عبور مطابقت ندارند",
+    "acceptTerms": "لطفاً قوانین و مقررات را بپذیرید",
+    "termsPrefix": "با",
+    "terms": "قوانین و مقررات",
+    "termsSuffix": "خودروبان موافقم.",
+    "alreadyHaveAccount": "قبلاً ثبت‌نام کرده‌اید؟"
   },
   "dashboard": {
     "title": "داشبورد",
