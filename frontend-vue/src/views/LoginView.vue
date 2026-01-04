@@ -1,11 +1,12 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useUIStore } from '../stores/ui'
 import { useI18n } from 'vue-i18n'
 import LanguageSwitcherCard from '../components/LanguageSwitcherCard.vue'
 import { Input, Button } from '../components/ui'
+import { useKeyboardNavigation, useFocus } from '../composables'
 
 const router = useRouter()
 const route = useRoute()
@@ -19,6 +20,10 @@ const errors = ref({})
 
 const isLoading = computed(() => authStore.isLoading)
 const errorMessage = computed(() => authStore.error)
+
+// Accessibility composables
+const { onKeyPress } = useKeyboardNavigation()
+const { focus } = useFocus()
 
 const validateForm = () => {
   errors.value = {}
@@ -81,6 +86,29 @@ const handleGoogleLogin = async () => {
     })
   }
 }
+
+// Focus email input on mount for better accessibility
+onMounted(() => {
+  // Small delay to ensure DOM is ready
+  setTimeout(() => {
+    const emailInput = document.querySelector('#email')
+    if (emailInput) {
+      focus(emailInput)
+    }
+  }, 100)
+})
+
+// Handle Enter key on form inputs
+onKeyPress('Enter', (event) => {
+  // Only handle if focus is on an input (not on button)
+  if (event.target.tagName === 'INPUT' && !isLoading.value) {
+    const form = event.target.closest('form')
+    if (form) {
+      event.preventDefault()
+      form.requestSubmit()
+    }
+  }
+}, { preventDefault: false })
 </script>
 
 <template>

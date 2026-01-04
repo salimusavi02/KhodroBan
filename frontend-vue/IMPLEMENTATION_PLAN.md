@@ -52,6 +52,20 @@
   - [x] پشتیبانی از Accessibility (ARIA attributes)
   - [x] پشتیبانی از RTL/LTR
   - [x] تست در صفحات Login/SignUp
+- [x] **Accessibility Utilities**
+  - [x] ایجاد composable useKeyboardNavigation برای مدیریت keyboard navigation
+  - [x] ایجاد composable useFocusTrap برای trap کردن focus در modalها
+  - [x] ایجاد composable useFocus برای مدیریت focus programmatically
+  - [x] ایجاد composable useSkipLink برای ایجاد skip links
+  - [x] ایجاد composable useAria برای helper ARIA attributes
+  - [x] ایجاد composable useReducedMotion برای پشتیبانی از prefers-reduced-motion
+  - [x] ایجاد composable useColorContrast برای بررسی color contrast
+  - [x] ایجاد فایل index.js برای export مرکزی
+  - [x] ایجاد مستندات ACCESSIBILITY.md
+  - [x] یکپارچه‌سازی در App.vue (Skip Links, Reduced Motion)
+  - [x] یکپارچه‌سازی در Modal.vue (Focus Trap, Keyboard Navigation)
+  - [x] یکپارچه‌سازی در LoginView.vue (Keyboard Navigation, Auto Focus)
+  - [x] تست و رفع باگ‌ها
 
 ### ⚠️ کارهای ناتمام
 
@@ -136,11 +150,11 @@
 
 #### مرحله ۱: Foundation (هفته ۱)
 ```
-□ i18n Infrastructure
-□ Toast Component
-□ Semantic HTML Components (Button, Input, Card)
-□ Accessibility Utilities
-□ PWA Foundation (Service Worker, Manifest) ⭐
+✅ i18n Infrastructure (تکمیل شده)
+✅ Toast Component (تکمیل شده)
+✅ Semantic HTML Components (Button, Input, Card, Form) (تکمیل شده)
+✅ Accessibility Utilities (تکمیل شده)
+□ PWA Foundation (Service Worker, Manifest) ⭐ (گام بعدی)
 ```
 
 #### مرحله ۲: Feature Complete (هفته ۲-۴)
@@ -665,15 +679,18 @@
 **زمان تخمینی:** ۲ روز
 
 ### ۱۶.۳ Keyboard Navigation
-- [ ] اطمینان از keyboard accessibility تمام interactive elements
-- [ ] Focus indicators واضح و قابل مشاهده
-- [ ] Focus trap در modal ها
-- [ ] Skip links برای navigation
-- [ ] Arrow keys برای لیست‌ها و منوها
-- [ ] Escape برای بستن modal/dropdown
+- [x] ایجاد composable useKeyboardNavigation (تکمیل شده)
+- [x] ایجاد composable useFocusTrap (تکمیل شده)
+- [x] ایجاد composable useSkipLink (تکمیل شده)
+- [ ] اطمینان از keyboard accessibility تمام interactive elements (یکپارچه‌سازی)
+- [ ] Focus indicators واضح و قابل مشاهده در کامپوننت‌ها
+- [ ] Focus trap در modal ها (یکپارچه‌سازی)
+- [ ] Skip links برای navigation (یکپارچه‌سازی)
+- [ ] Arrow keys برای لیست‌ها و منوها (یکپارچه‌سازی)
+- [ ] Escape برای بستن modal/dropdown (یکپارچه‌سازی)
 
 **اولویت:** بالا  
-**زمان تخمینی:** ۲ روز
+**وضعیت:** 🔄 در حال انجام (Utilities تکمیل شده، یکپارچه‌سازی باقی‌مانده)
 
 ### ۱۶.۴ Color Contrast و Visual Accessibility
 - [ ] بررسی Color Contrast (حداقل 4.5:1 برای متن)
@@ -1096,15 +1113,21 @@
    - ✅ ایجاد کامپوننت Form.vue
    - ✅ یکپارچه‌سازی در صفحات Login و SignUp
    - ✅ پشتیبانی از Accessibility
-4. **Accessibility Utilities** (گام بعدی) - ۱ روز
-   - ایجاد composable برای keyboard navigation (useKeyboardNavigation)
-   - ایجاد composable برای focus management (useFocusTrap, useFocus)
-   - ایجاد composable برای skip links (useSkipLink)
-   - ایجاد composable برای ARIA attributes (useAria)
-   - ایجاد composable برای reduced motion (useReducedMotion)
-   - ایجاد composable برای color contrast checking (useColorContrast)
-   - ایجاد utility functions برای accessibility helpers
-5. **PWA Foundation** (پنجم) ⭐ - ۱ روز
+4. ✅ **Accessibility Utilities** (تکمیل شده) - ۱ روز
+   - ✅ ایجاد composable useKeyboardNavigation
+   - ✅ ایجاد composable useFocusTrap
+   - ✅ ایجاد composable useFocus
+   - ✅ ایجاد composable useSkipLink
+   - ✅ ایجاد composable useAria
+   - ✅ ایجاد composable useReducedMotion
+   - ✅ ایجاد composable useColorContrast
+   - ✅ ایجاد فایل index.js برای export مرکزی
+   - ✅ ایجاد مستندات ACCESSIBILITY.md
+   - ✅ یکپارچه‌سازی در App.vue (Skip Links, Reduced Motion)
+   - ✅ یکپارچه‌سازی در Modal.vue (Focus Trap, Keyboard Navigation)
+   - ✅ یکپارچه‌سازی در LoginView.vue (Keyboard Navigation, Auto Focus)
+   - ✅ تست و رفع باگ‌ها
+5. **PWA Foundation** (گام بعدی) ⭐ - ۱ روز
 
 ### گام ۲: Feature Complete (بعد از Foundation)
 بعد از Foundation، صفحه Login را کامل می‌کنیم:
@@ -1112,7 +1135,11 @@
 1. ✅ استفاده از i18n در Login (تکمیل شده)
 2. ✅ استفاده از Toast در Login (تکمیل شده)
 3. ✅ استفاده از Semantic Components در Login (تکمیل شده)
-4. استفاده از Accessibility در Login
+4. ✅ استفاده از Accessibility در Login (تکمیل شده)
+   - ✅ Auto focus روی email input
+   - ✅ Keyboard navigation (Enter key)
+   - ✅ Skip links
+   - ✅ Reduced motion support
 5. تست کامل Login
 
 ---
@@ -1120,5 +1147,10 @@
 **آخرین به‌روزرسانی:** ۱۴۰۳/۰۹/XX  
 **وضعیت:** در حال پیاده‌سازی Foundation  
 **استراتژی:** Foundation First, Feature Complete (Hybrid Approach)  
-**پیشرفت:** ۳ از ۵ مرحله Foundation تکمیل شده (i18n ✅, Toast ✅, Semantic HTML ✅)
+**پیشرفت:** ۴ از ۵ مرحله Foundation تکمیل شده  
+- ✅ i18n Infrastructure  
+- ✅ Toast Component  
+- ✅ Semantic HTML Components  
+- ✅ Accessibility Utilities (با یکپارچه‌سازی و تست)  
+- ⏳ PWA Foundation (گام بعدی) ⭐
 

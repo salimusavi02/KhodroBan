@@ -13,6 +13,7 @@
         @keydown.esc="handleEscape"
       >
         <div
+          ref="trapRef"
           :class="['modal', `modal-${size}`, className]"
           :role="role"
           @click.stop
@@ -46,8 +47,9 @@
 </template>
 
 <script setup>
-import { computed, watch, onMounted, onUnmounted } from 'vue'
+import { computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useFocusTrap, useFocus, useKeyboardNavigation } from '@/composables'
 
 const props = defineProps({
   open: {
@@ -93,6 +95,11 @@ const emit = defineEmits(['update:open', 'close'])
 
 const { t } = useI18n()
 
+// Accessibility composables
+const { trapRef, activate, deactivate } = useFocusTrap()
+const { focusFirst } = useFocus()
+const { onKeyPress } = useKeyboardNavigation()
+
 const titleId = computed(() => `modal-title-${Math.random().toString(36).substr(2, 9)}`)
 const descriptionId = computed(() => `modal-description-${Math.random().toString(36).substr(2, 9)}`)
 
@@ -113,18 +120,31 @@ const handleEscape = (event) => {
   }
 }
 
-// Lock body scroll when modal is open
-watch(() => props.open, (isOpen) => {
+// Lock body scroll when modal is open and manage focus trap
+watch(() => props.open, async (isOpen) => {
   if (isOpen) {
     document.body.style.overflow = 'hidden'
+    // Activate focus trap and focus first element
+    await nextTick()
+    activate()
+    focusFirst(trapRef.value)
   } else {
     document.body.style.overflow = ''
+    deactivate()
   }
 })
+
+// Handle Escape key with composable
+onKeyPress('Escape', () => {
+  if (props.open && props.closeOnEscape) {
+    handleClose()
+  }
+}, { preventDefault: true })
 
 // Cleanup on unmount
 onUnmounted(() => {
   document.body.style.overflow = ''
+  deactivate()
 })
 </script>
 
