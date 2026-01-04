@@ -245,11 +245,23 @@
     - بهبود RemindersView موجود با اتصال به Reminder Store
     - ایجاد ReminderItem، ReminderForm و ReminderList components
     - _Requirements: 5.1, 5.2, 5.4_
-  - [ ]* 15.3 نوشتن property test برای Reminder Management
+  - [ ] 15.3 پیاده‌سازی کانال‌های یادآوری چندگانه
+
+    - پشتیبانی از کانال‌های مختلف:
+      - اعلان درون برنامه (In-App) ✅ موجود
+      - پیامک (SMS) - نیاز به سرویس SMS Provider
+      - اعلان از طریق تلگرام (Telegram Bot)
+      - Push Notification (Browser/Web Push)
+    - ایجاد UI برای انتخاب کانال‌های یادآوری
+    - ذخیره تنظیمات کانال‌های یادآوری کاربر
+    - اتصال به سرویس‌های خارجی (SMS Gateway, Telegram Bot API)
+    - مدیریت مجوزهای Push Notification
+    - _Requirements: 5.3_
+  - [ ]* 15.4 نوشتن property test برای Reminder Management
 
     - **Property 12: Reminder Management**
     - **Validates: Requirements 5.1, 5.2, 5.4**
-  - [ ]* 15.4 نوشتن property test برای Notification Triggering
+  - [ ]* 15.5 نوشتن property test برای Notification Triggering
 
     - **Property 13: Notification Triggering**
     - **Validates: Requirements 5.3**
@@ -285,12 +297,14 @@
 
     - مدیریت user profile، notification settings
     - پیاده‌سازی profile update operations
+    - مدیریت تنظیمات کانال‌های یادآوری (SMS, Telegram, Push)
     - _Requirements: 7.1, 7.2, 7.3, 7.4_
     - **وضعیت:** Store ایجاد شده اما actions هنوز placeholder هستند
   - [ ] 18.2 بهبود SettingsView
 
     - بهبود SettingsView موجود با اتصال به Settings Store
     - ایجاد ProfileForm، NotificationSettings و PasswordChange components
+    - ایجاد NotificationChannelsSettings component برای مدیریت کانال‌های یادآوری
     - _Requirements: 7.1, 7.2, 7.3, 7.4_
   - [ ]* 18.3 نوشتن property test برای Profile Management
 
@@ -370,19 +384,307 @@
 
     - **Property 25: Backend Error Handling**
     - **Validates: Requirements 10.4**
-- [ ] 
-  - [ ] 23.1 تست End-to-End Flows
+- [ ] 24. پیاده‌سازی پشتیبانی چندزبانه (Internationalization - i18n)
 
-    - تست complete user journeys
-    - تست integration بین تمام components
-    - _Requirements: تمام requirements_
-  - [ ] 23.2 Performance Testing
+  - [ ] 24.1 راه‌اندازی i18n Infrastructure
 
-    - تست loading times
-    - تست memory usage
-    - تست responsive performance
+    - نصب و پیکربندی vue-i18n یا vue-i18n-next
+    - ایجاد ساختار پوشه‌ای برای فایل‌های ترجمه
+    - ایجاد فایل‌های ترجمه برای فارسی (fa.json)
+    - ایجاد فایل‌های ترجمه برای انگلیسی (en.json)
+    - ایجاد فایل‌های ترجمه برای عربی (ar.json)
+    - پیکربندی i18n در main.js
+    - ایجاد composable برای استفاده از i18n در کامپوننت‌ها
+    - مدیریت RTL/LTR بر اساس زبان
+    - ذخیره زبان انتخابی در localStorage
+    - _Requirements: 9.1, 9.2_
+
+  - [ ] 24.2 پیاده‌سازی در کامپوننت‌ها
+
+    - ایجاد کامپوننت LanguageSwitcher
+    - اضافه کردن LanguageSwitcher به Header
+    - ترجمه تمام کامپوننت‌های موجود:
+      - کامپوننت‌های Layout (Header, Sidebar)
+      - کامپوننت‌های Auth (Login, Register)
+      - کامپوننت‌های Vehicle
+      - کامپوننت‌های Service
+      - کامپوننت‌های Expense
+      - کامپوننت‌های Reminder
+      - کامپوننت‌های Dashboard
+      - کامپوننت‌های Settings
+    - _Requirements: 9.1, 9.2_
+
+  - [ ] 24.3 پیاده‌سازی در Views
+
+    - ترجمه تمام View های موجود:
+      - DashboardView
+      - VehicleListView, VehicleDetailsView
+      - Service Views
+      - Expense Views
+      - RemindersView
+      - ReportsView
+      - SettingsView
+      - UpgradeProView
+      - SmartAssistantView
+    - ترجمه پیام‌های خطا و موفقیت
+    - ترجمه فرم‌ها و اعتبارسنجی
+    - ترجمه تاریخ و اعداد (فرمت‌بندی)
+    - _Requirements: 9.1, 9.2_
+
+  - [ ] 24.4 بهینه‌سازی i18n
+
+    - Lazy Loading برای فایل‌های ترجمه
+    - بررسی و تکمیل ترجمه‌های ناقص
+    - تست تغییر زبان در runtime
+    - تست RTL/LTR در تمام صفحات
+    - مستندسازی نحوه افزودن زبان جدید
+    - _Requirements: 9.1, 9.2, 9.4_
+- [ ] 25. پیاده‌سازی دسترسی‌پذیری (Accessibility - WCAG 2.1 AA)
+
+  - [ ] 25.1 Semantic HTML
+
+    - بررسی و اصلاح تمام کامپوننت‌ها
+    - استفاده از Semantic HTML elements
+    - Heading hierarchy صحیح
+    - Landmarks برای navigation
+    - _Requirements: 9.1_
+
+  - [ ] 25.2 ARIA Attributes و Screen Reader
+
+    - اضافه کردن ARIA attributes مناسب
+    - تست با Screen Reader
+    - Alt text برای تصاویر
+    - Live regions برای dynamic content
+    - _Requirements: 9.1_
+
+  - [ ] 25.3 Keyboard Navigation
+
+    - Keyboard accessibility تمام elements
+    - Focus management
+    - Focus trap در modals
+    - Skip links
+    - _Requirements: 9.1_
+
+  - [ ] 25.4 Color Contrast و Visual Accessibility
+
+    - بررسی Color Contrast (4.5:1)
+    - پشتیبانی از prefers-reduced-motion
+    - پشتیبانی از prefers-contrast
+    - _Requirements: 9.1_
+
+- [ ] 26. پیاده‌سازی Progressive Web App (PWA) و Native App Conversion ⭐
+
+  > **اولویت بسیار بالا:** تبدیل به اپلیکیشن قابل نصب روی موبایل (Android و iOS) از اولویت‌های اصلی است.
+
+  - [ ] 26.1 Service Worker و Offline Support
+
+    - نصب vite-plugin-pwa
+    - ایجاد Service Worker
+    - Offline Strategy (Cache First, Network First)
+    - Cache static assets (HTML, CSS, JS, Images)
+    - Cache API responses برای کار آفلاین
+    - نمایش Offline Indicator
+    - Background Sync برای داده‌های pending
+    - _Requirements: 9.4_
+
+  - [ ] 26.2 Web App Manifest
+
+    - ایجاد manifest.json با اطلاعات کامل
+    - Icons در سایزهای مختلف (192x192, 512x512, iOS sizes)
+    - تنظیم Theme Color و Background Color
+    - تنظیم Display Mode (standalone)
+    - تنظیم Orientation
+    - Add to Home Screen
+    - تست روی Android و iOS
+    - _Requirements: 9.4_
+
+  - [ ] 26.3 Push Notifications (PWA)
+
+    - پیاده‌سازی Web Push API
+    - مدیریت مجوزها
+    - اتصال به Backend
+    - Badge API
+    - Action Buttons در Notifications
+    - تست روی Android و iOS
+    - _Requirements: 5.3_
+
+  - [ ] 26.4 Native App Conversion با Capacitor
+
+    - نصب و پیکربندی Capacitor
+    - ایجاد پروژه Android
+    - ایجاد پروژه iOS
+    - اضافه کردن Native Plugins:
+      - Camera Plugin
+      - File System Plugin
+      - Network Plugin
+      - Storage Plugin
+      - Push Notifications Plugin (Native)
+    - Build Android APK/AAB
+    - Build iOS IPA
+    - تست روی دستگاه‌های واقعی
+    - بهینه‌سازی برای Native Performance
     - _Requirements: 9.1, 9.4_
-  - [ ] 23.3 Cross-Browser Testing
+
+  - [ ] 26.5 App Store Deployment
+
+    - آماده‌سازی برای Google Play Store
+    - آماده‌سازی برای Apple App Store
+    - ایجاد App Icons و Screenshots
+    - نوشتن Description و Privacy Policy
+    - تست Beta (TestFlight, Internal Testing)
+    - _Requirements: تمام requirements_
+
+- [ ] 27. Analytics و Monitoring
+
+  - [ ] 27.1 Error Logging
+
+    - نصب Sentry یا مشابه
+    - Logging خطاهای Frontend
+    - Error Reports
+    - Source Maps
+    - _Requirements: 9.5_
+
+  - [ ] 27.2 Performance Monitoring
+
+    - Core Web Vitals (LCP, FID, CLS)
+    - Page Load Time
+    - API Response Time
+    - _Requirements: 9.4_
+
+  - [ ] 27.3 User Analytics
+
+    - نصب Google Analytics یا Plausible
+    - Tracking Page Views
+    - Tracking User Actions
+    - Privacy-compliant
+    - _Requirements: تمام requirements_
+
+- [ ] 28. امنیت (Security Enhancements)
+
+  - [ ] 28.1 Content Security Policy (CSP)
+
+    - تنظیم CSP Headers
+    - Whitelist منابع مجاز
+    - _Requirements: 1.4, 2.6_
+
+  - [ ] 28.2 XSS Protection
+
+    - Sanitization ورودی‌ها
+    - استفاده از DOMPurify
+    - Encoding داده‌ها
+    - _Requirements: 1.4, 2.6_
+
+  - [ ] 28.3 Rate Limiting
+
+    - Rate Limiting در Frontend
+    - Throttling درخواست‌ها
+    - Debouncing
+    - _Requirements: 9.5_
+
+- [ ] 29. بهبودهای UX پیشرفته
+
+  - [ ] 29.1 Dark Mode کامل
+
+    - پیاده‌سازی در تمام کامپوننت‌ها
+    - ذخیره Preference
+    - System Preference Support
+    - _Requirements: 9.1_
+
+  - [ ] 29.2 Keyboard Shortcuts
+
+    - Global Keyboard Shortcuts
+    - Navigation Shortcuts
+    - Action Shortcuts
+    - Help Modal
+    - _Requirements: 9.1_
+
+  - [ ] 29.3 Global Search
+
+    - کامپوننت Global Search
+    - Fuzzy Search
+    - Keyboard Navigation
+    - Shortcut (Ctrl+K)
+    - _Requirements: 2.1, 3.1, 4.1_
+
+  - [ ] 29.4 Bulk Operations
+
+    - Select Multiple Items
+    - Bulk Delete
+    - Bulk Edit (اختیاری)
+    - Bulk Export (اختیاری)
+    - _Requirements: 2.3, 3.3_
+
+- [ ] 30. Data Management
+
+  - [ ] 30.1 Data Export
+
+    - Export به CSV/JSON
+    - Export Reports به PDF
+    - Export کامل (Backup)
+    - _Requirements: 4.2_
+
+  - [ ] 30.2 Data Import
+
+    - Import از CSV/JSON
+    - Validation
+    - Preview قبل از Import
+    - Error Handling
+    - _Requirements: 2.3, 3.3_
+
+  - [ ] 30.3 Advanced Caching
+
+    - Cache Layer پیشرفته
+    - Cache Invalidation
+    - Cache Persistence
+    - _Requirements: 9.4_
+- [ ] 
+  - [ ] 23.1 Smoke Tests
+
+    - ایجاد Smoke Tests برای بررسی عملکرد اولیه
+    - تست بارگذاری صفحات اصلی
+    - تست اتصال به API
+    - تست Navigation پایه
+    - پیکربندی اجرای خودکار در CI/CD
+    - _Requirements: تمام requirements_
+  - [ ] 23.2 Unit Tests
+
+    - تست تمام Store ها
+    - تست کامپوننت‌های اصلی
+    - تست Utility Functions
+    - تست Service Wrappers
+    - پیکربندی Coverage Threshold (80%)
+    - اجرای خودکار در CI/CD
+    - _Requirements: تمام requirements_
+  - [ ] 23.3 Integration Tests
+
+    - تست جریان‌های اصلی کاربر
+    - تست Authentication Flow
+    - تست CRUD Operations
+    - تست Navigation بین صفحات
+    - تست تعامل Store-Component
+    - پیکربندی اجرای خودکار در CI/CD
+    - _Requirements: تمام requirements_
+  - [ ] 23.4 E2E Tests
+
+    - نصب و پیکربندی Playwright یا Cypress
+    - تست سناریوهای کامل کاربر
+    - تست در مرورگرهای مختلف (Chrome, Firefox, Safari)
+    - تست Responsive Design
+    - تست Performance در سناریوهای واقعی
+    - پیکربندی اجرای خودکار در CI/CD
+    - _Requirements: 9.1, 9.4_
+  - [ ] 23.5 CI/CD Integration
+
+    - پیکربندی GitHub Actions یا GitLab CI
+    - اجرای خودکار تست‌ها در هر Commit/Pull Request
+    - اجرای Smoke Tests در هر Push
+    - اجرای Unit Tests در هر Commit
+    - اجرای Integration Tests در Pull Request
+    - اجرای E2E Tests در Merge به main
+    - گزارش Coverage در Pull Request
+    - Block Merge در صورت Fail شدن تست‌های Critical
+    - _Requirements: تمام requirements_
+  - [ ] 23.6 Cross-Browser Testing
 
     - تست در مرورگرهای مختلف
     - تست compatibility issues
