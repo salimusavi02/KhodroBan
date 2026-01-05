@@ -17,7 +17,9 @@
     "next": "التالي",
     "previous": "السابق",
     "submit": "إرسال",
-    "reset": "إعادة تعيين"
+    "reset": "إعادة تعيين",
+    "user": "المستخدم",
+    "settings": "الإعدادات"
   },
   "auth": {
     "login": "تسجيل الدخول",
@@ -65,7 +67,26 @@
     "totalExpenses": "إجمالي المصروفات",
     "recentServices": "الخدمات الأخيرة",
     "upcomingReminders": "التذكيرات القادمة",
-    "noData": "لا توجد بيانات متاحة"
+    "noData": "لا توجد بيانات متاحة",
+    "reminders": "التذكيرات",
+    "activeReminders": "التذكيرات النشطة",
+    "overdueReminders": "التذكيرات المتأخرة",
+    "myVehicles": "مركباتي",
+    "viewAll": "عرض الكل",
+    "addVehicle": "إضافة مركبة",
+    "quickActions": "إجراءات سريعة",
+    "addService": "إضافة خدمة",
+    "addExpense": "إضافة مصروف",
+    "reports": "التقارير",
+    "loadingError": "خطأ في تحميل البيانات",
+    "thisMonthExpenses": "مصروفات هذا الشهر",
+    "servicesThisMonth": "الخدمات هذا الشهر",
+    "avgMonthlyExpense": "متوسط المصروف الشهري",
+    "nextServiceDue": "الخدمة القادمة",
+    "refresh": "تحديث",
+    "noVehicles": "لا توجد مركبات مسجلة",
+    "noActiveReminders": "لا توجد تذكيرات نشطة",
+    "normal": "عادي"
   },
   "vehicles": {
     "title": "المركبات",
@@ -159,6 +180,13 @@
     "english": "English",
     "arabic": "العربية",
     "selectLanguage": "اختر اللغة"
+  },
+  "subscription": {
+    "tier": {
+      "free": "الخطة المجانية",
+      "pro": "الخطة الاحترافية",
+      "proPlus": "الخطة الاحترافية بلس"
+    }
   }
 }
 

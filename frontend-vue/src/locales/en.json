@@ -17,7 +17,9 @@
     "next": "Next",
     "previous": "Previous",
     "submit": "Submit",
-    "reset": "Reset"
+    "reset": "Reset",
+    "user": "User",
+    "settings": "Settings"
   },
   "auth": {
     "login": "Login",
@@ -83,7 +85,8 @@
     "nextServiceDue": "Next Service Due",
     "refresh": "Refresh",
     "noVehicles": "No vehicles registered",
-    "noActiveReminders": "No active reminders"
+    "noActiveReminders": "No active reminders",
+    "normal": "Normal"
   },
   "vehicles": {
     "title": "Vehicles",
@@ -177,6 +180,13 @@
     "english": "English",
     "arabic": "العربية",
     "selectLanguage": "Select Language"
+  },
+  "subscription": {
+    "tier": {
+      "free": "Free Plan",
+      "pro": "Pro Plan",
+      "proPlus": "Pro+ Plan"
+    }
   }
 }
 

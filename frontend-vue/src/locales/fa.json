@@ -17,7 +17,9 @@
     "next": "بعدی",
     "previous": "قبلی",
     "submit": "ارسال",
-    "reset": "بازنشانی"
+    "reset": "بازنشانی",
+    "user": "کاربر",
+    "settings": "تنظیمات"
   },
   "auth": {
     "login": "ورود",
@@ -179,6 +181,13 @@
     "english": "English",
     "arabic": "العربية",
     "selectLanguage": "انتخاب زبان"
+  },
+  "subscription": {
+    "tier": {
+      "free": "طرح رایگان",
+      "pro": "طرح حرفه‌ای",
+      "proPlus": "طرح حرفه‌ای پلاس"
+    }
   }
 }
 
