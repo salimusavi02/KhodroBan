@@ -203,7 +203,15 @@ export default defineConfig({
   },
   // Optimize dependencies
   optimizeDeps: {
-    include: ['vue', 'vue-router', 'pinia', '@supabase/supabase-js'],
+    include: [
+      'vue',
+      'vue-router',
+      'pinia',
+      'vue-i18n',
+      '@supabase/supabase-js',
+      'axios',
+      'persian-date'
+    ],
     exclude: [],
   },
 })
