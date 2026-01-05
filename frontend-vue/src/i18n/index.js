@@ -40,7 +40,11 @@ const i18n = createI18n({
     en,
     ar
   },
-  globalInjection: true
+  globalInjection: true,
+  // Enable named format for interpolation
+  interpolation: {
+    escapeValue: false // Already escaped by Vue
+  }
 })
 
 // Set initial direction

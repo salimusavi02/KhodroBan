@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import MainLayout from '../components/MainLayout.vue'
 import { useVehicleStore } from '../stores/vehicle'
 import { useUIStore } from '../stores/ui'
@@ -9,6 +10,7 @@ const route = useRoute()
 const router = useRouter()
 const vehicleStore = useVehicleStore()
 const uiStore = useUIStore()
+const { t } = useI18n()
 
 const isEditMode = computed(() => route.query.action === 'edit' && route.query.id)
 const vehicleId = computed(() => route.query.id)
@@ -40,27 +42,27 @@ const isFormValid = computed(() => {
   return hasModel && hasValidYear && hasPlate && hasValidKm
 })
 
-const pageTitle = computed(() => isEditMode.value ? 'ویرایش خودرو' : 'افزودن خودرو جدید')
-const submitButtonText = computed(() => isSubmitting.value ? 'در حال ثبت...' : (isEditMode.value ? 'ذخیره تغییرات' : 'ثبت خودرو'))
+const pageTitle = computed(() => isEditMode.value ? t('vehicles.form.editTitle') : t('vehicles.form.addTitle'))
+const submitButtonText = computed(() => isSubmitting.value ? t('vehicles.form.submitting') : (isEditMode.value ? t('vehicles.form.submitEditing') : t('vehicles.form.submit')))
 
 // Methods
 const validateForm = () => {
   const errors = {}
   
   if (!formData.value.model.trim()) {
-    errors.model = 'نام خودرو الزامی است'
+    errors.model = t('vehicles.form.errors.modelRequired')
   }
   
   if (!formData.value.year || formData.value.year < 1370 || formData.value.year > 1410) {
-    errors.year = 'سال ساخت باید بین ۱۳۷۰ تا ۱۴۱۰ شمسی باشد'
+    errors.year = t('vehicles.form.errors.yearInvalid')
   }
   
   if (!formData.value.plateNumber.trim()) {
-    errors.plateNumber = 'شماره پلاک الزامی است'
+    errors.plateNumber = t('vehicles.form.errors.plateRequired')
   }
   
   if (formData.value.currentKm < 0) {
-    errors.currentKm = 'کارکرد فعلی نمی‌تواند منفی باشد'
+    errors.currentKm = t('vehicles.form.errors.kmInvalid')
   }
   
   formErrors.value = errors
@@ -84,21 +86,21 @@ const handleSubmit = async () => {
     if (isEditMode.value && vehicleId.value) {
       await vehicleStore.updateVehicle(vehicleId.value, vehicleData)
       uiStore.showToast({
-        message: 'خودرو با موفقیت به‌روزرسانی شد',
+        message: t('vehicles.form.success.updated'),
         type: 'success'
       })
       router.push({ name: 'vehicle-details', params: { id: vehicleId.value } })
     } else {
       await vehicleStore.createVehicle(vehicleData)
       uiStore.showToast({
-        message: 'خودرو با موفقیت اضافه شد',
+        message: t('vehicles.form.success.created'),
         type: 'success'
       })
       router.push('/vehicle-list')
     }
   } catch (error) {
     uiStore.showToast({
-      message: error.message || 'خطا در ثبت خودرو',
+      message: error.message || t('vehicles.form.error'),
       type: 'error'
     })
   } finally {
@@ -140,7 +142,7 @@ onMounted(async () => {
       }
     } catch (error) {
       uiStore.showToast({
-        message: error.message || 'خطا در دریافت اطلاعات خودرو',
+        message: error.message || t('vehicles.details.error'),
         type: 'error'
       })
       router.push('/vehicle-list')
@@ -156,7 +158,7 @@ onMounted(async () => {
       <div class="flex flex-col gap-1">
         <h1 class="text-[#121317] dark:text-white tracking-tight text-[28px] md:text-[32px] font-bold leading-tight">{{ pageTitle }}</h1>
         <p class="text-[#666e85] dark:text-gray-400 text-sm font-normal leading-normal">
-          {{ isEditMode ? 'ویرایش اطلاعات خودرو' : 'افزودن خودرو جدید به ناوگان خود' }}
+          {{ isEditMode ? t('vehicles.form.editSubtitle') : t('vehicles.form.addSubtitle') }}
         </p>
       </div>
 
@@ -167,7 +169,7 @@ onMounted(async () => {
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <label class="flex flex-col gap-2">
               <span class="text-[#121317] dark:text-gray-200 text-sm font-medium leading-normal">
-                نام خودرو <span class="text-red-500">*</span>
+                {{ t('vehicles.form.model') }} <span class="text-red-500">{{ t('vehicles.form.required') }}</span>
               </span>
               <div class="relative">
                 <span class="material-symbols-outlined absolute start-4 top-3 text-gray-400 text-[20px]">directions_car</span>
@@ -175,7 +177,7 @@ onMounted(async () => {
                   v-model="formData.model"
                   class="form-input w-full rounded-xl border border-[#dcdfe4] dark:border-gray-700 bg-white dark:bg-gray-800 text-[#121317] dark:text-white h-12 ps-11 pe-4 focus:border-primary focus:ring-1 focus:ring-primary transition-shadow" 
                   :class="{ 'border-red-500': formErrors.model }"
-                  placeholder="مثال: پژو ۲۰۶ تیپ ۵" 
+                  :placeholder="t('vehicles.form.modelPlaceholder')" 
                   type="text" 
                 />
                 <p v-if="formErrors.model" class="text-red-500 text-xs mt-1">{{ formErrors.model }}</p>
@@ -184,7 +186,7 @@ onMounted(async () => {
             
             <label class="flex flex-col gap-2">
               <span class="text-[#121317] dark:text-gray-200 text-sm font-medium leading-normal">
-                سال ساخت <span class="text-red-500">*</span>
+                {{ t('vehicles.form.year') }} <span class="text-red-500">{{ t('vehicles.form.required') }}</span>
               </span>
               <div class="relative">
                 <span class="material-symbols-outlined absolute start-4 top-3 text-gray-400 text-[20px]">calendar_today</span>
@@ -192,7 +194,7 @@ onMounted(async () => {
                   v-model.number="formData.year"
                   class="form-input w-full rounded-xl border border-[#dcdfe4] dark:border-gray-700 bg-white dark:bg-gray-800 text-[#121317] dark:text-white h-12 ps-11 pe-4 focus:border-primary focus:ring-1 focus:ring-primary transition-shadow dir-ltr text-right" 
                   :class="{ 'border-red-500': formErrors.year }"
-                  placeholder="مثال: ۱۴۰۱" 
+                  :placeholder="t('vehicles.form.yearPlaceholder')" 
                   type="number"
                   :min="1370"
                   :max="1410"
@@ -206,7 +208,7 @@ onMounted(async () => {
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <label class="flex flex-col gap-2">
               <span class="text-[#121317] dark:text-gray-200 text-sm font-medium leading-normal">
-                شماره پلاک <span class="text-red-500">*</span>
+                {{ t('vehicles.form.plateNumber') }} <span class="text-red-500">{{ t('vehicles.form.required') }}</span>
               </span>
               <div class="relative">
                 <span class="material-symbols-outlined absolute start-4 top-3 text-gray-400 text-[20px]">badge</span>
@@ -214,7 +216,7 @@ onMounted(async () => {
                   v-model="formData.plateNumber"
                   class="form-input w-full rounded-xl border border-[#dcdfe4] dark:border-gray-700 bg-white dark:bg-gray-800 text-[#121317] dark:text-white h-12 ps-11 pe-4 focus:border-primary focus:ring-1 focus:ring-primary transition-shadow" 
                   :class="{ 'border-red-500': formErrors.plateNumber }"
-                  placeholder="مثال: ۱۲۳۴-الف-۵۶" 
+                  :placeholder="t('vehicles.form.plateNumberPlaceholder')" 
                   type="text" 
                 />
                 <p v-if="formErrors.plateNumber" class="text-red-500 text-xs mt-1">{{ formErrors.plateNumber }}</p>
@@ -223,7 +225,7 @@ onMounted(async () => {
             
             <label class="flex flex-col gap-2">
               <span class="text-[#121317] dark:text-gray-200 text-sm font-medium leading-normal">
-                کارکرد فعلی (کیلومتر)
+                {{ t('vehicles.form.currentKm') }}
               </span>
               <div class="relative">
                 <span class="material-symbols-outlined absolute start-4 top-3 text-gray-400 text-[20px]">speed</span>
@@ -231,7 +233,7 @@ onMounted(async () => {
                   v-model.number="formData.currentKm"
                   class="form-input w-full rounded-xl border border-[#dcdfe4] dark:border-gray-700 bg-white dark:bg-gray-800 text-[#121317] dark:text-white h-12 ps-11 pe-4 focus:border-primary focus:ring-1 focus:ring-primary transition-shadow dir-ltr text-right font-mono" 
                   :class="{ 'border-red-500': formErrors.currentKm }"
-                  placeholder="مثال: ۵۴,۲۰۰" 
+                  :placeholder="t('vehicles.form.currentKmPlaceholder')" 
                   type="number"
                   :min="0"
                 />
@@ -243,11 +245,11 @@ onMounted(async () => {
 
           <!-- Note -->
           <label class="flex flex-col gap-2">
-            <span class="text-[#121317] dark:text-gray-200 text-sm font-medium leading-normal">یادداشت (اختیاری)</span>
+            <span class="text-[#121317] dark:text-gray-200 text-sm font-medium leading-normal">{{ t('vehicles.form.note') }}</span>
             <textarea 
               v-model="formData.note"
               class="form-textarea w-full rounded-xl border border-[#dcdfe4] dark:border-gray-700 bg-white dark:bg-gray-800 text-[#121317] dark:text-white min-h-[100px] p-4 focus:border-primary focus:ring-1 focus:ring-primary transition-shadow resize-y" 
-              placeholder="یادداشت‌های اضافی درباره این خودرو..."
+              :placeholder="t('vehicles.form.notePlaceholder')"
             ></textarea>
           </label>
           
@@ -264,7 +266,7 @@ onMounted(async () => {
               type="button"
               :disabled="isSubmitting"
             >
-              انصراف
+              {{ t('vehicles.form.cancel') }}
             </button>
             <button 
               class="w-full sm:w-auto px-8 py-3 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed" 

@@ -1,7 +1,9 @@
 <script setup>
 import { onMounted, ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import MainLayout from '../components/MainLayout.vue'
+import Modal from '../components/ui/Modal.vue'
 import { useVehicleStore } from '../stores/vehicle'
 import { useServiceStore } from '../stores/service'
 import { useUIStore } from '../stores/ui'
@@ -11,6 +13,9 @@ const router = useRouter()
 const vehicleStore = useVehicleStore()
 const serviceStore = useServiceStore()
 const uiStore = useUIStore()
+const { t } = useI18n()
+
+const showDeleteConfirm = ref(false)
 
 const vehicleId = computed(() => route.params.id)
 const vehicle = computed(() => vehicleStore.vehicleById(vehicleId.value))
@@ -30,7 +35,7 @@ onMounted(async () => {
       await vehicleStore.getVehicleById(vehicleId.value)
     } catch (error) {
       uiStore.showToast({
-        message: error.message || 'خطا در دریافت اطلاعات خودرو',
+        message: error.message || t('vehicles.details.error'),
         type: 'error'
       })
       router.push('/vehicle-list')
@@ -55,24 +60,29 @@ const handleEdit = () => {
   })
 }
 
-const handleDelete = async () => {
-  if (!confirm('آیا مطمئن هستید که می‌خواهید این خودرو را حذف کنید؟')) {
-    return
-  }
+const handleDeleteClick = () => {
+  showDeleteConfirm.value = true
+}
 
+const handleDeleteConfirm = async () => {
   try {
     await vehicleStore.deleteVehicle(vehicleId.value)
     uiStore.showToast({
-      message: 'خودرو با موفقیت حذف شد',
+      message: t('vehicles.details.deleteSuccess'),
       type: 'success'
     })
+    showDeleteConfirm.value = false
     router.push('/vehicle-list')
   } catch (error) {
     uiStore.showToast({
-      message: error.message || 'خطا در حذف خودرو',
+      message: error.message || t('vehicles.details.deleteError'),
       type: 'error'
     })
   }
+}
+
+const handleDeleteCancel = () => {
+  showDeleteConfirm.value = false
 }
 
 const handleAddRecord = () => {
@@ -111,25 +121,25 @@ const formatCurrency = (amount) => {
     <div class="flex flex-col gap-8">
       <!-- Breadcrumb -->
       <div class="flex flex-wrap gap-2">
-        <router-link to="/" class="text-[#666e85] dark:text-gray-400 hover:text-primary text-sm font-medium">خانه</router-link>
+        <router-link to="/" class="text-[#666e85] dark:text-gray-400 hover:text-primary text-sm font-medium">{{ t('common.back') }}</router-link>
         <span class="text-[#666e85] dark:text-gray-600 text-sm">/</span>
-        <router-link to="/vehicle-list" class="text-[#666e85] dark:text-gray-400 hover:text-primary text-sm font-medium">گاراژ من</router-link>
+        <router-link to="/vehicle-list" class="text-[#666e85] dark:text-gray-400 hover:text-primary text-sm font-medium">{{ t('vehicles.vehicleList') }}</router-link>
         <span class="text-[#666e85] dark:text-gray-600 text-sm">/</span>
-        <span class="text-[#121317] dark:text-white text-sm font-medium">{{ vehicle?.model || 'در حال بارگذاری...' }}</span>
+        <span class="text-[#121317] dark:text-white text-sm font-medium">{{ vehicle?.model || t('vehicles.details.loading') }}</span>
       </div>
 
       <!-- Loading State -->
       <div v-if="vehicleStore.isLoading && !vehicle" class="flex justify-center items-center py-12">
         <div class="flex flex-col items-center gap-4">
           <div class="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          <p class="text-gray-500 dark:text-gray-400">در حال بارگذاری...</p>
+          <p class="text-gray-500 dark:text-gray-400">{{ t('vehicles.details.loading') }}</p>
         </div>
       </div>
 
       <!-- Error State -->
       <div v-else-if="!vehicle" class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-xl text-sm">
-        خودرو یافت نشد
-        <router-link to="/vehicle-list" class="mr-2 text-primary hover:underline">بازگشت به لیست</router-link>
+        {{ t('vehicles.details.notFound') }}
+        <router-link to="/vehicle-list" class="mr-2 text-primary hover:underline">{{ t('vehicles.details.backToList') }}</router-link>
       </div>
 
       <!-- Vehicle Details -->
@@ -144,22 +154,22 @@ const formatCurrency = (amount) => {
               <div class="flex flex-col gap-1">
                 <div class="flex items-center gap-2">
                   <h1 class="text-[#121317] dark:text-white text-2xl sm:text-3xl font-bold leading-tight tracking-tight">{{ vehicle.model }}</h1>
-                  <span class="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 text-xs px-2 py-1 rounded-full font-bold">شرایط خوب</span>
+                  <span class="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 text-xs px-2 py-1 rounded-full font-bold">{{ t('vehicles.details.condition') }}</span>
                 </div>
-                <p class="text-[#666e85] dark:text-gray-400 text-sm font-normal">پلاک: <span class="text-[#121317] dark:text-gray-200 font-medium">{{ vehicle.plateNumber }}</span></p>
-                <p class="text-[#666e85] dark:text-gray-400 text-sm font-normal">سال ساخت: <span class="text-[#121317] dark:text-gray-200 font-medium">{{ vehicle.year }}</span></p>
+                <p class="text-[#666e85] dark:text-gray-400 text-sm font-normal">{{ t('vehicles.plateNumber') }}: <span class="text-[#121317] dark:text-gray-200 font-medium">{{ vehicle.plateNumber }}</span></p>
+                <p class="text-[#666e85] dark:text-gray-400 text-sm font-normal">{{ t('vehicles.year') }}: <span class="text-[#121317] dark:text-gray-200 font-medium">{{ vehicle.year }}</span></p>
                 <div class="flex gap-2 mt-2">
                   <button 
                     @click="handleEdit"
                     class="text-sm text-primary font-medium hover:underline flex items-center gap-1"
                   >
-                    <span class="material-symbols-outlined text-[18px]">edit</span> ویرایش جزئیات
+                    <span class="material-symbols-outlined text-[18px]">edit</span> {{ t('vehicles.details.editDetails') }}
                   </button>
                   <button 
-                    @click="handleDelete"
+                    @click="handleDeleteClick"
                     class="text-sm text-red-600 dark:text-red-400 font-medium hover:underline flex items-center gap-1"
                   >
-                    <span class="material-symbols-outlined text-[18px]">delete</span> حذف
+                    <span class="material-symbols-outlined text-[18px]">delete</span> {{ t('vehicles.details.delete') }}
                   </button>
                 </div>
               </div>
@@ -170,7 +180,7 @@ const formatCurrency = (amount) => {
                 class="flex-1 sm:flex-none flex items-center justify-center rounded-xl h-10 px-4 bg-primary text-white text-sm font-bold leading-normal hover:bg-primary/90 transition-colors shadow-sm gap-2"
               >
                 <span class="material-symbols-outlined text-[20px]">add</span>
-                <span>افزودن رکورد</span>
+                <span>{{ t('vehicles.details.addRecord') }}</span>
               </button>
             </div>
           </div>
@@ -183,19 +193,19 @@ const formatCurrency = (amount) => {
             <div class="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-primary">
               <span class="material-symbols-outlined">speed</span>
             </div>
-            <h3 class="text-[#666e85] dark:text-gray-400 text-sm font-bold uppercase tracking-wider">کیلومتر فعلی</h3>
+            <h3 class="text-[#666e85] dark:text-gray-400 text-sm font-bold uppercase tracking-wider">{{ t('vehicles.details.currentKm') }}</h3>
           </div>
           <div class="flex items-baseline gap-1 my-3">
             <span class="text-[#121317] dark:text-white text-4xl font-black tracking-tight dir-ltr font-mono">{{ vehicle.currentKm.toLocaleString() }}</span>
-            <span class="text-[#666e85] dark:text-gray-400 text-lg font-medium">کیلومتر</span>
+            <span class="text-[#666e85] dark:text-gray-400 text-lg font-medium">{{ t('vehicles.management.km') }}</span>
           </div>
           <div class="flex items-center justify-between mt-auto pt-4 border-t border-gray-100 dark:border-gray-800">
-            <p class="text-[#666e85] dark:text-gray-500 text-xs font-normal">آخرین بروزرسانی</p>
+            <p class="text-[#666e85] dark:text-gray-500 text-xs font-normal">{{ t('vehicles.details.lastUpdate') }}</p>
             <button 
               @click="handleEdit"
               class="text-primary text-sm font-bold hover:underline"
             >
-              بروزرسانی
+              {{ t('vehicles.details.updateKm') }}
             </button>
           </div>
         </div>
@@ -217,7 +227,7 @@ const formatCurrency = (amount) => {
                 ]"
               >
                 <span class="material-symbols-outlined text-[18px]">build</span>
-                تاریخچه سرویس
+                {{ t('vehicles.details.services') }}
               </button>
               <button 
                 @click="activeTab = 'fuel'"
@@ -229,7 +239,7 @@ const formatCurrency = (amount) => {
                 ]"
               >
                 <span class="material-symbols-outlined text-[18px]">local_gas_station</span>
-                گزارش سوخت
+                {{ t('vehicles.details.fuel') }}
               </button>
               <button 
                 @click="activeTab = 'expenses'"
@@ -241,7 +251,7 @@ const formatCurrency = (amount) => {
                 ]"
               >
                 <span class="material-symbols-outlined text-[18px]">attach_money</span>
-                هزینه‌ها
+                {{ t('vehicles.details.expenses') }}
               </button>
             </nav>
           </div>
@@ -253,23 +263,23 @@ const formatCurrency = (amount) => {
             </div>
             <div v-else-if="servicesForVehicle.length === 0" class="flex flex-col items-center justify-center py-12 text-center">
               <span class="material-symbols-outlined text-5xl text-gray-400 mb-4">build</span>
-              <p class="text-gray-500 dark:text-gray-400">هنوز سرویسی ثبت نشده است</p>
+              <p class="text-gray-500 dark:text-gray-400">{{ t('vehicles.details.noServices') }}</p>
               <button 
                 @click="handleAddRecord"
                 class="mt-4 px-4 py-2 bg-primary text-white rounded-lg text-sm font-bold hover:bg-primary/90 transition-colors"
               >
-                افزودن اولین سرویس
+                {{ t('vehicles.details.addFirstService') }}
               </button>
             </div>
             <div v-else class="overflow-x-auto">
               <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                 <thead class="bg-gray-50 dark:bg-[#252a38]">
                   <tr>
-                    <th class="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider" scope="col">تاریخ</th>
-                    <th class="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider" scope="col">خدمت</th>
-                    <th class="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider" scope="col">کیلومترشمار</th>
-                    <th class="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider" scope="col">هزینه</th>
-                    <th class="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider" scope="col">وضعیت</th>
+                    <th class="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider" scope="col">{{ t('vehicles.details.tableDate') }}</th>
+                    <th class="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider" scope="col">{{ t('vehicles.details.tableService') }}</th>
+                    <th class="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider" scope="col">{{ t('vehicles.details.tableMileage') }}</th>
+                    <th class="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider" scope="col">{{ t('vehicles.details.tableCost') }}</th>
+                    <th class="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider" scope="col">{{ t('vehicles.details.tableStatus') }}</th>
                   </tr>
                 </thead>
                 <tbody class="bg-white dark:bg-[#1e2330] divide-y divide-gray-200 dark:divide-gray-700">
@@ -278,13 +288,13 @@ const formatCurrency = (amount) => {
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300 text-start">
                       <div class="flex items-center gap-2">
                         <span class="material-symbols-outlined text-gray-400 text-[18px]">build</span>
-                        {{ service.types?.join('، ') || service.type || 'سرویس' }}
+                        {{ service.types?.join(', ') || service.type || t('vehicles.details.serviceDefault') }}
                       </div>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300 text-start dir-ltr font-mono">{{ service.km.toLocaleString() }} km</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white text-start">{{ formatCurrency(service.cost) }} تومان</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300 text-start dir-ltr font-mono">{{ service.km.toLocaleString() }} {{ t('vehicles.management.km') }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white text-start">{{ formatCurrency(service.cost) }} {{ t('common.currency') }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-start">
-                      <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300">تکمیل شده</span>
+                      <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300">{{ t('vehicles.details.completed') }}</span>
                     </td>
                   </tr>
                 </tbody>
@@ -295,13 +305,13 @@ const formatCurrency = (amount) => {
           <!-- Fuel Tab Content -->
           <div v-if="activeTab === 'fuel'" class="bg-white dark:bg-[#1e2330] rounded-xl border border-[#dcdfe4] dark:border-[#2a2f3d] shadow-sm p-6 text-center">
             <span class="material-symbols-outlined text-5xl text-gray-400 mb-4">local_gas_station</span>
-            <p class="text-gray-500 dark:text-gray-400">گزارش سوخت به زودی اضافه خواهد شد</p>
+            <p class="text-gray-500 dark:text-gray-400">{{ t('vehicles.details.fuelComingSoon') }}</p>
           </div>
 
           <!-- Expenses Tab Content -->
           <div v-if="activeTab === 'expenses'" class="bg-white dark:bg-[#1e2330] rounded-xl border border-[#dcdfe4] dark:border-[#2a2f3d] shadow-sm p-6 text-center">
             <span class="material-symbols-outlined text-5xl text-gray-400 mb-4">attach_money</span>
-            <p class="text-gray-500 dark:text-gray-400">گزارش هزینه‌ها به زودی اضافه خواهد شد</p>
+            <p class="text-gray-500 dark:text-gray-400">{{ t('vehicles.details.expensesComingSoon') }}</p>
           </div>
         </div>
 
@@ -311,26 +321,53 @@ const formatCurrency = (amount) => {
           <div class="bg-white dark:bg-[#1e2330] rounded-xl border border-[#dcdfe4] dark:border-[#2a2f3d] shadow-sm p-5">
             <h3 class="text-[#121317] dark:text-white text-base font-bold mb-4 flex items-center gap-2">
               <span class="material-symbols-outlined text-yellow-500">notifications_active</span>
-              یادآورهای آتی
+              {{ t('vehicles.details.reminders') }}
             </h3>
             <div class="flex flex-col gap-3">
               <div class="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700 text-center">
-                <p class="text-sm text-gray-500 dark:text-gray-400">یادآورها به زودی اضافه خواهند شد</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('vehicles.details.remindersComingSoon') }}</p>
               </div>
             </div>
           </div>
 
           <!-- Summary Card -->
           <div class="bg-white dark:bg-[#1e2330] rounded-xl border border-[#dcdfe4] dark:border-[#2a2f3d] shadow-sm p-5">
-            <h3 class="text-[#121317] dark:text-white text-base font-bold mb-4">خلاصه هزینه (سالانه)</h3>
+            <h3 class="text-[#121317] dark:text-white text-base font-bold mb-4">{{ t('vehicles.details.summaryTitle') }}</h3>
             <div class="flex items-end gap-2 mb-4">
               <span class="text-3xl font-black text-[#121317] dark:text-white">{{ formatCurrency(serviceStore.totalServiceCost) }}</span>
               <span class="text-sm text-gray-500 dark:text-gray-400 mb-1">تومان</span>
             </div>
-            <p class="text-xs text-gray-500 dark:text-gray-400">هزینه کل سرویس‌های این خودرو</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">{{ t('vehicles.details.summaryDescription') }}</p>
           </div>
         </div>
       </div>
+
+      <!-- Delete Confirmation Modal -->
+      <Modal
+        v-model:open="showDeleteConfirm"
+        :title="t('vehicles.management.deleteConfirmTitle')"
+        size="md"
+        :close-on-overlay="false"
+      >
+        <p class="text-gray-700 dark:text-gray-300 mb-6">
+          {{ t('vehicles.management.deleteConfirmMessage') }}
+        </p>
+        <template #footer>
+          <button
+            @click="handleDeleteCancel"
+            class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium"
+          >
+            {{ t('vehicles.management.deleteCancelButton') }}
+          </button>
+          <button
+            @click="handleDeleteConfirm"
+            class="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white transition-colors font-medium"
+            :disabled="vehicleStore.isLoading"
+          >
+            {{ t('vehicles.management.deleteConfirmButton') }}
+          </button>
+        </template>
+      </Modal>
     </div>
   </MainLayout>
 </template>
