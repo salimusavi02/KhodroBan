@@ -490,7 +490,17 @@ onMounted(async () => {
 
           <!-- Recent Activities Card -->
           <Card class="p-5 rounded-3xl flex-1">
-            <h3 class="text-lg font-bold text-[#121317] dark:text-white mb-4">{{ t('dashboard.recentServices') }}</h3>
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-lg font-bold text-[#121317] dark:text-white">{{ t('dashboard.recentServices') }}</h3>
+              <router-link 
+                v-if="recentServices.length > 0"
+                to="/service-list"
+                class="text-xs font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-1"
+              >
+                {{ t('dashboard.viewAll') }}
+                <span class="material-symbols-outlined text-[16px]">arrow_back</span>
+              </router-link>
+            </div>
             
             <!-- Empty State -->
             <div v-if="recentServices.length === 0" class="text-center py-8">

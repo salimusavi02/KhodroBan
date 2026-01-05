@@ -21,7 +21,9 @@
     "user": "User",
     "settings": "Settings",
     "currency": "Toman",
-    "optional": "Optional"
+    "optional": "Optional",
+    "selected": "Selected",
+    "actions": "Actions"
   },
   "auth": {
     "login": "Login",
@@ -176,7 +178,8 @@
       "tableCost": "Cost",
       "tableStatus": "Status",
       "serviceDefault": "Service",
-      "completed": "Completed"
+      "completed": "Completed",
+      "viewAllServices": "View All Services"
     },
     "form": {
       "addTitle": "Add New Vehicle",
@@ -217,6 +220,7 @@
     "editService": "Edit Service",
     "deleteService": "Delete Service",
     "serviceList": "Service List",
+    "allVehicles": "All Vehicles",
     "noServices": "No services found.",
     "serviceDetails": "Service Details",
     "serviceType": "Service Type",
@@ -226,7 +230,102 @@
     "mileage": "Mileage",
     "provider": "Provider",
     "nextService": "Next Service",
-    "parts": "Parts"
+    "parts": "Parts",
+    "add": {
+      "title": "Add New Activity",
+      "subtitle": "Record a new service or expense for your vehicle",
+      "selectVehicle": "Select vehicle...",
+      "serviceDate": "Service Date",
+      "currentKm": "Current Mileage (km)",
+      "currentKmPlaceholder": "Example: 54,200",
+      "serviceType": "Service Type",
+      "selectServiceType": "Select service type...",
+      "selectFromModal": "Select from List",
+      "totalCost": "Total Cost",
+      "shopName": "Shop Name / Service Provider",
+      "shopNamePlaceholder": "Example: Central Auto Service",
+      "note": "Additional Notes",
+      "notePlaceholder": "More details about the service performed...",
+      "submit": "Save",
+      "submitting": "Saving...",
+      "cancel": "Cancel",
+      "helpText": "Having trouble choosing a category?",
+      "helpLink": "View Guide",
+      "success": "Service recorded successfully",
+      "error": "Error recording service",
+      "validation": {
+        "vehicleRequired": "Vehicle selection is required",
+        "dateRequired": "Service date is required",
+        "kmRequired": "Current mileage must be greater than zero",
+        "kmInvalid": "Current mileage must be a positive number",
+        "costRequired": "Cost must be greater than zero",
+        "costInvalid": "Cost must be a positive number",
+        "typeRequired": "Service type selection is required"
+      }
+    },
+    "selectType": {
+      "title": "Select Service Type",
+      "subtitle": "Please select the service category from the list below",
+      "searchPlaceholder": "Search service (e.g., oil change)...",
+      "continue": "Confirm and Continue",
+      "back": "Back",
+      "selected": "Your selection:",
+      "noSelection": "Please select at least one service",
+      "selectedCount": "selected",
+      "servicesAvailable": "services available",
+      "categories": {
+        "oil": "Engine Oil",
+        "tire": "Tires & Wheels",
+        "battery": "Battery & Electrical",
+        "brakes": "Brakes & Safety"
+      },
+      "descriptions": {
+        "oilChange": "Includes replacement and inspection",
+        "oilFilter": "Oil Filter",
+        "oilFilterDesc": "Replace main oil filter",
+        "airFilter": "Air Filter",
+        "airFilterDesc": "Replace engine air filter",
+        "tire": "Tire Replacement",
+        "tireDesc": "Replace one or more tires",
+        "alignment": "Balance & Alignment",
+        "alignmentDesc": "Adjust wheel angles",
+        "battery": "Install new battery",
+        "brakes": "Replace brake pads"
+      }
+    },
+    "selectDetails": {
+      "title": "Select Service Details",
+      "subtitle": "Select the category and services you need",
+      "categories": "Categories",
+      "searchPlaceholder": "Search services...",
+      "selectedCount": "selected",
+      "next": "Next Step",
+      "back": "Back"
+    },
+    "edit": {
+      "title": "Edit Service",
+      "subtitle": "Edit service information",
+      "submit": "Save Changes",
+      "submitting": "Saving...",
+      "success": "Service updated successfully",
+      "error": "Error updating service"
+    },
+    "delete": {
+      "confirmTitle": "Confirm Delete Service",
+      "confirmMessage": "Are you sure you want to delete this service? This action cannot be undone.",
+      "confirmButton": "Delete",
+      "cancelButton": "Cancel",
+      "success": "Service deleted successfully",
+      "error": "Error deleting service"
+    },
+    "types": {
+      "oil_change": "Oil Change",
+      "filter": "Filter Replacement",
+      "brakes": "Brake Pads",
+      "battery": "Battery & Alternator",
+      "tire": "Tire & Balance",
+      "other": "Other"
+    }
   },
   "expenses": {
     "title": "Expenses",

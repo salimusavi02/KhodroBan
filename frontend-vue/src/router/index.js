@@ -17,7 +17,7 @@ const ReportsView = () => import('../views/ReportsView.vue')
 const SettingsView = () => import('../views/SettingsView.vue')
 const AddServiceView = () => import('../views/AddServiceView.vue')
 const SelectServiceTypeView = () => import('../views/SelectServiceTypeView.vue')
-const SelectServiceDetailsView = () => import('../views/SelectServiceDetailsView.vue')
+const ServiceListView = () => import('../views/ServiceListView.vue')
 const SmartAssistantView = () => import('../views/SmartAssistantView.vue')
 const UpgradeProView = () => import('../views/UpgradeProView.vue')
 
@@ -75,9 +75,10 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
     {
-      path: '/select-service-details',
-      name: 'select-service-details',
-      component: SelectServiceDetailsView
+      path: '/service-list',
+      name: 'service-list',
+      component: ServiceListView,
+      meta: { requiresAuth: true }
     },
     {
       path: '/settings',

@@ -272,6 +272,16 @@ const formatCurrency = (amount) => {
               </button>
             </div>
             <div v-else class="overflow-x-auto">
+              <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                <h4 class="text-sm font-bold text-gray-900 dark:text-white">{{ t('vehicles.details.services') }}</h4>
+                <router-link 
+                  :to="{ name: 'service-list', query: { vehicleId: vehicleId.value } }"
+                  class="text-xs font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-1"
+                >
+                  {{ t('vehicles.details.viewAllServices') }}
+                  <span class="material-symbols-outlined text-[16px]">arrow_back</span>
+                </router-link>
+              </div>
               <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                 <thead class="bg-gray-50 dark:bg-[#252a38]">
                   <tr>

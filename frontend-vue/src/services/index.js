@@ -11,4 +11,6 @@ export { upgradeService } from '@services/upgradeService';
 export { notificationService } from '@services/notificationService';
 export { supabase } from '@services/supabase';
 export { dashboardService } from './dashboardService';
+export { serviceTypeService } from './serviceTypeService';
+export { expenseCategoryService } from './expenseCategoryService';
 

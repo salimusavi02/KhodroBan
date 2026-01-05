@@ -1,12 +1,25 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useServiceStore } from '../stores/service'
 import { useVehicleStore } from '../stores/vehicle'
+import { useServiceTypeStore } from '../stores/serviceType'
+import { useExpenseCategoryStore } from '../stores/expenseCategory'
+import { useExpenseStore } from '../stores/expense'
+import { useToast } from '../composables/useToast'
+import Modal from '../components/ui/Modal.vue'
+import ServiceTypeSelector from '../components/ServiceTypeSelector.vue'
 
 const router = useRouter()
+const route = useRoute()
+const { t } = useI18n()
 const serviceStore = useServiceStore()
 const vehicleStore = useVehicleStore()
+const serviceTypeStore = useServiceTypeStore()
+const expenseCategoryStore = useExpenseCategoryStore()
+const expenseStore = useExpenseStore()
+const toast = useToast()
 
 // Form state
 const formData = ref({
@@ -15,7 +28,8 @@ const formData = ref({
   km: '',
   cost: '',
   type: '',
-  types: [],
+  types: [], // For services
+  category: '', // For expenses
   note: '',
   shopName: ''
 })
@@ -23,16 +37,53 @@ const formData = ref({
 const formErrors = ref({})
 const isSubmitting = ref(false)
 const activeTab = ref('service') // 'service' or 'expense'
+const showServiceTypeModal = ref(false)
 
-// Service type options
-const serviceTypes = [
-  { value: 'oil_change', label: 'تعویض روغن موتور' },
-  { value: 'filter', label: 'تعویض فیلتر' },
-  { value: 'brakes', label: 'لنت ترمز' },
-  { value: 'battery', label: 'باتری و دینام' },
-  { value: 'tire', label: 'تایر و بالانس' },
-  { value: 'other', label: 'سایر' }
-]
+// Autocomplete state
+const autocompleteQuery = ref('')
+const showAutocompleteDropdown = ref(false)
+const autocompleteFocusedIndex = ref(-1)
+
+// All available service types from store (database + i18n)
+const allServiceTypes = computed(() => {
+  return serviceTypeStore.serviceTypeOptions
+})
+
+// All available expense categories from store (database + i18n)
+const allExpenseCategories = computed(() => {
+  return expenseCategoryStore.expenseCategoryOptions
+})
+
+// Current options based on active tab
+const currentOptions = computed(() => {
+  return activeTab.value === 'service' ? allServiceTypes.value : allExpenseCategories.value
+})
+
+// Filtered options for autocomplete
+const filteredOptions = computed(() => {
+  const selectedValues = activeTab.value === 'service' 
+    ? formData.value.types 
+    : (formData.value.category ? [formData.value.category] : [])
+  
+  if (!autocompleteQuery.value.trim()) {
+    return currentOptions.value.filter(opt => !selectedValues.includes(opt.value))
+  }
+  
+  const query = autocompleteQuery.value.toLowerCase().trim()
+  return currentOptions.value.filter(opt => 
+    !selectedValues.includes(opt.value) &&
+    (opt.label.toLowerCase().includes(query) || opt.value.toLowerCase().includes(query))
+  )
+})
+
+// Get label by value based on active tab
+const getLabel = (value) => {
+  if (activeTab.value === 'service') {
+    return serviceTypeStore.getServiceTypeLabel(value)
+  } else {
+    return expenseCategoryStore.getExpenseCategoryLabel(value)
+  }
+}
 
 // Computed
 const selectedVehicle = computed(() => {
@@ -41,11 +92,18 @@ const selectedVehicle = computed(() => {
 })
 
 const isFormValid = computed(() => {
-  return formData.value.vehicleId && 
+  const hasBasicFields = formData.value.vehicleId && 
          formData.value.date && 
-         formData.value.km && 
-         formData.value.cost && 
-         formData.value.type
+         formData.value.cost
+  
+  if (activeTab.value === 'service') {
+    return hasBasicFields && 
+           formData.value.km && 
+           formData.value.types.length > 0
+  } else {
+    return hasBasicFields && 
+           formData.value.category
+  }
 })
 
 // Methods
@@ -53,23 +111,32 @@ const validateForm = () => {
   const errors = {}
   
   if (!formData.value.vehicleId) {
-    errors.vehicleId = 'انتخاب خودرو الزامی است'
+    errors.vehicleId = t('services.add.validation.vehicleRequired')
   }
   
   if (!formData.value.date) {
-    errors.date = 'تاریخ انجام الزامی است'
-  }
-  
-  if (!formData.value.km || formData.value.km <= 0) {
-    errors.km = 'کارکرد فعلی باید بیشتر از صفر باشد'
+    errors.date = t('services.add.validation.dateRequired')
   }
   
   if (!formData.value.cost || formData.value.cost <= 0) {
-    errors.cost = 'مبلغ باید بیشتر از صفر باشد'
+    errors.cost = t('services.add.validation.costRequired')
+  } else if (isNaN(parseInt(formData.value.cost))) {
+    errors.cost = t('services.add.validation.costInvalid')
   }
   
-  if (!formData.value.type) {
-    errors.type = 'انتخاب نوع سرویس الزامی است'
+  if (activeTab.value === 'service') {
+    if (formData.value.types.length === 0) {
+      errors.type = t('services.add.validation.typeRequired')
+    }
+    if (!formData.value.km || formData.value.km <= 0) {
+      errors.km = t('services.add.validation.kmRequired')
+    } else if (isNaN(parseInt(formData.value.km))) {
+      errors.km = t('services.add.validation.kmInvalid')
+    }
+  } else {
+    if (!formData.value.category) {
+      errors.category = t('expenses.add.validation.categoryRequired', 'انتخاب دسته‌بندی الزامی است')
+    }
   }
   
   formErrors.value = errors
@@ -77,29 +144,50 @@ const validateForm = () => {
 }
 
 const handleSubmit = async () => {
-  if (!validateForm()) return
+  if (!validateForm()) {
+    toast.warning(t('validation.required'))
+    return
+  }
   
   isSubmitting.value = true
   
   try {
-    // Convert date to Jalali format if needed
-    const serviceData = {
-      vehicleId: formData.value.vehicleId,
-      date: formData.value.date, // Will be converted in service layer
-      km: parseInt(formData.value.km),
-      cost: parseInt(formData.value.cost),
-      type: formData.value.type,
-      types: [formData.value.type], // Single type for now
-      note: formData.value.note || undefined
+    if (activeTab.value === 'service') {
+      // Create service
+      const serviceData = {
+        vehicleId: formData.value.vehicleId,
+        date: formData.value.date, // Will be converted in service layer
+        km: parseInt(formData.value.km),
+        cost: parseInt(formData.value.cost),
+        type: formData.value.types[0] || formData.value.type, // Primary type
+        types: formData.value.types.length > 0 ? formData.value.types : [],
+        note: formData.value.note || undefined
+      }
+      
+      await serviceStore.createService(serviceData)
+      toast.success(t('services.add.success'))
+    } else {
+      // Create expense
+      const expenseData = {
+        vehicleId: formData.value.vehicleId,
+        date: formData.value.date, // Will be converted in service layer
+        amount: parseInt(formData.value.cost),
+        category: formData.value.category,
+        description: formData.value.note || undefined
+      }
+      
+      await expenseStore.createExpense(expenseData)
+      toast.success(t('expenses.add.success', 'هزینه با موفقیت ثبت شد'))
     }
     
-    await serviceStore.createService(serviceData)
-    
-    // Navigate back to dashboard or services list
+    // Navigate back to dashboard
     router.push('/')
   } catch (error) {
-    console.error('Error creating service:', error)
-    // Error will be handled by the store and error handler
+    console.error('Error creating record:', error)
+    const errorMessage = activeTab.value === 'service' 
+      ? (error?.message || t('services.add.error'))
+      : (error?.message || t('expenses.add.error', 'خطا در ثبت هزینه'))
+    toast.error(errorMessage)
   } finally {
     isSubmitting.value = false
   }
@@ -111,20 +199,152 @@ const handleCancel = () => {
 
 const switchTab = (tab) => {
   activeTab.value = tab
+  // Reset form data when switching tabs
+  if (tab === 'service') {
+    formData.value.category = ''
+  } else {
+    formData.value.types = []
+    formData.value.type = ''
+    formData.value.km = ''
+  }
+  autocompleteQuery.value = ''
+  showAutocompleteDropdown.value = false
+}
+
+const openServiceTypeModal = () => {
+  showServiceTypeModal.value = true
+}
+
+const handleServiceTypeSelect = (data) => {
+  formData.value.types = data.types
+  formData.value.type = data.types[0] // Set first type as primary
+  if (data.vehicleId) {
+    formData.value.vehicleId = data.vehicleId
+  }
+  showServiceTypeModal.value = false
+  toast.success(t('services.selectType.selected') + ' ' + data.types.length + ' ' + t('services.selectType.selectedCount'))
+}
+
+const handleServiceTypeCancel = () => {
+  showServiceTypeModal.value = false
+}
+
+// Autocomplete methods
+const handleAutocompleteInput = (event) => {
+  autocompleteQuery.value = event.target.value
+  showAutocompleteDropdown.value = true
+  autocompleteFocusedIndex.value = -1
+}
+
+const handleAutocompleteFocus = () => {
+  if (filteredOptions.value.length > 0) {
+    showAutocompleteDropdown.value = true
+  }
+}
+
+const handleAutocompleteBlur = () => {
+  // Delay to allow click on dropdown items
+  setTimeout(() => {
+    showAutocompleteDropdown.value = false
+    autocompleteQuery.value = ''
+  }, 200)
+}
+
+const selectOption = (option) => {
+  if (activeTab.value === 'service') {
+    if (!formData.value.types.includes(option.value)) {
+      formData.value.types.push(option.value)
+      formData.value.type = option.value // Set as primary type
+    }
+  } else {
+    formData.value.category = option.value
+  }
+  autocompleteQuery.value = ''
+  showAutocompleteDropdown.value = false
+}
+
+const removeServiceType = (value) => {
+  const index = formData.value.types.indexOf(value)
+  if (index > -1) {
+    formData.value.types.splice(index, 1)
+    // Update primary type if removed
+    if (formData.value.type === value) {
+      formData.value.type = formData.value.types[0] || ''
+    }
+  }
+}
+
+const removeExpenseCategory = () => {
+  formData.value.category = ''
+}
+
+const handleAutocompleteKeydown = (event) => {
+  if (event.key === 'ArrowDown') {
+    event.preventDefault()
+    if (autocompleteFocusedIndex.value < filteredOptions.value.length - 1) {
+      autocompleteFocusedIndex.value++
+    }
+  } else if (event.key === 'ArrowUp') {
+    event.preventDefault()
+    if (autocompleteFocusedIndex.value > 0) {
+      autocompleteFocusedIndex.value--
+    }
+  } else if (event.key === 'Enter' && autocompleteFocusedIndex.value >= 0) {
+    event.preventDefault()
+    const selected = filteredOptions.value[autocompleteFocusedIndex.value]
+    if (selected) {
+      selectOption(selected)
+    }
+  } else if (event.key === 'Escape') {
+    showAutocompleteDropdown.value = false
+    autocompleteQuery.value = ''
+  }
 }
 
 // Lifecycle
 onMounted(async () => {
+  // Fetch service types from database if not already loaded
+  if (serviceTypeStore.serviceTypes.length === 0) {
+    try {
+      await serviceTypeStore.fetchServiceTypes()
+    } catch (error) {
+      console.error('Error fetching service types:', error)
+      toast.error(t('services.error', 'خطا در دریافت انواع سرویس'))
+    }
+  }
+  
+  // Fetch expense categories from database if not already loaded
+  if (expenseCategoryStore.expenseCategories.length === 0) {
+    try {
+      await expenseCategoryStore.fetchExpenseCategories()
+    } catch (error) {
+      console.error('Error fetching expense categories:', error)
+      toast.error(t('expenses.error', 'خطا در دریافت دسته‌بندی هزینه‌ها'))
+    }
+  }
+  
+  // Check for query parameters (from SelectServiceTypeView)
+  if (route.query.types) {
+    const types = route.query.types.split(',')
+    formData.value.types = types
+    formData.value.type = types[0] || '' // Set first type as primary
+  }
+  
+  if (route.query.vehicleId) {
+    formData.value.vehicleId = route.query.vehicleId
+  }
+  
   // Fetch vehicles if not already loaded
   if (vehicleStore.vehicles.length === 0) {
     try {
       await vehicleStore.fetchVehicles()
     } catch (error) {
       console.error('Error fetching vehicles:', error)
+      toast.error(t('vehicles.management.error'))
     }
   }
   
-  // Set first vehicle as default if available
+  // Set first vehicle as default if available and not set from query
   if (vehicleStore.vehicles.length > 0 && !formData.value.vehicleId) {
     formData.value.vehicleId = vehicleStore.vehicles[0].id
   }
@@ -160,8 +380,8 @@ onMounted(async () => {
       <div class="w-full max-w-[960px] flex flex-col gap-6">
         <div class="flex flex-wrap justify-between items-end gap-4">
           <div class="flex flex-col gap-1">
-            <h1 class="text-[#121317] dark:text-white tracking-tight text-[32px] font-bold leading-tight">ثبت فعالیت جدید</h1>
-            <p class="text-[#666e85] dark:text-gray-400 text-sm font-normal leading-normal">ثبت سرویس یا هزینه جدید برای خودروی شما</p>
+            <h1 class="text-[#121317] dark:text-white tracking-tight text-[32px] font-bold leading-tight">{{ $t('services.add.title') }}</h1>
+            <p class="text-[#666e85] dark:text-gray-400 text-sm font-normal leading-normal">{{ $t('services.add.subtitle') }}</p>
           </div>
           <div class="flex items-center gap-2 bg-white dark:bg-gray-800 p-1.5 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
             <span class="material-symbols-outlined text-gray-500 ms-2">directions_car</span>
@@ -170,7 +390,7 @@ onMounted(async () => {
               class="bg-transparent border-none text-sm font-semibold text-slate-700 dark:text-gray-200 focus:ring-0 cursor-pointer pe-8 ps-2 py-1 bg-[position:left_0.5rem_center]"
               :class="{ 'border-red-500': formErrors.vehicleId }"
             >
-              <option value="">انتخاب خودرو...</option>
+              <option value="">{{ $t('services.add.selectVehicle') }}</option>
               <option 
                 v-for="vehicle in vehicleStore.vehicles" 
                 :key="vehicle.id" 
@@ -223,7 +443,7 @@ onMounted(async () => {
           <form @submit.prevent="handleSubmit" class="p-6 sm:p-8 space-y-8">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <label class="flex flex-col gap-2">
-                <span class="text-[#121317] dark:text-gray-200 text-sm font-medium leading-normal">تاریخ انجام</span>
+                <span class="text-[#121317] dark:text-gray-200 text-sm font-medium leading-normal">{{ $t('services.add.serviceDate') }}</span>
                 <div class="relative">
                   <input 
                     v-model="formData.date"
@@ -234,14 +454,14 @@ onMounted(async () => {
                   <p v-if="formErrors.date" class="text-red-500 text-xs mt-1">{{ formErrors.date }}</p>
                 </div>
               </label>
-              <label class="flex flex-col gap-2">
-                <span class="text-[#121317] dark:text-gray-200 text-sm font-medium leading-normal">کارکرد فعلی (کیلومتر)</span>
+              <label v-if="activeTab === 'service'" class="flex flex-col gap-2">
+                <span class="text-[#121317] dark:text-gray-200 text-sm font-medium leading-normal">{{ $t('services.add.currentKm') }}</span>
                 <div class="relative">
                   <input 
                     v-model="formData.km"
                     class="form-input w-full rounded-xl border border-[#dcdfe4] dark:border-gray-700 bg-white dark:bg-gray-800 text-[#121317] dark:text-white h-12 pe-4 ps-12 focus:border-primary focus:ring-1 focus:ring-primary transition-shadow dir-ltr text-right" 
                     :class="{ 'border-red-500': formErrors.km }"
-                    placeholder="مثال: ۵۴,۲۰۰" 
+                    :placeholder="$t('services.add.currentKmPlaceholder')" 
                     type="number" 
                   />
                   <span class="absolute left-4 top-3 text-gray-400 text-sm">km</span>
@@ -250,27 +470,152 @@ onMounted(async () => {
               </label>
             </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Service Type (for service tab) -->
+            <div v-if="activeTab === 'service'" class="grid grid-cols-1 md:grid-cols-3 gap-6">
               <label class="flex flex-col gap-2 md:col-span-2">
-                <span class="text-[#121317] dark:text-gray-200 text-sm font-medium leading-normal">نوع سرویس</span>
-                <select 
-                  v-model="formData.type"
-                  class="form-select w-full rounded-xl border border-[#dcdfe4] dark:border-gray-700 bg-white dark:bg-gray-800 text-[#121317] dark:text-white h-12 px-4 focus:border-primary focus:ring-1 focus:ring-primary transition-shadow bg-[position:left_0.5rem_center] ps-4 pe-10"
-                  :class="{ 'border-red-500': formErrors.type }"
-                >
-                  <option value="">انتخاب نوع سرویس...</option>
-                  <option 
-                    v-for="serviceType in serviceTypes" 
-                    :key="serviceType.value" 
-                    :value="serviceType.value"
+                <span class="text-[#121317] dark:text-gray-200 text-sm font-medium leading-normal">{{ $t('services.add.serviceType') }}</span>
+                <div class="relative">
+                  <div class="flex flex-wrap items-center gap-2 min-h-[48px] p-2 pe-12 rounded-xl border border-[#dcdfe4] dark:border-gray-700 bg-white dark:bg-gray-800 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-shadow"
+                    :class="{ 'border-red-500': formErrors.type }"
                   >
-                    {{ serviceType.label }}
-                  </option>
-                </select>
+                    <!-- Selected service type tags -->
+                    <span 
+                      v-for="(type, index) in formData.types" 
+                      :key="index"
+                      class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-primary/10 text-primary dark:text-blue-400 text-sm font-medium"
+                    >
+                      {{ getLabel(type) }}
+                      <button
+                        @click.stop="removeServiceType(type)"
+                        type="button"
+                        class="hover:bg-primary/20 rounded-full p-0.5 transition-colors"
+                        :aria-label="$t('common.close')"
+                      >
+                        <span class="material-symbols-outlined text-sm">close</span>
+                      </button>
+                    </span>
+                    <!-- Autocomplete input -->
+                    <input
+                      v-model="autocompleteQuery"
+                      @input="handleAutocompleteInput"
+                      @focus="handleAutocompleteFocus"
+                      @blur="handleAutocompleteBlur"
+                      @keydown="handleAutocompleteKeydown"
+                      class="flex-1 min-w-[120px] h-8 border-none bg-transparent text-[#121317] dark:text-white focus:outline-none text-sm placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                      :placeholder="formData.types.length === 0 ? $t('services.add.selectServiceType') : ''"
+                      type="text"
+                    />
+                    <!-- Alternative: Open modal button -->
+                    <button
+                      @click.stop="openServiceTypeModal"
+                      type="button"
+                      class="absolute left-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-gray-400 hover:text-primary dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                      :title="$t('services.add.selectFromModal')"
+                    >
+                      <span class="material-symbols-outlined text-lg">tune</span>
+                    </button>
+                  </div>
+                  <!-- Autocomplete dropdown -->
+                  <Transition name="fade">
+                    <div 
+                      v-if="showAutocompleteDropdown && filteredOptions.length > 0"
+                      class="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg max-h-60 overflow-y-auto"
+                      @mousedown.prevent
+                    >
+                      <button
+                        v-for="(option, index) in filteredOptions"
+                        :key="option.value"
+                        @click="selectOption(option)"
+                        @mouseenter="autocompleteFocusedIndex = index"
+                        type="button"
+                        class="w-full px-4 py-3 text-right hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center justify-between gap-2"
+                        :class="{ 'bg-gray-50 dark:bg-gray-700': autocompleteFocusedIndex === index }"
+                      >
+                        <span class="text-sm font-medium text-[#121317] dark:text-white">{{ option.label }}</span>
+                        <span class="material-symbols-outlined text-gray-400 text-lg">add</span>
+                      </button>
+                    </div>
+                  </Transition>
+                </div>
                 <p v-if="formErrors.type" class="text-red-500 text-xs mt-1">{{ formErrors.type }}</p>
               </label>
               <label class="flex flex-col gap-2">
-                <span class="text-[#121317] dark:text-gray-200 text-sm font-medium leading-normal">مبلغ کل</span>
+                <span class="text-[#121317] dark:text-gray-200 text-sm font-medium leading-normal">{{ $t('services.add.totalCost') }}</span>
+                <div class="relative">
+                  <span class="absolute left-4 top-3 text-gray-500 dark:text-gray-400 text-sm font-medium">تومان</span>
+                  <input 
+                    v-model="formData.cost"
+                    class="form-input w-full rounded-xl border border-[#dcdfe4] dark:border-gray-700 bg-white dark:bg-gray-800 text-[#121317] dark:text-white h-12 pe-4 ps-16 focus:border-primary focus:ring-1 focus:ring-primary transition-shadow dir-ltr text-right" 
+                    :class="{ 'border-red-500': formErrors.cost }"
+                    placeholder="۰" 
+                    type="number" 
+                  />
+                  <p v-if="formErrors.cost" class="text-red-500 text-xs mt-1">{{ formErrors.cost }}</p>
+                </div>
+              </label>
+            </div>
+            
+            <!-- Expense Category (for expense tab) -->
+            <div v-else class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <label class="flex flex-col gap-2 md:col-span-2">
+                <span class="text-[#121317] dark:text-gray-200 text-sm font-medium leading-normal">{{ $t('expenses.category') }}</span>
+                <div class="relative">
+                  <div class="flex flex-wrap items-center gap-2 min-h-[48px] p-2 pe-12 rounded-xl border border-[#dcdfe4] dark:border-gray-700 bg-white dark:bg-gray-800 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-shadow"
+                    :class="{ 'border-red-500': formErrors.category }"
+                  >
+                    <!-- Selected expense category tag -->
+                    <span 
+                      v-if="formData.category"
+                      class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-primary/10 text-primary dark:text-blue-400 text-sm font-medium"
+                    >
+                      {{ getLabel(formData.category) }}
+                      <button
+                        @click.stop="removeExpenseCategory"
+                        type="button"
+                        class="hover:bg-primary/20 rounded-full p-0.5 transition-colors"
+                        :aria-label="$t('common.close')"
+                      >
+                        <span class="material-symbols-outlined text-sm">close</span>
+                      </button>
+                    </span>
+                    <!-- Autocomplete input -->
+                    <input
+                      v-model="autocompleteQuery"
+                      @input="handleAutocompleteInput"
+                      @focus="handleAutocompleteFocus"
+                      @blur="handleAutocompleteBlur"
+                      @keydown="handleAutocompleteKeydown"
+                      class="flex-1 min-w-[120px] h-8 border-none bg-transparent text-[#121317] dark:text-white focus:outline-none text-sm placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                      :placeholder="!formData.category ? $t('expenses.selectCategory', 'انتخاب دسته‌بندی...') : ''"
+                      type="text"
+                    />
+                  </div>
+                  <!-- Autocomplete dropdown -->
+                  <Transition name="fade">
+                    <div 
+                      v-if="showAutocompleteDropdown && filteredOptions.length > 0"
+                      class="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg max-h-60 overflow-y-auto"
+                      @mousedown.prevent
+                    >
+                      <button
+                        v-for="(option, index) in filteredOptions"
+                        :key="option.value"
+                        @click="selectOption(option)"
+                        @mouseenter="autocompleteFocusedIndex = index"
+                        type="button"
+                        class="w-full px-4 py-3 text-right hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center justify-between gap-2"
+                        :class="{ 'bg-gray-50 dark:bg-gray-700': autocompleteFocusedIndex === index }"
+                      >
+                        <span class="text-sm font-medium text-[#121317] dark:text-white">{{ option.label }}</span>
+                        <span class="material-symbols-outlined text-gray-400 text-lg">add</span>
+                      </button>
+                    </div>
+                  </Transition>
+                </div>
+                <p v-if="formErrors.category" class="text-red-500 text-xs mt-1">{{ formErrors.category }}</p>
+              </label>
+              <label class="flex flex-col gap-2">
+                <span class="text-[#121317] dark:text-gray-200 text-sm font-medium leading-normal">{{ $t('expenses.amount') }}</span>
                 <div class="relative">
                   <span class="absolute left-4 top-3 text-gray-500 dark:text-gray-400 text-sm font-medium">تومان</span>
                   <input 
@@ -287,23 +632,23 @@ onMounted(async () => {
             
             <div class="space-y-6">
               <label class="flex flex-col gap-2">
-                <span class="text-[#121317] dark:text-gray-200 text-sm font-medium leading-normal">نام تعمیرگاه / سرویس‌کار <span class="text-gray-400 font-normal">(اختیاری)</span></span>
+                <span class="text-[#121317] dark:text-gray-200 text-sm font-medium leading-normal">{{ $t('services.add.shopName') }} <span class="text-gray-400 font-normal">({{ $t('common.optional') }})</span></span>
                 <div class="relative">
                   <span class="material-symbols-outlined absolute start-4 top-3 text-gray-400 text-[20px]">storefront</span>
                   <input 
                     v-model="formData.shopName"
                     class="form-input w-full rounded-xl border border-[#dcdfe4] dark:border-gray-700 bg-white dark:bg-gray-800 text-[#121317] dark:text-white h-12 ps-11 pe-4 focus:border-primary focus:ring-1 focus:ring-primary transition-shadow" 
-                    placeholder="مثال: اتوسرویس مرکزی" 
+                    :placeholder="$t('services.add.shopNamePlaceholder')" 
                     type="text" 
                   />
                 </div>
               </label>
               <label class="flex flex-col gap-2">
-                <span class="text-[#121317] dark:text-gray-200 text-sm font-medium leading-normal">توضیحات تکمیلی</span>
+                <span class="text-[#121317] dark:text-gray-200 text-sm font-medium leading-normal">{{ $t('services.add.note') }}</span>
                 <textarea 
                   v-model="formData.note"
                   class="form-textarea w-full rounded-xl border border-[#dcdfe4] dark:border-gray-700 bg-white dark:bg-gray-800 text-[#121317] dark:text-white min-h-[100px] p-4 focus:border-primary focus:ring-1 focus:ring-primary transition-shadow resize-y" 
-                  placeholder="جزئیات بیشتر درباره سرویس انجام شده..."
+                  :placeholder="$t('services.add.notePlaceholder')"
                 ></textarea>
               </label>
             </div>
@@ -320,7 +665,7 @@ onMounted(async () => {
                 type="button"
                 :disabled="isSubmitting"
               >
-                انصراف
+                {{ $t('services.add.cancel') }}
               </button>
               <button 
                 class="w-full sm:w-auto px-8 py-3 rounded-xl bg-primary hover:bg-blue-900 text-white font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed" 
@@ -329,15 +674,42 @@ onMounted(async () => {
               >
                 <span v-if="isSubmitting" class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
                 <span v-else class="material-symbols-outlined text-[18px]">save</span>
-                {{ isSubmitting ? 'در حال ثبت...' : 'ثبت و ذخیره' }}
+                {{ isSubmitting ? $t('services.add.submitting') : $t('services.add.submit') }}
               </button>
             </div>
           </form>
         </div>
         <div class="text-center py-4">
-          <p class="text-sm text-gray-400 dark:text-gray-600">در انتخاب دسته‌بندی مشکل دارید؟ <router-link to="/select-service" class="text-primary dark:text-blue-400 hover:underline">مشاهده راهنما</router-link></p>
+          <p class="text-sm text-gray-400 dark:text-gray-600">{{ $t('services.add.helpText') }} <button @click="openServiceTypeModal" class="text-primary dark:text-blue-400 hover:underline">{{ $t('services.add.helpLink') }}</button></p>
         </div>
       </div>
     </main>
+    
+    <!-- Service Type Selection Modal -->
+    <Modal
+      :open="showServiceTypeModal"
+      @update:open="showServiceTypeModal = $event"
+      @close="handleServiceTypeCancel"
+      size="lg"
+      :title="$t('services.selectType.title')"
+    >
+      <ServiceTypeSelector
+        :vehicle-id="formData.vehicleId"
+        @select="handleServiceTypeSelect"
+        @cancel="handleServiceTypeCancel"
+      />
+    </Modal>
   </div>
 </template>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>

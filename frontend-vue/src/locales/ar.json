@@ -21,7 +21,9 @@
     "user": "المستخدم",
     "settings": "الإعدادات",
     "currency": "دینار",
-    "optional": "اختياري"
+    "optional": "اختياري",
+    "selected": "محدد",
+    "actions": "الإجراءات"
   },
   "auth": {
     "login": "تسجيل الدخول",
@@ -176,7 +178,8 @@
       "tableCost": "التكلفة",
       "tableStatus": "الحالة",
       "serviceDefault": "خدمة",
-      "completed": "مكتمل"
+      "completed": "مكتمل",
+      "viewAllServices": "عرض جميع الخدمات"
     },
     "form": {
       "addTitle": "إضافة مركبة جديدة",
@@ -217,6 +220,7 @@
     "editService": "تعديل خدمة",
     "deleteService": "حذف خدمة",
     "serviceList": "قائمة الخدمات",
+    "allVehicles": "جميع المركبات",
     "noServices": "لم يتم العثور على خدمات.",
     "serviceDetails": "تفاصيل الخدمة",
     "serviceType": "نوع الخدمة",
@@ -226,7 +230,102 @@
     "mileage": "المسافة المقطوعة",
     "provider": "مقدم الخدمة",
     "nextService": "الخدمة التالية",
-    "parts": "القطع"
+    "parts": "القطع",
+    "add": {
+      "title": "تسجيل نشاط جديد",
+      "subtitle": "تسجيل خدمة أو مصروف جديد لسيارتك",
+      "selectVehicle": "اختر المركبة...",
+      "serviceDate": "تاريخ الخدمة",
+      "currentKm": "المسافة الحالية (كم)",
+      "currentKmPlaceholder": "مثال: 54,200",
+      "serviceType": "نوع الخدمة",
+      "selectServiceType": "اختر نوع الخدمة...",
+      "selectFromModal": "اختر من القائمة",
+      "totalCost": "التكلفة الإجمالية",
+      "shopName": "اسم الورشة / مقدم الخدمة",
+      "shopNamePlaceholder": "مثال: مركز السيارات المركزي",
+      "note": "ملاحظات إضافية",
+      "notePlaceholder": "مزيد من التفاصيل حول الخدمة المنجزة...",
+      "submit": "حفظ",
+      "submitting": "جاري الحفظ...",
+      "cancel": "إلغاء",
+      "helpText": "تواجه مشكلة في اختيار الفئة؟",
+      "helpLink": "عرض الدليل",
+      "success": "تم تسجيل الخدمة بنجاح",
+      "error": "خطأ في تسجيل الخدمة",
+      "validation": {
+        "vehicleRequired": "اختيار المركبة مطلوب",
+        "dateRequired": "تاريخ الخدمة مطلوب",
+        "kmRequired": "المسافة الحالية يجب أن تكون أكبر من الصفر",
+        "kmInvalid": "المسافة الحالية يجب أن تكون رقماً موجباً",
+        "costRequired": "التكلفة يجب أن تكون أكبر من الصفر",
+        "costInvalid": "التكلفة يجب أن تكون رقماً موجباً",
+        "typeRequired": "اختيار نوع الخدمة مطلوب"
+      }
+    },
+    "selectType": {
+      "title": "اختر نوع الخدمة",
+      "subtitle": "يرجى اختيار فئة الخدمة من القائمة أدناه",
+      "searchPlaceholder": "البحث عن خدمة (مثل تغيير الزيت)...",
+      "continue": "تأكيد والمتابعة",
+      "back": "رجوع",
+      "selected": "اختيارك:",
+      "noSelection": "يرجى اختيار خدمة واحدة على الأقل",
+      "selectedCount": "محدد",
+      "servicesAvailable": "خدمة متاحة",
+      "categories": {
+        "oil": "زيت المحرك",
+        "tire": "الإطارات والعجلات",
+        "battery": "البطارية والكهرباء",
+        "brakes": "الفرامل والسلامة"
+      },
+      "descriptions": {
+        "oilChange": "يشمل الاستبدال والفحص",
+        "oilFilter": "فلتر الزيت",
+        "oilFilterDesc": "استبدال فلتر الزيت الرئيسي",
+        "airFilter": "فلتر الهواء",
+        "airFilterDesc": "استبدال فلتر هواء المحرك",
+        "tire": "استبدال الإطارات",
+        "tireDesc": "استبدال إطار واحد أو أكثر",
+        "alignment": "الموازنة والمحاذاة",
+        "alignmentDesc": "ضبط زوايا العجلات",
+        "battery": "تركيب بطارية جديدة",
+        "brakes": "استبدال وسادات الفرامل"
+      }
+    },
+    "selectDetails": {
+      "title": "اختر تفاصيل الخدمة",
+      "subtitle": "اختر الفئة والخدمات التي تحتاجها",
+      "categories": "الفئات",
+      "searchPlaceholder": "البحث في الخدمات...",
+      "selectedCount": "محدد",
+      "next": "الخطوة التالية",
+      "back": "رجوع"
+    },
+    "edit": {
+      "title": "تعديل الخدمة",
+      "subtitle": "تعديل معلومات الخدمة",
+      "submit": "حفظ التغييرات",
+      "submitting": "جاري الحفظ...",
+      "success": "تم تحديث الخدمة بنجاح",
+      "error": "خطأ في تحديث الخدمة"
+    },
+    "delete": {
+      "confirmTitle": "تأكيد حذف الخدمة",
+      "confirmMessage": "هل أنت متأكد أنك تريد حذف هذه الخدمة؟ لا يمكن التراجع عن هذا الإجراء.",
+      "confirmButton": "حذف",
+      "cancelButton": "إلغاء",
+      "success": "تم حذف الخدمة بنجاح",
+      "error": "خطأ في حذف الخدمة"
+    },
+    "types": {
+      "oil_change": "تغيير زيت المحرك",
+      "filter": "استبدال الفلتر",
+      "brakes": "وسادات الفرامل",
+      "battery": "البطارية والمولد",
+      "tire": "الإطارات والموازنة",
+      "other": "أخرى"
+    }
   },
   "expenses": {
     "title": "المصروفات",

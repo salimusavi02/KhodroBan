@@ -1,188 +1,26 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { useVehicleStore } from '../stores/vehicle'
+import { useRouter, useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
+import ServiceTypeSelector from '../components/ServiceTypeSelector.vue'
 
 const router = useRouter()
-const vehicleStore = useVehicleStore()
+const route = useRoute()
+const { t } = useI18n()
 
-// State
-const selectedServiceTypes = ref([])
-const searchQuery = ref('')
-const expandedCategories = ref(['oil']) // Start with oil category expanded
-
-// Service categories and types
-const serviceCategories = [
-  {
-    id: 'oil',
-    title: 'روغن موتور',
-    icon: 'oil_barrel',
-    color: 'orange',
-    services: [
-      { id: 'oil_change', title: 'تعویض روغن موتور', description: 'شامل اجرت تعویض و بازرسی' },
-      { id: 'filter', title: 'فیلتر روغن', description: 'تعویض فیلتر روغن اصلی' },
-      { id: 'filter', title: 'فیلتر هوا', description: 'تعویض فیلتر هوای موتور' }
-    ]
-  },
-  {
-    id: 'tire',
-    title: 'تایر و چرخ',
-    icon: 'tire_repair',
-    color: 'blue',
-    services: [
-      { id: 'tire', title: 'تعویض تایر', description: 'تعویض یک یا چند تایر' },
-      { id: 'alignment', title: 'بالانس و تنظیم زاویه', description: 'تنظیم زاویه چرخ‌ها' },
-      { id: 'tire', title: 'پنچرگیری', description: 'تعمیر پنچری تایر' },
-      { id: 'tire', title: 'چرخ‌گیری', description: 'جابجایی تایرها' }
-    ]
-  },
-  {
-    id: 'battery',
-    title: 'باتری و برق',
-    icon: 'battery_charging_full',
-    color: 'red',
-    services: [
-      { id: 'battery', title: 'تعویض باتری', description: 'نصب باتری جدید' },
-      { id: 'electrical', title: 'تعمیر دینام', description: 'بررسی و تعمیر دینام' }
-    ]
-  },
-  {
-    id: 'transmission',
-    title: 'گیربکس و انتقال قدرت',
-    icon: 'settings_b_roll',
-    color: 'slate',
-    services: [
-      { id: 'transmission', title: 'تعویض روغن گیربکس', description: 'روغن گیربکس دستی یا اتوماتیک' },
-      { id: 'clutch', title: 'کلاچ', description: 'تعمیر یا تعویض کلاچ' },
-      { id: 'transmission', title: 'دیفرانسیل', description: 'سرویس دیفرانسیل' }
-    ]
-  },
-  {
-    id: 'brakes',
-    title: 'ترمز و ایمنی',
-    icon: 'security',
-    color: 'green',
-    services: [
-      { id: 'brakes', title: 'لنت ترمز جلو', description: 'تعویض لنت جلو' },
-      { id: 'brakes', title: 'لنت ترمز عقب', description: 'تعویض لنت عقب' },
-      { id: 'brakes', title: 'دیسک ترمز', description: 'تعویض دیسک ترمز' },
-      { id: 'brakes', title: 'روغن ترمز', description: 'تعویض روغن ترمز' },
-      { id: 'suspension', title: 'کمک فنر', description: 'تعمیر یا تعویض کمک فنر' }
-    ]
-  },
-  {
-    id: 'ac',
-    title: 'تهویه مطبوع',
-    icon: 'ac_unit',
-    color: 'purple',
-    services: [
-      { id: 'ac', title: 'شارژ گاز کولر', description: 'شارژ مجدد گاز کولر' }
-    ]
-  },
-  {
-    id: 'body',
-    title: 'بدنه و ظاهر',
-    icon: 'car_crash',
-    color: 'teal',
-    services: [
-      { id: 'body', title: 'کارواش', description: 'شستشوی کامل خودرو' },
-      { id: 'body', title: 'صافکاری', description: 'تعمیر ضربه بدنه' }
-    ]
-  }
-]
-
-// Computed
-const selectedVehicle = computed(() => {
-  return vehicleStore.selectedVehicle || vehicleStore.vehicles[0]
-})
-
-const filteredCategories = computed(() => {
-  if (!searchQuery.value) return serviceCategories
-  
-  const query = searchQuery.value.toLowerCase()
-  return serviceCategories.map(category => ({
-    ...category,
-    services: category.services.filter(service => 
-      service.title.includes(query) || 
-      service.description.includes(query)
-    )
-  })).filter(category => category.services.length > 0)
-})
-
-const hasSelectedServices = computed(() => {
-  return selectedServiceTypes.value.length > 0
-})
-
-// Methods
-const toggleCategory = (categoryId) => {
-  const index = expandedCategories.value.indexOf(categoryId)
-  if (index > -1) {
-    expandedCategories.value.splice(index, 1)
-  } else {
-    expandedCategories.value.push(categoryId)
-  }
-}
-
-const isCategoryExpanded = (categoryId) => {
-  return expandedCategories.value.includes(categoryId)
-}
-
-const selectService = (serviceId, serviceTitle) => {
-  const existingIndex = selectedServiceTypes.value.findIndex(s => s.id === serviceId && s.title === serviceTitle)
-  
-  if (existingIndex > -1) {
-    selectedServiceTypes.value.splice(existingIndex, 1)
-  } else {
-    selectedServiceTypes.value.push({ id: serviceId, title: serviceTitle })
-  }
-}
-
-const isServiceSelected = (serviceId, serviceTitle) => {
-  return selectedServiceTypes.value.some(s => s.id === serviceId && s.title === serviceTitle)
-}
-
-const getColorClasses = (color) => {
-  const colorMap = {
-    orange: 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400',
-    blue: 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400',
-    red: 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400',
-    slate: 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300',
-    green: 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400',
-    purple: 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400',
-    teal: 'bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400'
-  }
-  return colorMap[color] || colorMap.blue
-}
-
-const handleContinue = () => {
-  if (selectedServiceTypes.value.length === 0) return
-  
+const handleServiceTypeSelect = (data) => {
   // Navigate to add service with selected types
-  const serviceTypes = selectedServiceTypes.value.map(s => s.id)
   const queryParams = new URLSearchParams()
-  queryParams.set('types', serviceTypes.join(','))
-  if (selectedVehicle.value) {
-    queryParams.set('vehicleId', selectedVehicle.value.id)
+  queryParams.set('types', data.types.join(','))
+  if (data.vehicleId) {
+    queryParams.set('vehicleId', data.vehicleId)
   }
   
   router.push(`/add-service?${queryParams.toString()}`)
 }
 
-const handleBack = () => {
+const handleServiceTypeCancel = () => {
   router.back()
 }
-
-// Lifecycle
-onMounted(async () => {
-  // Fetch vehicles if not already loaded
-  if (vehicleStore.vehicles.length === 0) {
-    try {
-      await vehicleStore.fetchVehicles()
-    } catch (error) {
-      console.error('Error fetching vehicles:', error)
-    }
-  }
-})
 </script>
 
 <template>
@@ -192,193 +30,31 @@ onMounted(async () => {
         <div class="size-8 flex items-center justify-center text-primary dark:text-blue-400">
           <span class="material-symbols-outlined text-3xl">local_taxi</span>
         </div>
-        <h2 class="text-[#121317] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">مدیریت خودرو</h2>
+        <h2 class="text-[#121317] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">{{ $t('vehicles.management.title') }}</h2>
       </div>
       <div class="flex flex-1 justify-end gap-4 sm:gap-8 items-center">
         <nav class="hidden md:flex items-center gap-9">
-          <a class="text-[#121317] dark:text-gray-300 hover:text-primary dark:hover:text-blue-400 text-sm font-medium leading-normal transition-colors" href="#">داشبورد</a>
-          <a class="text-[#121317] dark:text-gray-300 hover:text-primary dark:hover:text-blue-400 text-sm font-medium leading-normal transition-colors" href="#">خودروها</a>
-          <a class="text-[#121317] dark:text-gray-300 hover:text-primary dark:hover:text-blue-400 text-sm font-medium leading-normal transition-colors" href="#">گزارش‌ها</a>
+          <router-link to="/" class="text-[#121317] dark:text-gray-300 hover:text-primary dark:hover:text-blue-400 text-sm font-medium leading-normal transition-colors">{{ $t('dashboard.title') }}</router-link>
+          <router-link to="/vehicle-list" class="text-[#121317] dark:text-gray-300 hover:text-primary dark:hover:text-blue-400 text-sm font-medium leading-normal transition-colors">{{ $t('vehicles.vehicleList') }}</router-link>
+          <router-link to="/reports" class="text-[#121317] dark:text-gray-300 hover:text-primary dark:hover:text-blue-400 text-sm font-medium leading-normal transition-colors">{{ $t('reports.title') }}</router-link>
         </nav>
         <div class="h-8 w-[1px] bg-gray-200 dark:bg-gray-700 hidden md:block"></div>
         <div class="flex items-center gap-3">
           <div class="hidden sm:flex flex-col items-end">
             <span class="text-sm font-semibold dark:text-white">امیرحسین رضایی</span>
-            <span class="text-xs text-gray-500 dark:text-gray-400">طرح حرفه‌ای</span>
+            <span class="text-xs text-gray-500 dark:text-gray-400">{{ $t('subscription.tier.pro') }}</span>
           </div>
           <div class="bg-center bg-no-repeat bg-cover rounded-full size-10 ring-2 ring-white dark:ring-gray-800 shadow-sm" data-alt="User profile avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCIlggVSiSEjowXShmlBOMiJpm3691nnKwqshmId0bNFRe8rFFsivfCXxRDq_VEbZxJ7i8qvc_Nmmlcp9sE5-WE6ZkX4_3mA1CyJBoV3DQuTJH-Vb-_fOgKQBc1Hf9MrMYnt0GQ1I_XS_6f_4emIHw0ATsHs2YaQXJH5KwanY48_6-Lit_0R_qjSeEpTNeMYSGD-q00G1L7mz-uBqeRYJubAzGNMVTVNrSdGHnXz-0Eq04m0su5ZHRH7Z-BpUo_LF74VbTzlkepb68");'></div>
         </div>
       </div>
     </header>
     <main class="flex-grow flex justify-center py-6 px-4 sm:px-6 lg:px-8">
-      <div class="w-full max-w-[800px] flex flex-col gap-6">
-        <div class="flex flex-wrap justify-between items-end gap-4">
-          <div class="flex flex-col gap-1">
-            <h1 class="text-[#121317] dark:text-white tracking-tight text-[32px] font-bold leading-tight">انتخاب نوع سرویس</h1>
-            <p class="text-[#666e85] dark:text-gray-400 text-sm font-normal leading-normal">لطفاً دسته‌بندی سرویس مورد نظر خود را از لیست زیر انتخاب کنید</p>
-          </div>
-          <div class="flex items-center gap-2 bg-white dark:bg-gray-800 p-1.5 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
-            <span class="material-symbols-outlined text-gray-500 ms-2">directions_car</span>
-            <span class="text-sm font-semibold text-slate-700 dark:text-gray-200 px-2 py-1">پژو ۲۰۶ تیپ ۵ - ۱۴۰۱</span>
-          </div>
-        </div>
-        <div class="bg-white dark:bg-[#1A202C] rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800 p-1 overflow-hidden flex flex-col">
-          <div class="p-4 border-b border-gray-100 dark:border-gray-800 sticky top-0 bg-white dark:bg-[#1A202C] z-10">
-            <div class="relative">
-              <span class="absolute top-1/2 right-4 -translate-y-1/2 text-gray-400 material-symbols-outlined">search</span>
-              <input class="w-full h-12 pr-12 pl-4 rounded-xl bg-gray-50 dark:bg-gray-900 border-none focus:ring-2 focus:ring-primary text-sm transition-shadow" placeholder="جستجوی سرویس (مثلاً تعویض روغن)..." type="text" />
-            </div>
-          </div>
-          <div class="flex flex-col">
-            <div class="border-b border-gray-100 dark:border-gray-800">
-              <button class="w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group text-right">
-                <div class="flex items-center gap-4">
-                  <div class="size-12 rounded-xl bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
-                    <span class="material-symbols-outlined text-2xl">oil_barrel</span>
-                  </div>
-                  <div class="flex flex-col gap-0.5">
-                    <h3 class="font-bold text-gray-900 dark:text-white text-base group-hover:text-primary transition-colors">روغن موتور</h3>
-                    <p class="text-xs text-gray-500 dark:text-gray-400">۳ سرویس موجود</p>
-                  </div>
-                </div>
-                <span class="material-symbols-outlined text-gray-400 group-hover:text-primary transition-colors">expand_less</span>
-              </button>
-              <div class="bg-gray-50/50 dark:bg-gray-900/30 px-4 pb-4 pt-1">
-                <div class="flex flex-col gap-2 border-r-2 border-gray-200 dark:border-gray-700 mr-6 pr-4 py-2">
-                  <label class="relative flex items-center justify-between p-3 rounded-xl bg-white dark:bg-gray-800 border-2 border-primary/20 dark:border-primary/40 shadow-sm cursor-pointer transition-all hover:border-primary">
-                    <div class="flex items-center gap-3">
-                      <div class="relative flex items-center">
-                        <input checked class="peer h-5 w-5 border-gray-300 text-primary focus:ring-primary" name="service_selection" type="radio" />
-                      </div>
-                      <div class="flex flex-col">
-                        <span class="text-sm font-bold text-gray-900 dark:text-white">تعویض روغن موتور</span>
-                        <span class="text-xs text-gray-500 dark:text-gray-400">شامل اجرت تعویض و بازرسی</span>
-                      </div>
-                    </div>
-                    <span class="text-xs font-bold text-primary dark:text-blue-400 bg-primary/10 px-2 py-1 rounded-md">انتخاب شده</span>
-                  </label>
-                  <label class="relative flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-gray-800 border border-transparent hover:border-gray-200 dark:hover:border-gray-700 cursor-pointer transition-all hover:shadow-sm group/item">
-                    <div class="relative flex items-center">
-                      <input class="peer h-5 w-5 border-gray-300 text-primary focus:ring-primary" name="service_selection" type="radio" />
-                    </div>
-                    <div class="flex flex-col">
-                      <span class="text-sm font-medium text-gray-700 dark:text-gray-200 group-hover/item:text-primary transition-colors">فیلتر روغن</span>
-                      <span class="text-xs text-gray-500 dark:text-gray-400">تعویض فیلتر روغن اصلی</span>
-                    </div>
-                  </label>
-                  <label class="relative flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-gray-800 border border-transparent hover:border-gray-200 dark:hover:border-gray-700 cursor-pointer transition-all hover:shadow-sm group/item">
-                    <div class="relative flex items-center">
-                      <input class="peer h-5 w-5 border-gray-300 text-primary focus:ring-primary" name="service_selection" type="radio" />
-                    </div>
-                    <div class="flex flex-col">
-                      <span class="text-sm font-medium text-gray-700 dark:text-gray-200 group-hover/item:text-primary transition-colors">فیلتر هوا</span>
-                      <span class="text-xs text-gray-500 dark:text-gray-400">تعویض فیلتر هوای موتور</span>
-                    </div>
-                  </label>
-                </div>
-              </div>
-            </div>
-            <div class="border-b border-gray-100 dark:border-gray-800">
-              <button class="w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group text-right">
-                <div class="flex items-center gap-4">
-                  <div class="size-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
-                    <span class="material-symbols-outlined text-2xl">tire_repair</span>
-                  </div>
-                  <div class="flex flex-col gap-0.5">
-                    <h3 class="font-bold text-gray-900 dark:text-white text-base group-hover:text-primary transition-colors">تایر و چرخ</h3>
-                    <p class="text-xs text-gray-500 dark:text-gray-400">۴ سرویس موجود</p>
-                  </div>
-                </div>
-                <span class="material-symbols-outlined text-gray-400 group-hover:text-primary transition-colors">expand_more</span>
-              </button>
-            </div>
-            <div class="border-b border-gray-100 dark:border-gray-800">
-              <button class="w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group text-right">
-                <div class="flex items-center gap-4">
-                  <div class="size-12 rounded-xl bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
-                    <span class="material-symbols-outlined text-2xl">battery_charging_full</span>
-                  </div>
-                  <div class="flex flex-col gap-0.5">
-                    <h3 class="font-bold text-gray-900 dark:text-white text-base group-hover:text-primary transition-colors">باتری و برق</h3>
-                    <p class="text-xs text-gray-500 dark:text-gray-400">۲ سرویس موجود</p>
-                  </div>
-                </div>
-                <span class="material-symbols-outlined text-gray-400 group-hover:text-primary transition-colors">expand_more</span>
-              </button>
-            </div>
-            <div class="border-b border-gray-100 dark:border-gray-800">
-              <button class="w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group text-right">
-                <div class="flex items-center gap-4">
-                  <div class="size-12 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
-                    <span class="material-symbols-outlined text-2xl">settings_b_roll</span>
-                  </div>
-                  <div class="flex flex-col gap-0.5">
-                    <h3 class="font-bold text-gray-900 dark:text-white text-base group-hover:text-primary transition-colors">گیربکس و انتقال قدرت</h3>
-                    <p class="text-xs text-gray-500 dark:text-gray-400">۳ سرویس موجود</p>
-                  </div>
-                </div>
-                <span class="material-symbols-outlined text-gray-400 group-hover:text-primary transition-colors">expand_more</span>
-              </button>
-            </div>
-            <div class="border-b border-gray-100 dark:border-gray-800">
-              <button class="w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group text-right">
-                <div class="flex items-center gap-4">
-                  <div class="size-12 rounded-xl bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
-                    <span class="material-symbols-outlined text-2xl">security</span>
-                  </div>
-                  <div class="flex flex-col gap-0.5">
-                    <h3 class="font-bold text-gray-900 dark:text-white text-base group-hover:text-primary transition-colors">ترمز و ایمنی</h3>
-                    <p class="text-xs text-gray-500 dark:text-gray-400">۵ سرویس موجود</p>
-                  </div>
-                </div>
-                <span class="material-symbols-outlined text-gray-400 group-hover:text-primary transition-colors">expand_more</span>
-              </button>
-            </div>
-            <div class="border-b border-gray-100 dark:border-gray-800">
-              <button class="w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group text-right">
-                <div class="flex items-center gap-4">
-                  <div class="size-12 rounded-xl bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
-                    <span class="material-symbols-outlined text-2xl">ac_unit</span>
-                  </div>
-                  <div class="flex flex-col gap-0.5">
-                    <h3 class="font-bold text-gray-900 dark:text-white text-base group-hover:text-primary transition-colors">تهویه مطبوع</h3>
-                    <p class="text-xs text-gray-500 dark:text-gray-400">۱ سرویس موجود</p>
-                  </div>
-                </div>
-                <span class="material-symbols-outlined text-gray-400 group-hover:text-primary transition-colors">expand_more</span>
-              </button>
-            </div>
-            <div class="border-b border-gray-100 dark:border-gray-800">
-              <button class="w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group text-right">
-                <div class="flex items-center gap-4">
-                  <div class="size-12 rounded-xl bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
-                    <span class="material-symbols-outlined text-2xl">car_crash</span>
-                  </div>
-                  <div class="flex flex-col gap-0.5">
-                    <h3 class="font-bold text-gray-900 dark:text-white text-base group-hover:text-primary transition-colors">بدنه و ظاهر</h3>
-                    <p class="text-xs text-gray-500 dark:text-gray-400">خدمات کارواش و صافکاری</p>
-                  </div>
-                </div>
-                <span class="material-symbols-outlined text-gray-400 group-hover:text-primary transition-colors">expand_more</span>
-              </button>
-            </div>
-          </div>
-          <div class="bg-gray-50 dark:bg-gray-800/50 p-4 flex flex-col sm:flex-row justify-between items-center gap-4 border-t border-gray-100 dark:border-gray-800">
-            <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-              <span class="font-medium text-gray-900 dark:text-white">انتخاب شما:</span>
-              <span>تعویض روغن موتور</span>
-            </div>
-            <div class="flex gap-3 w-full sm:w-auto">
-              <button class="flex-1 sm:flex-none px-6 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium hover:bg-white dark:hover:bg-gray-700 transition-colors">
-                بازگشت
-              </button>
-              <button class="flex-1 sm:flex-none px-6 py-2.5 rounded-xl bg-primary hover:bg-blue-800 text-white font-medium shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center gap-2">
-                <span>تایید و ادامه</span>
-                <span class="material-symbols-outlined text-lg rtl:rotate-180">arrow_back</span>
-              </button>
-            </div>
-          </div>
-        </div>
+      <div class="w-full max-w-[800px]">
+        <ServiceTypeSelector
+          :vehicle-id="route.query.vehicleId"
+          @select="handleServiceTypeSelect"
+          @cancel="handleServiceTypeCancel"
+        />
       </div>
     </main>
   </div>

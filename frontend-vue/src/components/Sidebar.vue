@@ -16,6 +16,10 @@
         <span class="material-symbols-outlined group-hover:text-primary transition-colors">directions_car</span>
         <span class="font-medium text-sm group-hover:text-primary dark:group-hover:text-white transition-colors">گاراژ من</span>
       </router-link>
+      <router-link to="/service-list" class="flex items-center gap-3 px-4 py-3 rounded-xl text-[#666e85] dark:text-gray-300 hover:bg-white/50 dark:hover:bg-white/5 transition-all group">
+        <span class="material-symbols-outlined group-hover:text-primary transition-colors">build</span>
+        <span class="font-medium text-sm group-hover:text-primary dark:group-hover:text-white transition-colors">سرویس‌ها</span>
+      </router-link>
       <router-link to="/reports" class="flex items-center gap-3 px-4 py-3 rounded-xl text-[#666e85] dark:text-gray-300 hover:bg-white/50 dark:hover:bg-white/5 transition-all group">
         <span class="material-symbols-outlined group-hover:text-primary transition-colors">credit_card</span>
         <span class="font-medium text-sm group-hover:text-primary dark:group-hover:text-white transition-colors">هزینه‌ها</span>
