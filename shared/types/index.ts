@@ -202,6 +202,9 @@ export interface ReminderCreateData {
   dueDate?: string;
   dueKm?: number;
   warningDaysBefore?: number;
+  warningKmBefore?: number;
+  type?: string;
+  source?: 'manual' | 'auto';
 }
 
 // جدید: داده ورودی برای ایجاد یادآور از فرم سرویس

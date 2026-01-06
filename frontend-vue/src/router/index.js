@@ -13,6 +13,7 @@ const VehicleListView = () => import('../views/VehicleListView.vue')
 const VehicleDetailsView = () => import('../views/VehicleDetailsView.vue')
 const VehicleManagementView = () => import('../views/VehicleManagementView.vue')
 const RemindersView = () => import('../views/RemindersView.vue')
+const ReminderManagementView = () => import('../views/ReminderManagementView.vue')
 const ReportsView = () => import('../views/ReportsView.vue')
 const SettingsView = () => import('../views/SettingsView.vue')
 const AddServiceView = () => import('../views/AddServiceView.vue')
@@ -72,6 +73,12 @@ const router = createRouter({
       path: '/reminders',
       name: 'reminders',
       component: RemindersView,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/reminder-management',
+      name: 'reminder-management',
+      component: ReminderManagementView,
       meta: { requiresAuth: true }
     },
     {

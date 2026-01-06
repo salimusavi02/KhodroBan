@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { reminderService } from '../services'
 
 export const useReminderStore = defineStore('reminder', () => {
   // State
@@ -9,43 +10,161 @@ export const useReminderStore = defineStore('reminder', () => {
 
   // Getters
   const activeReminders = computed(() => 
-    reminders.value.filter(r => r.status === 'active')
+    reminders.value.filter(r => r.status !== 'ok' && !r.dismissed)
   )
+  
   const overdueReminders = computed(() => 
     reminders.value.filter(r => 
-      r.status === 'active' && new Date(r.dueDate) < new Date()
+      r.status === 'overdue' && !r.dismissed
     )
   )
+  
+  const nearReminders = computed(() => 
+    reminders.value.filter(r => 
+      r.status === 'near' && !r.dismissed
+    )
+  )
+  
   const upcomingReminders = computed(() => 
     reminders.value.filter(r => 
-      r.status === 'active' && new Date(r.dueDate) >= new Date()
-    ).sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
+      (r.status === 'near' || r.status === 'ok') && !r.dismissed
+    ).sort((a, b) => {
+      // Sort by dueKm if available, otherwise by dueDate
+      if (a.dueKm && b.dueKm) {
+        return a.dueKm - b.dueKm
+      }
+      if (a.dueDate && b.dueDate) {
+        return new Date(a.dueDate) - new Date(b.dueDate)
+      }
+      return 0
+    })
+  )
+  
+  const remindersByVehicle = computed(() => (vehicleId) => 
+    reminders.value.filter(r => 
+      String(r.vehicleId) === String(vehicleId) && !r.dismissed
+    )
   )
 
   // Actions
-  const fetchReminders = async (vehicleId) => {
-    // Implementation will be added in later tasks
-    console.log('Fetch reminders action placeholder', vehicleId)
+  const fetchReminders = async (vehicleId = null) => {
+    isLoading.value = true
+    error.value = null
+    
+    try {
+      let data
+      if (vehicleId) {
+        data = await reminderService.getByVehicle(vehicleId)
+      } else {
+        data = await reminderService.getAll()
+      }
+      reminders.value = data
+      return data
+    } catch (err) {
+      error.value = err.message || 'خطا در دریافت لیست یادآورها'
+      throw err
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  const getReminderById = async (id) => {
+    isLoading.value = true
+    error.value = null
+    
+    try {
+      const reminder = await reminderService.getById(id)
+      // Update in list if exists
+      const index = reminders.value.findIndex(r => r.id === id)
+      if (index !== -1) {
+        reminders.value[index] = reminder
+      }
+      return reminder
+    } catch (err) {
+      error.value = err.message || 'خطا در دریافت اطلاعات یادآور'
+      throw err
+    } finally {
+      isLoading.value = false
+    }
   }
 
   const createReminder = async (data) => {
-    // Implementation will be added in later tasks
-    console.log('Create reminder action placeholder', data)
+    isLoading.value = true
+    error.value = null
+    
+    try {
+      const newReminder = await reminderService.create(data)
+      reminders.value.unshift(newReminder)
+      return newReminder
+    } catch (err) {
+      error.value = err.message || 'خطا در افزودن یادآور'
+      throw err
+    } finally {
+      isLoading.value = false
+    }
   }
 
   const updateReminder = async (id, data) => {
-    // Implementation will be added in later tasks
-    console.log('Update reminder action placeholder', id, data)
+    isLoading.value = true
+    error.value = null
+    
+    try {
+      const updatedReminder = await reminderService.update(id, data)
+      const index = reminders.value.findIndex(r => r.id === id)
+      if (index !== -1) {
+        reminders.value[index] = updatedReminder
+      }
+      return updatedReminder
+    } catch (err) {
+      error.value = err.message || 'خطا در به‌روزرسانی یادآور'
+      throw err
+    } finally {
+      isLoading.value = false
+    }
   }
 
   const deleteReminder = async (id) => {
-    // Implementation will be added in later tasks
-    console.log('Delete reminder action placeholder', id)
+    isLoading.value = true
+    error.value = null
+    
+    try {
+      await reminderService.delete(id)
+      const index = reminders.value.findIndex(r => r.id === id)
+      if (index !== -1) {
+        reminders.value.splice(index, 1)
+      }
+    } catch (err) {
+      error.value = err.message || 'خطا در حذف یادآور'
+      throw err
+    } finally {
+      isLoading.value = false
+    }
   }
 
   const markCompleted = async (id) => {
-    // Implementation will be added in later tasks
-    console.log('Mark reminder completed action placeholder', id)
+    isLoading.value = true
+    error.value = null
+    
+    try {
+      await reminderService.dismiss(id)
+      const index = reminders.value.findIndex(r => r.id === id)
+      if (index !== -1) {
+        reminders.value[index].dismissed = true
+      }
+    } catch (err) {
+      error.value = err.message || 'خطا در علامت‌گذاری یادآور'
+      throw err
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  const refreshReminders = async () => {
+    return await fetchReminders()
+  }
+
+  const clearError = () => {
+    error.value = null
   }
 
   return {
@@ -56,12 +175,17 @@ export const useReminderStore = defineStore('reminder', () => {
     // Getters
     activeReminders,
     overdueReminders,
+    nearReminders,
     upcomingReminders,
+    remindersByVehicle,
     // Actions
     fetchReminders,
+    getReminderById,
     createReminder,
     updateReminder,
     deleteReminder,
-    markCompleted
+    markCompleted,
+    refreshReminders,
+    clearError
   }
 })

@@ -23,7 +23,8 @@
     "currency": "تومان",
     "optional": "اختیاری",
     "selected": "انتخاب شده",
-    "actions": "عملیات"
+    "actions": "عملیات",
+    "km": "کیلومتر"
   },
   "auth": {
     "login": "ورود",
@@ -100,6 +101,7 @@
     "vehicleList": "لیست خودروها",
     "noVehicles": "هیچ خودرویی یافت نشد.",
     "vehicleDetails": "جزئیات خودرو",
+    "selectVehicle": "انتخاب خودرو...",
     "make": "برند",
     "model": "مدل",
     "year": "سال ساخت",
@@ -457,6 +459,96 @@
       "pro": "طرح حرفه‌ای",
       "proPlus": "طرح حرفه‌ای پلاس"
     }
+  },
+  "reminders": {
+    "title": "یادآورها",
+    "addReminder": "افزودن یادآور",
+    "addReminderDescription": "تنظیم هشدارهای سفارشی برای کیلومتر یا تاریخ",
+    "editReminder": "ویرایش یادآور",
+    "editReminderDescription": "ویرایش اطلاعات یادآور",
+    "allReminders": "همه یادآورها",
+    "overdue": "معوقه",
+    "overdueKm": "گذشته از موعد: {km} کیلومتر",
+    "near": "نزدیک به موعد",
+    "remainingKm": "{km} کیلومتر باقی‌مانده",
+    "active": "فعال",
+    "completed": "انجام شده",
+    "empty": "یادآوری وجود ندارد",
+    "emptyDescription": "هنوز یادآوری ایجاد نکرده‌اید",
+    "targetKm": "هدف: {km} کیلومتر",
+    "loadingError": "خطا در بارگذاری یادآورها",
+    "createSuccess": "یادآور با موفقیت ایجاد شد",
+    "createError": "خطا در ایجاد یادآور",
+    "updateSuccess": "یادآور با موفقیت به‌روزرسانی شد",
+    "updateError": "خطا در به‌روزرسانی یادآور",
+    "deleteSuccess": "یادآور با موفقیت حذف شد",
+    "deleteError": "خطا در حذف یادآور",
+    "deleteConfirm": "آیا از حذف این یادآور اطمینان دارید؟",
+    "markCompletedSuccess": "یادآور به عنوان انجام شده علامت‌گذاری شد",
+    "markCompletedError": "خطا در علامت‌گذاری یادآور",
+    "createFromService": "ایجاد یادآور برای این سرویس",
+    "createFromServiceDescription": "یادآور خودکار برای سرویس بعدی ایجاد می‌شود",
+    "autoReminder": "یادآور خودکار",
+    "filter": {
+      "all": "همه",
+      "overdue": "معوقه",
+      "near": "نزدیک به موعد",
+      "active": "فعال"
+    },
+    "status": {
+      "ok": "عادی",
+      "near": "نزدیک به موعد",
+      "overdue": "معوقه"
+    },
+    "form": {
+      "title": "عنوان",
+      "titlePlaceholder": "مثلاً: تعویض روغن موتور",
+      "description": "توضیحات",
+      "descriptionPlaceholder": "توضیحات اختیاری",
+      "vehicle": "خودرو",
+      "reminderType": "نوع یادآور",
+      "both": "زمانی و کیلومتری",
+      "timeOnly": "فقط زمانی",
+      "kmOnly": "فقط کیلومتری",
+      "timeInterval": "بازه زمانی",
+      "kmInterval": "بازه کیلومتری",
+      "kmIntervalPlaceholder": "مثلاً: 5000",
+      "dueDate": "تاریخ موعد",
+      "dueKm": "کیلومتر سررسید",
+      "warningDaysBefore": "هشدار چند روز قبل",
+      "warningKmBefore": "هشدار چند کیلومتر قبل",
+      "calculatedDate": "تاریخ محاسبه شده: {date}",
+      "calculatedKm": "کیلومتر موعد: {km}",
+      "currentKm": "کارکرد فعلی",
+      "selectVehicleForKm": "برای استفاده از یادآور کیلومتری، ابتدا خودرو را انتخاب کنید",
+      "days": "روز",
+      "weeks": "هفته",
+      "months": "ماه",
+      "titleRequired": "عنوان الزامی است",
+      "vehicleRequired": "انتخاب خودرو الزامی است"
+    },
+    "presets": {
+      "10days": "۱۰ روز دیگر",
+      "30days": "۳۰ روز دیگر",
+      "90days": "۹۰ روز دیگر",
+      "custom": "سفارشی"
+    }
+  },
+  "notifications": {
+    "title": "اعلان‌ها",
+    "empty": "اعلانی وجود ندارد",
+    "markAsRead": "علامت‌گذاری به عنوان خوانده شده",
+    "markAllAsRead": "علامت‌گذاری همه به عنوان خوانده شده",
+    "allMarkedAsRead": "همه اعلان‌ها به عنوان خوانده شده علامت‌گذاری شدند",
+    "markedAsRead": "اعلان به عنوان خوانده شده علامت‌گذاری شد",
+    "deleted": "اعلان حذف شد",
+    "markError": "خطا در علامت‌گذاری اعلان",
+    "deleteError": "خطا در حذف اعلان",
+    "viewAll": "مشاهده همه",
+    "justNow": "همین الان",
+    "minutesAgo": "{{count}} دقیقه پیش",
+    "hoursAgo": "{{count}} ساعت پیش",
+    "daysAgo": "{{count}} روز پیش"
   }
 }
 

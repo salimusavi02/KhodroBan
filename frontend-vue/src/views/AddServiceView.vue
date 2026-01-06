@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useServiceStore } from '../stores/service'
@@ -7,6 +7,7 @@ import { useVehicleStore } from '../stores/vehicle'
 import { useServiceTypeStore } from '../stores/serviceType'
 import { useExpenseCategoryStore } from '../stores/expenseCategory'
 import { useExpenseStore } from '../stores/expense'
+import { useReminderStore } from '../stores/reminder'
 import { useToast } from '../composables/useToast'
 import MainLayout from '../components/MainLayout.vue'
 import { Button, Input, Select, Card, LoadingSpinner, Modal } from '../components/ui'
@@ -20,6 +21,7 @@ const vehicleStore = useVehicleStore()
 const serviceTypeStore = useServiceTypeStore()
 const expenseCategoryStore = useExpenseCategoryStore()
 const expenseStore = useExpenseStore()
+const reminderStore = useReminderStore()
 const toast = useToast()
 
 // Form state
@@ -34,6 +36,10 @@ const formData = ref({
   note: '',
   shopName: ''
 })
+
+// Reminder state
+const createReminderAfterService = ref(false)
+const reminderInterval = ref({ days: 90, km: 5000 })
 
 const formErrors = ref({})
 const isSubmitting = ref(false)
@@ -172,8 +178,38 @@ const handleSubmit = async () => {
         note: formData.value.note || undefined
       }
       
-      await serviceStore.createService(serviceData)
+      const createdService = await serviceStore.createService(serviceData)
       toast.success(t('services.add.success'))
+      
+      // Create reminder if requested
+      if (createReminderAfterService.value && createdService?.id) {
+        try {
+          const serviceType = serviceData.types[0] || serviceData.type
+          const serviceTypeLabel = serviceTypeStore.getServiceTypeLabel(serviceType)
+          
+          // Get default intervals based on service type
+          const defaultIntervals = getDefaultIntervalsForServiceType(serviceType)
+          
+          const reminderData = {
+            title: t('reminders.autoReminder') + ': ' + serviceTypeLabel,
+            description: serviceData.note || null,
+            vehicleId: serviceData.vehicleId,
+            serviceId: createdService.id,
+            source: 'auto',
+            type: serviceType,
+            dueDate: calculateDueDate(reminderInterval.value.days),
+            dueKm: calculateDueKm(serviceData.km, reminderInterval.value.km),
+            warningDaysBefore: 7,
+            warningKmBefore: 500
+          }
+          
+          await reminderStore.createReminder(reminderData)
+          toast.success(t('reminders.createFromService'))
+        } catch (reminderError) {
+          console.error('Error creating reminder:', reminderError)
+          // Don't show error to user - service was created successfully
+        }
+      }
     } else {
       // Create expense
       const expenseData = {
@@ -184,8 +220,37 @@ const handleSubmit = async () => {
         description: formData.value.note || undefined
       }
       
-      await expenseStore.createExpense(expenseData)
+      const createdExpense = await expenseStore.createExpense(expenseData)
       toast.success(t('expenses.add.success', 'هزینه با موفقیت ثبت شد'))
+      
+      // Create reminder if requested
+      if (createReminderAfterService.value && createdExpense?.id) {
+        try {
+          const expenseCategoryLabel = expenseCategoryStore.getExpenseCategoryLabel(formData.value.category)
+          
+          // Get current km from vehicle
+          const selectedVehicle = vehicleStore.vehicles.find(v => v.id === formData.value.vehicleId)
+          const currentKm = selectedVehicle?.currentKm || 0
+          
+          const reminderData = {
+            title: t('reminders.autoReminder') + ': ' + expenseCategoryLabel,
+            description: formData.value.note || undefined,
+            vehicleId: formData.value.vehicleId,
+            serviceId: null,
+            source: 'auto',
+            dueDate: calculateDueDate(reminderInterval.value.days),
+            dueKm: currentKm > 0 ? calculateDueKm(currentKm.toString(), reminderInterval.value.km) : null,
+            warningDaysBefore: 7,
+            warningKmBefore: 500
+          }
+          
+          await reminderStore.createReminder(reminderData)
+          toast.success(t('reminders.createFromService'))
+        } catch (reminderError) {
+          console.error('Error creating reminder:', reminderError)
+          // Don't show error to user - expense was created successfully
+        }
+      }
     }
     
     // Navigate back to dashboard
@@ -204,6 +269,51 @@ const handleSubmit = async () => {
 const handleCancel = () => {
   router.back()
 }
+
+// Helper functions for reminders
+const getDefaultIntervalsForServiceType = (serviceType) => {
+  // Default intervals based on service type
+  const defaults = {
+    'oil_change': { days: 90, km: 5000 },
+    'filter': { days: 180, km: 10000 },
+    'brakes': { days: 365, km: 20000 },
+    'battery': { days: 730, km: 50000 },
+    'tire': { days: 1095, km: 50000 },
+    'alignment': { days: 365, km: 20000 },
+    'suspension': { days: 365, km: 20000 },
+    'transmission': { days: 365, km: 30000 },
+    'cooling': { days: 730, km: 40000 },
+    'electrical': { days: 365, km: 20000 },
+    'ac': { days: 365, km: 20000 },
+    'exhaust': { days: 730, km: 50000 },
+    'clutch': { days: 1095, km: 60000 },
+    'body': { days: 1095, km: 50000 },
+    'glass': { days: 1095, km: 50000 },
+    'lighting': { days: 365, km: 20000 },
+    'other': { days: 90, km: 5000 }
+  }
+  
+  return defaults[serviceType] || defaults['other']
+}
+
+const calculateDueDate = (days) => {
+  const date = new Date()
+  date.setDate(date.getDate() + days)
+  return date.toISOString().split('T')[0]
+}
+
+const calculateDueKm = (currentKm, intervalKm) => {
+  return parseInt(currentKm) + parseInt(intervalKm)
+}
+
+// Watch service type to update reminder intervals
+watch(() => formData.value.types, (newTypes) => {
+  if (newTypes.length > 0 && createReminderAfterService.value) {
+    const serviceType = newTypes[0]
+    const intervals = getDefaultIntervalsForServiceType(serviceType)
+    reminderInterval.value = intervals
+  }
+}, { immediate: true })
 
 const handleRefresh = async () => {
   try {
@@ -596,6 +706,58 @@ onMounted(async () => {
               </div>
             </div>
             
+            <!-- Reminder Section (only for service tab) -->
+            <div v-if="activeTab === 'service'" class="mt-6 p-4 bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-800 rounded-xl">
+              <div class="flex items-start gap-3">
+                <input
+                  id="create-reminder"
+                  v-model="createReminderAfterService"
+                  type="checkbox"
+                  class="mt-1 w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+                />
+                <div class="flex-1">
+                  <label for="create-reminder" class="text-sm font-medium text-[#121317] dark:text-white cursor-pointer">
+                    {{ t('reminders.createFromService') }}
+                  </label>
+                  <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                    {{ t('reminders.createFromServiceDescription') }}
+                  </p>
+                  
+                  <!-- Reminder intervals (shown when checkbox is checked) -->
+                  <div v-if="createReminderAfterService" class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label class="block text-xs font-medium mb-1 text-gray-700 dark:text-gray-300">
+                        {{ t('reminders.form.timeInterval') }}
+                      </label>
+                      <div class="flex gap-2">
+                        <Input
+                          v-model.number="reminderInterval.days"
+                          type="number"
+                          min="1"
+                          class="flex-1"
+                        />
+                        <span class="text-xs text-gray-500 self-center">{{ t('reminders.form.days') }}</span>
+                      </div>
+                    </div>
+                    <div>
+                      <label class="block text-xs font-medium mb-1 text-gray-700 dark:text-gray-300">
+                        {{ t('reminders.form.kmInterval') }}
+                      </label>
+                      <div class="flex gap-2">
+                        <Input
+                          v-model.number="reminderInterval.km"
+                          type="number"
+                          min="1"
+                          class="flex-1"
+                        />
+                        <span class="text-xs text-gray-500 self-center">{{ t('common.km') }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
           </div>
           
           <div 
@@ -711,6 +873,58 @@ onMounted(async () => {
                 :placeholder="$t('services.add.notePlaceholder')"
               ></textarea>
             </label>
+          </div>
+          
+          <!-- Reminder Section (for expense tab) -->
+          <div v-if="activeTab === 'expense'" class="mt-6 p-4 bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-800 rounded-xl">
+            <div class="flex items-start gap-3">
+              <input
+                id="create-reminder-expense"
+                v-model="createReminderAfterService"
+                type="checkbox"
+                class="mt-1 w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+              />
+              <div class="flex-1">
+                <label for="create-reminder-expense" class="text-sm font-medium text-[#121317] dark:text-white cursor-pointer">
+                  {{ t('reminders.createFromService') }}
+                </label>
+                <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                  {{ t('reminders.createFromServiceDescription') }}
+                </p>
+                
+                <!-- Reminder intervals (shown when checkbox is checked) -->
+                <div v-if="createReminderAfterService" class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-xs font-medium mb-1 text-gray-700 dark:text-gray-300">
+                      {{ t('reminders.form.timeInterval') }}
+                    </label>
+                    <div class="flex gap-2">
+                      <Input
+                        v-model.number="reminderInterval.days"
+                        type="number"
+                        min="1"
+                        class="flex-1"
+                      />
+                      <span class="text-xs text-gray-500 self-center">{{ t('reminders.form.days') }}</span>
+                    </div>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-medium mb-1 text-gray-700 dark:text-gray-300">
+                      {{ t('reminders.form.kmInterval') }}
+                    </label>
+                    <div class="flex gap-2">
+                      <Input
+                        v-model.number="reminderInterval.km"
+                        type="number"
+                        min="1"
+                        class="flex-1"
+                      />
+                      <span class="text-xs text-gray-500 self-center">{{ t('common.km') }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
           
           <!-- Error display -->

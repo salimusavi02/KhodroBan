@@ -12,10 +12,7 @@
       <button class="flex items-center justify-center w-10 h-10 rounded-full bg-white dark:bg-[#1e293b] text-[#666e85] hover:text-primary shadow-sm transition-colors border border-gray-100 dark:border-gray-700">
         <span class="material-symbols-outlined text-[20px]">search</span>
       </button>
-      <button class="relative flex items-center justify-center w-10 h-10 rounded-full bg-white dark:bg-[#1e293b] text-[#666e85] hover:text-primary shadow-sm transition-colors border border-gray-100 dark:border-gray-700">
-        <span class="material-symbols-outlined text-[20px]">notifications</span>
-        <span class="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
-      </button>
+      <NotificationBell />
       <div class="h-8 w-[1px] bg-gray-200 dark:bg-gray-700 mx-2"></div>
       <div class="relative">
         <div 
@@ -68,6 +65,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import LanguageSwitcher from './LanguageSwitcher.vue'
+import NotificationBell from './NotificationBell.vue'
 import { useAuthStore } from '../stores/auth'
 import { useUIStore } from '../stores/ui'
 

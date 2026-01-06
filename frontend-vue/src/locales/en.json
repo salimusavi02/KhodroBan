@@ -23,7 +23,8 @@
     "currency": "Toman",
     "optional": "Optional",
     "selected": "Selected",
-    "actions": "Actions"
+    "actions": "Actions",
+    "km": "km"
   },
   "auth": {
     "login": "Login",
@@ -100,6 +101,7 @@
     "vehicleList": "Vehicle List",
     "noVehicles": "No vehicles found.",
     "vehicleDetails": "Vehicle Details",
+    "selectVehicle": "Select vehicle...",
     "make": "Make",
     "model": "Model",
     "year": "Year",
@@ -403,6 +405,96 @@
       "pro": "Pro Plan",
       "proPlus": "Pro+ Plan"
     }
+  },
+  "reminders": {
+    "title": "Reminders",
+    "addReminder": "Add Reminder",
+    "addReminderDescription": "Set custom alerts for mileage or date",
+    "editReminder": "Edit Reminder",
+    "editReminderDescription": "Edit reminder information",
+    "allReminders": "All Reminders",
+    "overdue": "Overdue",
+    "overdueKm": "Past due: {km} km",
+    "near": "Near due",
+    "remainingKm": "{km} km remaining",
+    "active": "Active",
+    "completed": "Completed",
+    "empty": "No reminders found",
+    "emptyDescription": "You haven't created any reminders yet",
+    "targetKm": "Target: {km} km",
+    "loadingError": "Error loading reminders",
+    "createSuccess": "Reminder created successfully",
+    "createError": "Error creating reminder",
+    "updateSuccess": "Reminder updated successfully",
+    "updateError": "Error updating reminder",
+    "deleteSuccess": "Reminder deleted successfully",
+    "deleteError": "Error deleting reminder",
+    "deleteConfirm": "Are you sure you want to delete this reminder?",
+    "markCompletedSuccess": "Reminder marked as completed",
+    "markCompletedError": "Error marking reminder as completed",
+    "createFromService": "Create reminder for this service",
+    "createFromServiceDescription": "Automatic reminder will be created for next service",
+    "autoReminder": "Auto Reminder",
+    "filter": {
+      "all": "All",
+      "overdue": "Overdue",
+      "near": "Near Due",
+      "active": "Active"
+    },
+    "status": {
+      "ok": "Normal",
+      "near": "Near Due",
+      "overdue": "Overdue"
+    },
+    "form": {
+      "title": "Title",
+      "titlePlaceholder": "e.g., Oil Change",
+      "description": "Description",
+      "descriptionPlaceholder": "Optional description",
+      "vehicle": "Vehicle",
+      "reminderType": "Reminder Type",
+      "both": "Time & Distance",
+      "timeOnly": "Time Only",
+      "kmOnly": "Distance Only",
+      "timeInterval": "Time Interval",
+      "kmInterval": "Distance Interval",
+      "kmIntervalPlaceholder": "e.g., 5000",
+      "dueDate": "Due Date",
+      "dueKm": "Due Mileage",
+      "warningDaysBefore": "Warning days before",
+      "warningKmBefore": "Warning km before",
+      "calculatedDate": "Calculated date: {date}",
+      "calculatedKm": "Due mileage: {km}",
+      "currentKm": "Current Mileage",
+      "selectVehicleForKm": "Select a vehicle first to use distance reminders",
+      "days": "days",
+      "weeks": "weeks",
+      "months": "months",
+      "titleRequired": "Title is required",
+      "vehicleRequired": "Vehicle selection is required"
+    },
+    "presets": {
+      "10days": "10 days later",
+      "30days": "30 days later",
+      "90days": "90 days later",
+      "custom": "Custom"
+    }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "No notifications",
+    "markAsRead": "Mark as read",
+    "markAllAsRead": "Mark all as read",
+    "allMarkedAsRead": "All notifications marked as read",
+    "markedAsRead": "Notification marked as read",
+    "deleted": "Notification deleted",
+    "markError": "Error marking notification",
+    "deleteError": "Error deleting notification",
+    "viewAll": "View All",
+    "justNow": "Just now",
+    "minutesAgo": "{{count}} minutes ago",
+    "hoursAgo": "{{count}} hours ago",
+    "daysAgo": "{{count}} days ago"
   }
 }
 

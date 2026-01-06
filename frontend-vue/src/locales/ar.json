@@ -23,7 +23,8 @@
     "currency": "دینار",
     "optional": "اختياري",
     "selected": "محدد",
-    "actions": "الإجراءات"
+    "actions": "الإجراءات",
+    "km": "كم"
   },
   "auth": {
     "login": "تسجيل الدخول",
@@ -100,6 +101,7 @@
     "vehicleList": "قائمة المركبات",
     "noVehicles": "لم يتم العثور على مركبات.",
     "vehicleDetails": "تفاصيل المركبة",
+    "selectVehicle": "اختر المركبة...",
     "make": "الماركة",
     "model": "الموديل",
     "year": "سنة الصنع",
@@ -403,6 +405,96 @@
       "pro": "الخطة الاحترافية",
       "proPlus": "الخطة الاحترافية بلس"
     }
+  },
+  "reminders": {
+    "title": "التذكيرات",
+    "addReminder": "إضافة تذكير",
+    "addReminderDescription": "تعيين تنبيهات مخصصة للمسافة أو التاريخ",
+    "editReminder": "تعديل التذكير",
+    "editReminderDescription": "تعديل معلومات التذكير",
+    "allReminders": "جميع التذكيرات",
+    "overdue": "متأخر",
+    "overdueKm": "تجاوز الموعد: {km} كم",
+    "near": "قرب الموعد",
+    "remainingKm": "{km} كم متبقي",
+    "active": "نشط",
+    "completed": "مكتمل",
+    "empty": "لا توجد تذكيرات",
+    "emptyDescription": "لم تقم بإنشاء أي تذكيرات بعد",
+    "targetKm": "الهدف: {km} كم",
+    "loadingError": "خطأ في تحميل التذكيرات",
+    "createSuccess": "تم إنشاء التذكير بنجاح",
+    "createError": "خطأ في إنشاء التذكير",
+    "updateSuccess": "تم تحديث التذكير بنجاح",
+    "updateError": "خطأ في تحديث التذكير",
+    "deleteSuccess": "تم حذف التذكير بنجاح",
+    "deleteError": "خطأ في حذف التذكير",
+    "deleteConfirm": "هل أنت متأكد من رغبتك في حذف هذا التذكير؟",
+    "markCompletedSuccess": "تم تعليم التذكير كمكتمل",
+    "markCompletedError": "خطأ في تعليم التذكير كمكتمل",
+    "createFromService": "إنشاء تذكير لهذه الخدمة",
+    "createFromServiceDescription": "سيتم إنشاء تذكير تلقائي للخدمة التالية",
+    "autoReminder": "تذكير تلقائي",
+    "filter": {
+      "all": "الكل",
+      "overdue": "متأخر",
+      "near": "قرب الموعد",
+      "active": "نشط"
+    },
+    "status": {
+      "ok": "عادي",
+      "near": "قرب الموعد",
+      "overdue": "متأخر"
+    },
+    "form": {
+      "title": "العنوان",
+      "titlePlaceholder": "مثال: تغيير زيت المحرك",
+      "description": "الوصف",
+      "descriptionPlaceholder": "وصف اختياري",
+      "vehicle": "المركبة",
+      "reminderType": "نوع التذكير",
+      "both": "زمني ومسافات",
+      "timeOnly": "زمني فقط",
+      "kmOnly": "مسافات فقط",
+      "timeInterval": "الفاصل الزمني",
+      "kmInterval": "الفاصل المسافات",
+      "kmIntervalPlaceholder": "مثال: 5000",
+      "dueDate": "تاريخ الاستحقاق",
+      "dueKm": "مسافة الاستحقاق",
+      "warningDaysBefore": "تنبيه قبل (أيام)",
+      "warningKmBefore": "تنبيه قبل (كم)",
+      "calculatedDate": "التاريخ المحسوب: {date}",
+      "calculatedKm": "مسافة الاستحقاق: {km}",
+      "currentKm": "المسافة الحالية",
+      "selectVehicleForKm": "اختر مركبة أولاً لاستخدام تذكيرات المسافات",
+      "days": "أيام",
+      "weeks": "أسابيع",
+      "months": "شهور",
+      "titleRequired": "العنوان مطلوب",
+      "vehicleRequired": "اختيار المركبة مطلوب"
+    },
+    "presets": {
+      "10days": "10 أيام قادمة",
+      "30days": "30 يوماً قادماً",
+      "90days": "90 يوماً قادماً",
+      "custom": "مخصص"
+    }
+  },
+  "notifications": {
+    "title": "الإشعارات",
+    "empty": "لا توجد إشعارات",
+    "markAsRead": "وضع علامة مقروء",
+    "markAllAsRead": "وضع علامة مقروء للكل",
+    "allMarkedAsRead": "تم وضع علامة مقروء لجميع الإشعارات",
+    "markedAsRead": "تم وضع علامة مقروء للإشعار",
+    "deleted": "تم حذف الإشعار",
+    "markError": "خطأ في وضع علامة مقروء",
+    "deleteError": "خطأ في حذف الإشعار",
+    "viewAll": "عرض الكل",
+    "justNow": "الآن",
+    "minutesAgo": "قبل {{count}} دقيقة",
+    "hoursAgo": "قبل {{count}} ساعة",
+    "daysAgo": "قبل {{count}} يوم"
   }
 }
 

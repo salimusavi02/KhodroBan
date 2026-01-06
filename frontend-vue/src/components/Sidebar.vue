@@ -1,3 +1,11 @@
+<script setup>
+import { computed } from 'vue'
+import { useNotificationStore } from '../stores/notification'
+
+const notificationStore = useNotificationStore()
+const unreadCount = computed(() => notificationStore.unreadCount)
+</script>
+
 <template>
   <aside class="hidden md:flex w-72 flex-col glass-panel border-l border-white/50 h-full transition-all duration-300 z-20">
     <div class="p-6 flex flex-col gap-1">
@@ -27,7 +35,12 @@
       <router-link to="/reminders" class="flex items-center gap-3 px-4 py-3 rounded-xl text-[#666e85] dark:text-gray-300 hover:bg-white/50 dark:hover:bg-white/5 transition-all group">
         <div class="relative">
           <span class="material-symbols-outlined group-hover:text-primary transition-colors">notifications</span>
-          <span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-[#121620]"></span>
+          <span
+            v-if="unreadCount > 0"
+            class="absolute top-0 right-0 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white dark:border-[#121620]"
+          >
+            {{ unreadCount > 9 ? '9+' : unreadCount }}
+          </span>
         </div>
         <span class="font-medium text-sm group-hover:text-primary dark:group-hover:text-white transition-colors">یادآورها</span>
       </router-link>
