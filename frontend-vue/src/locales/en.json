@@ -234,6 +234,7 @@
     "add": {
       "title": "Add New Activity",
       "subtitle": "Record a new service or expense for your vehicle",
+      "serviceTab": "Periodic Service",
       "selectVehicle": "Select vehicle...",
       "serviceDate": "Service Date",
       "currentKm": "Current Mileage (km)",
@@ -290,7 +291,10 @@
         "alignment": "Balance & Alignment",
         "alignmentDesc": "Adjust wheel angles",
         "battery": "Install new battery",
-        "brakes": "Replace brake pads"
+        "brakes": "Replace brake pads",
+        "cooling": "Coolant and radiator replacement",
+        "transmission": "Transmission service",
+        "exhaust": "Exhaust system service"
       }
     },
     "selectDetails": {
@@ -336,7 +340,16 @@
     "noExpenses": "No expenses found.",
     "expenseDetails": "Expense Details",
     "category": "Category",
+    "selectCategory": "Select category...",
     "amount": "Amount",
+    "add": {
+      "expenseTab": "Additional Expense",
+      "success": "Expense recorded successfully",
+      "error": "Error recording expense",
+      "validation": {
+        "categoryRequired": "Category selection is required"
+      }
+    },
     "date": "Date",
     "description": "Description",
     "receipt": "Receipt"

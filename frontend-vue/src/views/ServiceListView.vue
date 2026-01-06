@@ -5,7 +5,8 @@ import { useI18n } from 'vue-i18n'
 import { useServiceStore } from '../stores/service'
 import { useVehicleStore } from '../stores/vehicle'
 import { useToast } from '../composables/useToast'
-import Modal from '../components/ui/Modal.vue'
+import MainLayout from '../components/MainLayout.vue'
+import { Button, Select, Card, LoadingSpinner, Modal } from '../components/ui'
 
 const router = useRouter()
 const route = useRoute()
@@ -49,6 +50,16 @@ const selectedVehicle = computed(() => {
   if (!selectedVehicleId.value) return null
   // Compare as strings to handle both string and number IDs
   return vehicleStore.vehicles.find(v => String(v.id) === String(selectedVehicleId.value))
+})
+
+const vehicleOptions = computed(() => {
+  return [
+    { value: '', label: t('services.allVehicles') },
+    ...vehicleStore.vehicles.map(v => ({
+      value: v.id,
+      label: `${v.model} - ${v.year}`
+    }))
+  ]
 })
 
 const filteredServices = computed(() => {
@@ -180,6 +191,18 @@ const handleBack = () => {
   router.back()
 }
 
+const handleRefresh = async () => {
+  try {
+    if (vehicleStore.vehicles.length === 0) {
+      await vehicleStore.fetchVehicles()
+    }
+    await fetchServices()
+  } catch (error) {
+    console.error('Error refreshing data:', error)
+    toast.error(t('common.error'))
+  }
+}
+
 const formatDate = (date) => {
   if (!date) return ''
   return date
@@ -192,10 +215,12 @@ const formatCurrency = (amount) => {
 
 // Methods for vehicle selection
 const handleVehicleChange = (vehicleId) => {
-  selectedVehicleId.value = vehicleId || null
+  // Convert empty string to null
+  const normalizedId = vehicleId === '' || !vehicleId ? null : vehicleId
+  selectedVehicleId.value = normalizedId
   // Update route query without navigation
-  if (vehicleId) {
-    router.replace({ query: { ...route.query, vehicleId } })
+  if (normalizedId) {
+    router.replace({ query: { ...route.query, vehicleId: normalizedId } })
   } else {
     const { vehicleId: _, ...rest } = route.query
     router.replace({ query: rest })
@@ -240,128 +265,169 @@ watch(() => route.query.vehicleId, (newVehicleId) => {
 </script>
 
 <template>
-  <div class="relative flex min-h-screen w-full flex-col overflow-x-hidden">
-    <header class="sticky top-0 z-50 flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#f1f1f4] dark:border-slate-800 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md px-4 sm:px-10 py-3 transition-colors duration-200">
-      <div class="flex items-center gap-4 text-[#121317] dark:text-white">
-        <div class="size-8 flex items-center justify-center text-primary dark:text-blue-400">
-          <span class="material-symbols-outlined text-3xl">local_taxi</span>
+  <MainLayout>
+    <div class="flex flex-col gap-6">
+      <header class="flex flex-wrap justify-between items-end gap-4">
+        <div class="flex flex-col gap-1">
+          <h1 class="text-[#121317] dark:text-white tracking-tight text-2xl sm:text-[32px] font-bold leading-tight">{{ $t('services.serviceList') }}</h1>
+          <p class="text-[#666e85] dark:text-gray-400 text-sm font-normal leading-normal">{{ $t('services.selectDetails.subtitle') }}</p>
         </div>
-        <h2 class="text-[#121317] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">{{ $t('vehicles.management.title') }}</h2>
+        <Select
+          :model-value="selectedVehicleId || ''"
+          @update:model-value="handleVehicleChange"
+          :options="vehicleOptions"
+          icon="directions_car"
+          class="w-full sm:w-auto min-w-[200px]"
+          :aria-label="$t('services.allVehicles')"
+        />
+      </header>
+      
+      <!-- Loading state -->
+      <div v-if="isLoading || serviceStore.isLoading || vehicleStore.isLoading" class="flex justify-center py-12">
+        <LoadingSpinner size="lg" :show-text="true" :text="$t('common.loading')" />
       </div>
-      <div class="flex flex-1 justify-end gap-4 sm:gap-8 items-center">
-        <nav class="hidden md:flex items-center gap-9">
-          <router-link to="/" class="text-[#121317] dark:text-gray-300 hover:text-primary dark:hover:text-blue-400 text-sm font-medium leading-normal transition-colors">{{ $t('dashboard.title') }}</router-link>
-          <router-link to="/vehicle-list" class="text-[#121317] dark:text-gray-300 hover:text-primary dark:hover:text-blue-400 text-sm font-medium leading-normal transition-colors">{{ $t('vehicles.vehicleList') }}</router-link>
-          <router-link to="/reports" class="text-[#121317] dark:text-gray-300 hover:text-primary dark:hover:text-blue-400 text-sm font-medium leading-normal transition-colors">{{ $t('reports.title') }}</router-link>
-        </nav>
-        <div class="h-8 w-[1px] bg-gray-200 dark:bg-gray-700 hidden md:block"></div>
-        <div class="flex items-center gap-3">
-          <div class="hidden sm:flex flex-col items-end">
-            <span class="text-sm font-semibold dark:text-white">امیرحسین رضایی</span>
-            <span class="text-xs text-gray-500 dark:text-gray-400">{{ $t('subscription.tier.pro') }}</span>
+      
+      <!-- Error state -->
+      <Card v-else-if="serviceStore.error || vehicleStore.error" variant="danger" class="p-6">
+        <div class="flex flex-col items-center gap-4 text-center">
+          <span class="material-symbols-outlined text-5xl text-red-500">error</span>
+          <div>
+            <h3 class="text-lg font-bold text-red-700 dark:text-red-400 mb-2">{{ $t('common.error') }}</h3>
+            <p class="text-sm text-red-600 dark:text-red-300">
+              {{ serviceStore.error || vehicleStore.error }}
+            </p>
           </div>
-          <div class="bg-center bg-no-repeat bg-cover rounded-full size-10 ring-2 ring-white dark:ring-gray-800 shadow-sm" data-alt="User profile avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCIlggVSiSEjowXShmlBOMiJpm3691nnKwqshmId0bNFRe8rFFsivfCXxRDq_VEbZxJ7i8qvc_Nmmlcp9sE5-WE6ZkX4_3mA1CyJBoV3DQuTJH-Vb-_fOgKQBc1Hf9MrMYnt0GQ1I_XS_6f_4emIHw0ATsHs2YaQXJH5KwanY48_6-Lit_0R_qjSeEpTNeMYSGD-q00G1L7mz-uBqeRYJubAzGNMVTVNrSdGHnXz-0Eq04m0su5ZHRH7Z-BpUo_LF74VbTzlkepb68");'></div>
+          <Button @click="handleRefresh" variant="primary">
+            {{ $t('common.retry') }}
+          </Button>
         </div>
-      </div>
-    </header>
-    <main class="flex-grow flex justify-center py-6 px-4 sm:px-6 lg:px-8">
-      <div class="w-full max-w-[1200px] flex flex-col gap-6">
-        <div class="flex flex-wrap justify-between items-end gap-4">
-          <div class="flex flex-col gap-1">
-            <h1 class="text-[#121317] dark:text-white tracking-tight text-[32px] font-bold leading-tight">{{ $t('services.serviceList') }}</h1>
-            <p class="text-[#666e85] dark:text-gray-400 text-sm font-normal leading-normal">{{ $t('services.selectDetails.subtitle') }}</p>
-          </div>
-          <div class="flex items-center gap-2 bg-white dark:bg-gray-800 p-1.5 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
-            <span class="material-symbols-outlined text-gray-500 ms-2">directions_car</span>
-            <select 
-              :value="selectedVehicleId || ''"
-              @change="handleVehicleChange($event.target.value || null)"
-              class="bg-transparent border-none text-sm font-semibold text-slate-700 dark:text-gray-200 focus:ring-0 cursor-pointer pe-8 ps-2 py-1"
-            >
-              <option value="">{{ $t('services.allVehicles') }}</option>
-              <option 
-                v-for="vehicle in vehicleStore.vehicles" 
-                :key="vehicle.id" 
-                :value="vehicle.id"
-              >
-                {{ vehicle.model }} - {{ vehicle.year }}
-              </option>
-            </select>
-          </div>
-        </div>
-        
-        <!-- Loading state -->
-        <div v-if="isLoading || serviceStore.isLoading" class="flex justify-center py-8">
-          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
-        
-        <!-- Services list -->
-        <div v-else-if="filteredServices.length > 0" class="bg-white dark:bg-[#1A202C] rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800 overflow-hidden">
-          <div class="overflow-x-auto">
-            <table class="w-full">
-              <thead class="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-                <tr>
-                  <th class="px-6 py-4 text-right text-sm font-bold text-gray-900 dark:text-white">{{ $t('services.date') }}</th>
-                  <th class="px-6 py-4 text-right text-sm font-bold text-gray-900 dark:text-white">{{ $t('services.serviceType') }}</th>
-                  <th class="px-6 py-4 text-right text-sm font-bold text-gray-900 dark:text-white">{{ $t('services.mileage') }}</th>
-                  <th class="px-6 py-4 text-right text-sm font-bold text-gray-900 dark:text-white">{{ $t('services.cost') }}</th>
-                  <th class="px-6 py-4 text-right text-sm font-bold text-gray-900 dark:text-white">{{ $t('services.description') }}</th>
-                  <th class="px-6 py-4 text-center text-sm font-bold text-gray-900 dark:text-white">{{ $t('common.actions', 'عملیات') }}</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                <tr v-for="service in filteredServices" :key="service.id" class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                  <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">{{ formatDate(service.date) }}</td>
-                  <td class="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">{{ $t(`services.types.${service.type}`, service.type) }}</td>
-                  <td class="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">{{ formatCurrency(service.km) }} {{ $t('vehicles.management.km') }}</td>
-                  <td class="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">{{ formatCurrency(service.cost) }} {{ $t('common.currency') }}</td>
-                  <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400 max-w-xs truncate">{{ service.note || '-' }}</td>
-                  <td class="px-6 py-4 text-center">
-                    <div class="flex items-center justify-center gap-2">
-                      <button
-                        @click="handleEdit(service)"
-                        class="p-2 rounded-lg text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
-                        :title="$t('services.editService')"
-                      >
-                        <span class="material-symbols-outlined text-lg">edit</span>
-                      </button>
-                      <button
-                        @click="handleDelete(service)"
-                        class="p-2 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                        :title="$t('services.deleteService')"
-                      >
-                        <span class="material-symbols-outlined text-lg">delete</span>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-        
-        <!-- Empty state -->
-        <div v-else class="bg-white dark:bg-[#1A202C] rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800 p-12 text-center">
-          <span class="material-symbols-outlined text-5xl text-gray-400 mb-4 block">build</span>
-          <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">{{ $t('services.noServices') }}</h3>
-          <p class="text-gray-500 dark:text-gray-400 mb-6">{{ $t('vehicles.details.noServices') }}</p>
-          <router-link to="/add-service" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary hover:bg-blue-900 text-white font-bold text-sm shadow-md hover:shadow-lg transition-all">
-            <span class="material-symbols-outlined">add</span>
-            {{ $t('services.addService') }}
-          </router-link>
-        </div>
-        
-        <!-- Back button -->
-        <div class="flex justify-end">
-          <button
-            @click="handleBack"
-            class="px-6 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+      </Card>
+      
+      <!-- Services list - Desktop Table -->
+      <Card v-else-if="filteredServices.length > 0" class="overflow-hidden p-0">
+        <div class="overflow-x-auto">
+          <table 
+            class="w-full"
+            role="table"
+            aria-label="$t('services.serviceList')"
           >
-            {{ $t('services.selectDetails.back') }}
-          </button>
+            <thead class="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+              <tr>
+                <th scope="col" class="px-4 sm:px-6 py-4 text-right text-sm font-bold text-gray-900 dark:text-white">{{ $t('services.date') }}</th>
+                <th scope="col" class="px-4 sm:px-6 py-4 text-right text-sm font-bold text-gray-900 dark:text-white">{{ $t('services.serviceType') }}</th>
+                <th scope="col" class="px-4 sm:px-6 py-4 text-right text-sm font-bold text-gray-900 dark:text-white hidden sm:table-cell">{{ $t('services.mileage') }}</th>
+                <th scope="col" class="px-4 sm:px-6 py-4 text-right text-sm font-bold text-gray-900 dark:text-white">{{ $t('services.cost') }}</th>
+                <th scope="col" class="px-4 sm:px-6 py-4 text-right text-sm font-bold text-gray-900 dark:text-white hidden md:table-cell">{{ $t('services.description') }}</th>
+                <th scope="col" class="px-4 sm:px-6 py-4 text-center text-sm font-bold text-gray-900 dark:text-white">{{ $t('common.actions', 'عملیات') }}</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+              <tr 
+                v-for="service in filteredServices" 
+                :key="service.id" 
+                class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+              >
+                <td class="px-4 sm:px-6 py-4 text-sm text-gray-900 dark:text-white">{{ formatDate(service.date) }}</td>
+                <td class="px-4 sm:px-6 py-4 text-sm text-gray-700 dark:text-gray-300">{{ $t(`services.types.${service.type}`, service.type) }}</td>
+                <td class="px-4 sm:px-6 py-4 text-sm text-gray-700 dark:text-gray-300 hidden sm:table-cell">{{ formatCurrency(service.km) }} {{ $t('vehicles.management.km') }}</td>
+                <td class="px-4 sm:px-6 py-4 text-sm text-gray-700 dark:text-gray-300">{{ formatCurrency(service.cost) }} {{ $t('common.currency') }}</td>
+                <td class="px-4 sm:px-6 py-4 text-sm text-gray-500 dark:text-gray-400 max-w-xs truncate hidden md:table-cell">{{ service.note || '-' }}</td>
+                <td class="px-4 sm:px-6 py-4 text-center">
+                  <div class="flex items-center justify-center gap-2">
+                    <Button
+                      @click="handleEdit(service)"
+                      variant="ghost"
+                      size="sm"
+                      icon="edit"
+                      :aria-label="$t('services.editService') + ' ' + formatDate(service.date)"
+                    />
+                    <Button
+                      @click="handleDelete(service)"
+                      variant="ghost"
+                      size="sm"
+                      icon="delete"
+                      :aria-label="$t('services.deleteService') + ' ' + formatDate(service.date)"
+                      class="text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+                    />
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
+        
+        <!-- Mobile Card View -->
+        <div class="sm:hidden divide-y divide-gray-200 dark:divide-gray-700">
+          <div 
+            v-for="service in filteredServices" 
+            :key="service.id"
+            class="p-4 space-y-3"
+          >
+            <div class="flex justify-between items-start">
+              <div>
+                <h3 class="text-sm font-bold text-gray-900 dark:text-white">{{ $t(`services.types.${service.type}`, service.type) }}</h3>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ formatDate(service.date) }}</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <Button
+                  @click="handleEdit(service)"
+                  variant="ghost"
+                  size="sm"
+                  icon="edit"
+                  :aria-label="$t('services.editService')"
+                />
+                <Button
+                  @click="handleDelete(service)"
+                  variant="ghost"
+                  size="sm"
+                  icon="delete"
+                  :aria-label="$t('services.deleteService')"
+                  class="text-red-600 dark:text-red-400"
+                />
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2 text-sm">
+              <div>
+                <span class="text-gray-500 dark:text-gray-400">{{ $t('services.mileage') }}:</span>
+                <span class="text-gray-900 dark:text-white font-medium ms-2">{{ formatCurrency(service.km) }} {{ $t('vehicles.management.km') }}</span>
+              </div>
+              <div>
+                <span class="text-gray-500 dark:text-gray-400">{{ $t('services.cost') }}:</span>
+                <span class="text-gray-900 dark:text-white font-medium ms-2">{{ formatCurrency(service.cost) }} {{ $t('common.currency') }}</span>
+              </div>
+            </div>
+            <div v-if="service.note" class="text-sm text-gray-500 dark:text-gray-400">
+              <span class="font-medium">{{ $t('services.description') }}:</span>
+              <span class="ms-2">{{ service.note }}</span>
+            </div>
+          </div>
+        </div>
+      </Card>
+      
+      <!-- Empty state -->
+      <Card v-else class="p-12 text-center">
+        <span class="material-symbols-outlined text-5xl text-gray-400 mb-4 block">build</span>
+        <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">{{ $t('services.noServices') }}</h3>
+        <p class="text-gray-500 dark:text-gray-400 mb-6">{{ $t('vehicles.details.noServices') }}</p>
+        <Button
+          @click="$router.push('/add-service')"
+          variant="primary"
+          icon="add"
+        >
+          {{ $t('services.addService') }}
+        </Button>
+      </Card>
+      
+      <!-- Back button -->
+      <div class="flex justify-end">
+        <Button
+          @click="handleBack"
+          variant="outline"
+        >
+          {{ $t('services.selectDetails.back') }}
+        </Button>
       </div>
-    </main>
+    </div>
     
     <!-- Delete Confirmation Modal -->
     <Modal
@@ -374,19 +440,19 @@ watch(() => route.query.vehicleId, (newVehicleId) => {
         {{ $t('services.delete.confirmMessage') }}
       </p>
       <template #footer>
-        <button
+        <Button
           @click="handleDeleteCancel"
-          class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium"
+          variant="outline"
         >
           {{ $t('services.delete.cancelButton') }}
-        </button>
-        <button
+        </Button>
+        <Button
           @click="handleDeleteConfirm"
-          class="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white transition-colors font-medium"
-          :disabled="serviceStore.isLoading"
+          variant="danger"
+          :loading="serviceStore.isLoading"
         >
           {{ $t('services.delete.confirmButton') }}
-        </button>
+        </Button>
       </template>
     </Modal>
     
@@ -470,23 +536,22 @@ watch(() => route.query.vehicleId, (newVehicleId) => {
         </label>
         
         <div class="flex justify-end gap-4 pt-4">
-          <button
+          <Button
             @click="handleEditCancel"
-            type="button"
-            class="px-6 py-3 rounded-xl border border-[#dcdfe4] dark:border-gray-600 text-[#121317] dark:text-white font-bold text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            variant="outline"
           >
             {{ $t('services.add.cancel') }}
-          </button>
-          <button
+          </Button>
+          <Button
             type="submit"
-            class="px-8 py-3 rounded-xl bg-primary hover:bg-blue-900 text-white font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2"
+            variant="primary"
+            icon="save"
           >
-            <span class="material-symbols-outlined text-[18px]">save</span>
             {{ $t('services.edit.submit') }}
-          </button>
+          </Button>
         </div>
       </form>
     </Modal>
-  </div>
+  </MainLayout>
 </template>
 

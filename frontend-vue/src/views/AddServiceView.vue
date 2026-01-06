@@ -8,7 +8,8 @@ import { useServiceTypeStore } from '../stores/serviceType'
 import { useExpenseCategoryStore } from '../stores/expenseCategory'
 import { useExpenseStore } from '../stores/expense'
 import { useToast } from '../composables/useToast'
-import Modal from '../components/ui/Modal.vue'
+import MainLayout from '../components/MainLayout.vue'
+import { Button, Input, Select, Card, LoadingSpinner, Modal } from '../components/ui'
 import ServiceTypeSelector from '../components/ServiceTypeSelector.vue'
 
 const router = useRouter()
@@ -89,6 +90,13 @@ const getLabel = (value) => {
 const selectedVehicle = computed(() => {
   if (!formData.value.vehicleId) return null
   return vehicleStore.vehicles.find(v => v.id === formData.value.vehicleId)
+})
+
+const vehicleOptions = computed(() => {
+  return vehicleStore.vehicles.map(v => ({
+    value: v.id,
+    label: `${v.model} - ${v.year}`
+  }))
 })
 
 const isFormValid = computed(() => {
@@ -195,6 +203,23 @@ const handleSubmit = async () => {
 
 const handleCancel = () => {
   router.back()
+}
+
+const handleRefresh = async () => {
+  try {
+    if (vehicleStore.vehicles.length === 0) {
+      await vehicleStore.fetchVehicles()
+    }
+    if (serviceTypeStore.serviceTypes.length === 0) {
+      await serviceTypeStore.fetchServiceTypes()
+    }
+    if (expenseCategoryStore.expenseCategories.length === 0) {
+      await expenseCategoryStore.fetchExpenseCategories()
+    }
+  } catch (error) {
+    console.error('Error refreshing data:', error)
+    toast.error(t('common.error'))
+  }
 }
 
 const switchTab = (tab) => {
@@ -352,126 +377,134 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="relative flex min-h-screen w-full flex-col overflow-x-hidden">
-    <header class="sticky top-0 z-50 flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#f1f1f4] dark:border-slate-800 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md px-4 sm:px-10 py-3 transition-colors duration-200">
-      <div class="flex items-center gap-4 text-[#121317] dark:text-white">
-        <div class="size-8 flex items-center justify-center text-primary dark:text-blue-400">
-          <span class="material-symbols-outlined text-3xl">local_taxi</span>
-        </div>
-        <h2 class="text-[#121317] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">مدیریت خودرو</h2>
-      </div>
-      <div class="flex flex-1 justify-end gap-4 sm:gap-8 items-center">
-        <nav class="hidden md:flex items-center gap-9">
-          <router-link to="/" class="text-[#121317] dark:text-gray-300 hover:text-primary dark:hover:text-blue-400 text-sm font-medium leading-normal transition-colors">داشبورد</router-link>
-          <router-link to="/vehicle-list" class="text-[#121317] dark:text-gray-300 hover:text-primary dark:hover:text-blue-400 text-sm font-medium leading-normal transition-colors">خودروها</router-link>
-          <router-link to="/reports" class="text-[#121317] dark:text-gray-300 hover:text-primary dark:hover:text-blue-400 text-sm font-medium leading-normal transition-colors">گزارش‌ها</router-link>
-        </nav>
-        <div class="h-8 w-[1px] bg-gray-200 dark:bg-gray-700 hidden md:block"></div>
-        <div class="flex items-center gap-3">
-          <div class="hidden sm:flex flex-col items-end">
-            <span class="text-sm font-semibold dark:text-white">امیرحسین رضایی</span>
-            <span class="text-xs text-gray-500 dark:text-gray-400">طرح حرفه‌ای</span>
-          </div>
-          <div class="bg-center bg-no-repeat bg-cover rounded-full size-10 ring-2 ring-white dark:ring-gray-800 shadow-sm" data-alt="User profile avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCIlggVSiSEjowXShmlBOMiJpm3691nnKwqshmId0bNFRe8rFFsivfCXxRDq_VEbZxJ7i8qvc_Nmmlcp9sE5-WE6ZkX4_3mA1CyJBoV3DQuTJH-Vb-_fOgKQBc1Hf9MrMYnt0GQ1I_XS_6f_4emIHw0ATsHs2YaQXJH5KwanY48_6-Lit_0R_qjSeEpTNeMYSGD-q00G1L7mz-uBqeRYJubAzGNMVTVNrSdGHnXz-0Eq04m0su5ZHRH7Z-BpUo_LF74VbTzlkepb68");'></div>
-        </div>
-      </div>
-    </header>
-    <main class="flex-grow flex justify-center py-6 px-4 sm:px-6 lg:px-8">
-      <div class="w-full max-w-[960px] flex flex-col gap-6">
+  <MainLayout>
+    <div class="flex flex-col gap-6">
         <div class="flex flex-wrap justify-between items-end gap-4">
-          <div class="flex flex-col gap-1">
-            <h1 class="text-[#121317] dark:text-white tracking-tight text-[32px] font-bold leading-tight">{{ $t('services.add.title') }}</h1>
+          <header class="flex flex-col gap-1">
+            <h1 class="text-[#121317] dark:text-white tracking-tight text-2xl sm:text-[32px] font-bold leading-tight">{{ $t('services.add.title') }}</h1>
             <p class="text-[#666e85] dark:text-gray-400 text-sm font-normal leading-normal">{{ $t('services.add.subtitle') }}</p>
-          </div>
-          <div class="flex items-center gap-2 bg-white dark:bg-gray-800 p-1.5 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
-            <span class="material-symbols-outlined text-gray-500 ms-2">directions_car</span>
-            <select 
-              v-model="formData.vehicleId"
-              class="bg-transparent border-none text-sm font-semibold text-slate-700 dark:text-gray-200 focus:ring-0 cursor-pointer pe-8 ps-2 py-1 bg-[position:left_0.5rem_center]"
-              :class="{ 'border-red-500': formErrors.vehicleId }"
-            >
-              <option value="">{{ $t('services.add.selectVehicle') }}</option>
-              <option 
-                v-for="vehicle in vehicleStore.vehicles" 
-                :key="vehicle.id" 
-                :value="vehicle.id"
-              >
-                {{ vehicle.model }} - {{ vehicle.year }}
-              </option>
-            </select>
-          </div>
+          </header>
+          <Select
+            v-model="formData.vehicleId"
+            :options="vehicleOptions"
+            :placeholder="$t('services.add.selectVehicle')"
+            icon="directions_car"
+            :error="formErrors.vehicleId"
+            class="w-full sm:w-auto min-w-[200px]"
+            :aria-label="$t('services.add.selectVehicle')"
+          />
         </div>
-        
-        <!-- Loading state -->
-        <div v-if="vehicleStore.isLoading || serviceStore.isLoading" class="flex justify-center py-8">
-          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
-        
-        <!-- Form -->
-        <div v-else class="bg-white dark:bg-[#1A202C] rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 overflow-hidden">
-          <div class="flex border-b border-[#dcdfe4] dark:border-gray-700">
-            <button 
-              @click="switchTab('service')"
-              :class="[
-                'flex-1 flex flex-col items-center justify-center py-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors',
-                activeTab === 'service' 
-                  ? 'border-b-[3px] border-b-primary text-primary dark:text-blue-400' 
-                  : 'border-b-[3px] border-b-transparent text-[#666e85] dark:text-gray-400'
-              ]"
-            >
-              <div class="flex items-center gap-2">
-                <span class="material-symbols-outlined text-[20px]">build</span>
-                <p class="text-sm font-bold leading-normal tracking-[0.015em]">سرویس دوره‌ای</p>
-              </div>
-            </button>
-            <button 
-              @click="switchTab('expense')"
-              :class="[
-                'flex-1 flex flex-col items-center justify-center py-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors',
-                activeTab === 'expense' 
-                  ? 'border-b-[3px] border-b-primary text-primary dark:text-blue-400' 
-                  : 'border-b-[3px] border-b-transparent text-[#666e85] dark:text-gray-400'
-              ]"
-            >
-              <div class="flex items-center gap-2">
-                <span class="material-symbols-outlined text-[20px]">receipt_long</span>
-                <p class="text-sm font-bold leading-normal tracking-[0.015em]">هزینه جانبی</p>
-              </div>
-            </button>
+      
+      <!-- Loading state -->
+      <div v-if="vehicleStore.isLoading || serviceTypeStore.isLoading || expenseCategoryStore.isLoading" class="flex justify-center py-12">
+        <LoadingSpinner size="lg" :show-text="true" :text="$t('common.loading')" />
+      </div>
+      
+      <!-- Error state -->
+      <Card v-else-if="vehicleStore.error || serviceTypeStore.error || expenseCategoryStore.error" variant="danger" class="p-6">
+        <div class="flex flex-col items-center gap-4 text-center">
+          <span class="material-symbols-outlined text-5xl text-red-500">error</span>
+          <div>
+            <h3 class="text-lg font-bold text-red-700 dark:text-red-400 mb-2">{{ $t('common.error') }}</h3>
+            <p class="text-sm text-red-600 dark:text-red-300">
+              {{ vehicleStore.error || serviceTypeStore.error || expenseCategoryStore.error }}
+            </p>
           </div>
-          
-          <form @submit.prevent="handleSubmit" class="p-6 sm:p-8 space-y-8">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <label class="flex flex-col gap-2">
-                <span class="text-[#121317] dark:text-gray-200 text-sm font-medium leading-normal">{{ $t('services.add.serviceDate') }}</span>
-                <div class="relative">
-                  <input 
-                    v-model="formData.date"
-                    class="form-input w-full rounded-xl border border-[#dcdfe4] dark:border-gray-700 bg-white dark:bg-gray-800 text-[#121317] dark:text-white h-12 px-4 focus:border-primary focus:ring-1 focus:ring-primary transition-shadow text-end" 
-                    :class="{ 'border-red-500': formErrors.date }"
-                    type="date" 
-                  />
-                  <p v-if="formErrors.date" class="text-red-500 text-xs mt-1">{{ formErrors.date }}</p>
-                </div>
-              </label>
-              <label v-if="activeTab === 'service'" class="flex flex-col gap-2">
-                <span class="text-[#121317] dark:text-gray-200 text-sm font-medium leading-normal">{{ $t('services.add.currentKm') }}</span>
-                <div class="relative">
-                  <input 
-                    v-model="formData.km"
-                    class="form-input w-full rounded-xl border border-[#dcdfe4] dark:border-gray-700 bg-white dark:bg-gray-800 text-[#121317] dark:text-white h-12 pe-4 ps-12 focus:border-primary focus:ring-1 focus:ring-primary transition-shadow dir-ltr text-right" 
-                    :class="{ 'border-red-500': formErrors.km }"
-                    :placeholder="$t('services.add.currentKmPlaceholder')" 
-                    type="number" 
-                  />
-                  <span class="absolute left-4 top-3 text-gray-400 text-sm">km</span>
-                  <p v-if="formErrors.km" class="text-red-500 text-xs mt-1">{{ formErrors.km }}</p>
-                </div>
-              </label>
+          <Button @click="handleRefresh" variant="primary">
+            {{ $t('common.retry') }}
+          </Button>
+        </div>
+      </Card>
+      
+      <!-- Form -->
+      <Card v-else class="overflow-hidden">
+        <div 
+          role="tablist" 
+          aria-label="$t('services.add.selectTab')"
+          class="flex border-b border-[#dcdfe4] dark:border-gray-700"
+        >
+          <button 
+            @click="switchTab('service')"
+            @keydown.enter="switchTab('service')"
+            @keydown.space.prevent="switchTab('service')"
+            role="tab"
+            :aria-selected="activeTab === 'service'"
+            :aria-controls="activeTab === 'service' ? 'service-tabpanel' : undefined"
+            :tabindex="activeTab === 'service' ? 0 : -1"
+            :id="activeTab === 'service' ? 'service-tab' : undefined"
+            :class="[
+              'flex-1 flex flex-col items-center justify-center py-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
+              activeTab === 'service' 
+                ? 'border-b-[3px] border-b-primary text-primary dark:text-blue-400' 
+                : 'border-b-[3px] border-b-transparent text-[#666e85] dark:text-gray-400'
+            ]"
+          >
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-[20px]" aria-hidden="true">build</span>
+              <p class="text-sm font-bold leading-normal tracking-[0.015em]">{{ $t('services.add.serviceTab') }}</p>
             </div>
+          </button>
+          <button 
+            @click="switchTab('expense')"
+            @keydown.enter="switchTab('expense')"
+            @keydown.space.prevent="switchTab('expense')"
+            role="tab"
+            :aria-selected="activeTab === 'expense'"
+            :aria-controls="activeTab === 'expense' ? 'expense-tabpanel' : undefined"
+            :tabindex="activeTab === 'expense' ? 0 : -1"
+            :id="activeTab === 'expense' ? 'expense-tab' : undefined"
+            :class="[
+              'flex-1 flex flex-col items-center justify-center py-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
+              activeTab === 'expense' 
+                ? 'border-b-[3px] border-b-primary text-primary dark:text-blue-400' 
+                : 'border-b-[3px] border-b-transparent text-[#666e85] dark:text-gray-400'
+            ]"
+          >
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-[20px]" aria-hidden="true">receipt_long</span>
+              <p class="text-sm font-bold leading-normal tracking-[0.015em]">{{ $t('expenses.add.expenseTab') }}</p>
+            </div>
+          </button>
+        </div>
+          
+        <form 
+          @submit.prevent="handleSubmit" 
+          class="p-6 sm:p-8 space-y-8"
+          :aria-labelledby="activeTab === 'service' ? 'service-tab' : 'expense-tab'"
+        >
+          <div 
+            v-if="activeTab === 'service'"
+            role="tabpanel"
+            id="service-tabpanel"
+            :aria-labelledby="'service-tab'"
+            tabindex="0"
+          >
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+            <Input
+              v-model="formData.date"
+              :label="$t('services.add.serviceDate')"
+              type="date"
+              :error="formErrors.date"
+              required
+              :aria-required="true"
+            />
+            <div v-if="activeTab === 'service'" class="flex flex-col gap-2">
+              <Input
+                v-model="formData.km"
+                :label="$t('services.add.currentKm')"
+                type="number"
+                :placeholder="$t('services.add.currentKmPlaceholder')"
+                :error="formErrors.km"
+                required
+                :aria-required="true"
+                dir="ltr"
+                class="text-right"
+              />
+            </div>
+          </div>
             
             <!-- Service Type (for service tab) -->
-            <div v-if="activeTab === 'service'" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div v-if="activeTab === 'service'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               <label class="flex flex-col gap-2 md:col-span-2">
                 <span class="text-[#121317] dark:text-gray-200 text-sm font-medium leading-normal">{{ $t('services.add.serviceType') }}</span>
                 <div class="relative">
@@ -501,7 +534,11 @@ onMounted(async () => {
                       @focus="handleAutocompleteFocus"
                       @blur="handleAutocompleteBlur"
                       @keydown="handleAutocompleteKeydown"
-                      class="flex-1 min-w-[120px] h-8 border-none bg-transparent text-[#121317] dark:text-white focus:outline-none text-sm placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                      :aria-label="$t('services.add.selectServiceType')"
+                      :aria-expanded="showAutocompleteDropdown"
+                      :aria-controls="showAutocompleteDropdown ? 'service-type-autocomplete' : undefined"
+                      :aria-autocomplete="'list'"
+                      class="flex-1 min-w-[120px] h-8 border-none bg-transparent text-[#121317] dark:text-white focus:outline-none focus:ring-2 focus:ring-primary text-sm placeholder:text-gray-400 dark:placeholder:text-gray-500"
                       :placeholder="formData.types.length === 0 ? $t('services.add.selectServiceType') : ''"
                       type="text"
                     />
@@ -509,10 +546,11 @@ onMounted(async () => {
                     <button
                       @click.stop="openServiceTypeModal"
                       type="button"
-                      class="absolute left-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-gray-400 hover:text-primary dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                      :aria-label="$t('services.add.selectFromModal')"
+                      class="absolute left-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-gray-400 hover:text-primary dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-primary"
                       :title="$t('services.add.selectFromModal')"
                     >
-                      <span class="material-symbols-outlined text-lg">tune</span>
+                      <span class="material-symbols-outlined text-lg" aria-hidden="true">tune</span>
                     </button>
                   </div>
                   <!-- Autocomplete dropdown -->
@@ -539,24 +577,36 @@ onMounted(async () => {
                 </div>
                 <p v-if="formErrors.type" class="text-red-500 text-xs mt-1">{{ formErrors.type }}</p>
               </label>
-              <label class="flex flex-col gap-2">
-                <span class="text-[#121317] dark:text-gray-200 text-sm font-medium leading-normal">{{ $t('services.add.totalCost') }}</span>
+              <div class="flex flex-col gap-2">
+                <label class="text-[#121317] dark:text-gray-200 text-sm font-medium leading-normal">
+                  {{ $t('services.add.totalCost') }} <span class="text-red-500">*</span>
+                </label>
                 <div class="relative">
-                  <span class="absolute left-4 top-3 text-gray-500 dark:text-gray-400 text-sm font-medium">تومان</span>
-                  <input 
+                  <span class="absolute left-4 top-3 text-gray-500 dark:text-gray-400 text-sm font-medium">{{ $t('common.currency') }}</span>
+                  <Input
                     v-model="formData.cost"
-                    class="form-input w-full rounded-xl border border-[#dcdfe4] dark:border-gray-700 bg-white dark:bg-gray-800 text-[#121317] dark:text-white h-12 pe-4 ps-16 focus:border-primary focus:ring-1 focus:ring-primary transition-shadow dir-ltr text-right" 
-                    :class="{ 'border-red-500': formErrors.cost }"
-                    placeholder="۰" 
-                    type="number" 
+                    type="number"
+                    placeholder="۰"
+                    :error="formErrors.cost"
+                    required
+                    dir="ltr"
+                    class="text-right ps-16"
                   />
-                  <p v-if="formErrors.cost" class="text-red-500 text-xs mt-1">{{ formErrors.cost }}</p>
                 </div>
-              </label>
+              </div>
             </div>
             
+          </div>
+          
+          <div 
+            v-else
+            role="tabpanel"
+            id="expense-tabpanel"
+            :aria-labelledby="'expense-tab'"
+            tabindex="0"
+          >
             <!-- Expense Category (for expense tab) -->
-            <div v-else class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               <label class="flex flex-col gap-2 md:col-span-2">
                 <span class="text-[#121317] dark:text-gray-200 text-sm font-medium leading-normal">{{ $t('expenses.category') }}</span>
                 <div class="relative">
@@ -585,111 +635,124 @@ onMounted(async () => {
                       @focus="handleAutocompleteFocus"
                       @blur="handleAutocompleteBlur"
                       @keydown="handleAutocompleteKeydown"
-                      class="flex-1 min-w-[120px] h-8 border-none bg-transparent text-[#121317] dark:text-white focus:outline-none text-sm placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                      :aria-label="$t('expenses.selectCategory', 'انتخاب دسته‌بندی...')"
+                      :aria-expanded="showAutocompleteDropdown"
+                      :aria-controls="showAutocompleteDropdown ? 'expense-category-autocomplete' : undefined"
+                      :aria-autocomplete="'list'"
+                      class="flex-1 min-w-[120px] h-8 border-none bg-transparent text-[#121317] dark:text-white focus:outline-none focus:ring-2 focus:ring-primary text-sm placeholder:text-gray-400 dark:placeholder:text-gray-500"
                       :placeholder="!formData.category ? $t('expenses.selectCategory', 'انتخاب دسته‌بندی...') : ''"
                       type="text"
                     />
                   </div>
                   <!-- Autocomplete dropdown -->
                   <Transition name="fade">
-                    <div 
+                    <ul 
                       v-if="showAutocompleteDropdown && filteredOptions.length > 0"
+                      id="expense-category-autocomplete"
+                      role="listbox"
                       class="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg max-h-60 overflow-y-auto"
                       @mousedown.prevent
                     >
-                      <button
+                      <li
                         v-for="(option, index) in filteredOptions"
                         :key="option.value"
-                        @click="selectOption(option)"
-                        @mouseenter="autocompleteFocusedIndex = index"
-                        type="button"
-                        class="w-full px-4 py-3 text-right hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center justify-between gap-2"
-                        :class="{ 'bg-gray-50 dark:bg-gray-700': autocompleteFocusedIndex === index }"
+                        role="option"
+                        :aria-selected="autocompleteFocusedIndex === index"
+                        :id="`expense-option-${index}`"
                       >
-                        <span class="text-sm font-medium text-[#121317] dark:text-white">{{ option.label }}</span>
-                        <span class="material-symbols-outlined text-gray-400 text-lg">add</span>
-                      </button>
-                    </div>
+                        <button
+                          @click="selectOption(option)"
+                          @mouseenter="autocompleteFocusedIndex = index"
+                          type="button"
+                          class="w-full px-4 py-3 text-right hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center justify-between gap-2 focus:outline-none focus:ring-2 focus:ring-primary"
+                          :class="{ 'bg-gray-50 dark:bg-gray-700': autocompleteFocusedIndex === index }"
+                        >
+                          <span class="text-sm font-medium text-[#121317] dark:text-white">{{ option.label }}</span>
+                          <span class="material-symbols-outlined text-gray-400 text-lg" aria-hidden="true">add</span>
+                        </button>
+                      </li>
+                    </ul>
                   </Transition>
                 </div>
-                <p v-if="formErrors.category" class="text-red-500 text-xs mt-1">{{ formErrors.category }}</p>
+                <p v-if="formErrors.category" class="text-red-500 text-xs mt-1" role="alert" aria-live="polite">{{ formErrors.category }}</p>
               </label>
-              <label class="flex flex-col gap-2">
-                <span class="text-[#121317] dark:text-gray-200 text-sm font-medium leading-normal">{{ $t('expenses.amount') }}</span>
+              <div class="flex flex-col gap-2">
+                <label class="text-[#121317] dark:text-gray-200 text-sm font-medium leading-normal">
+                  {{ $t('expenses.amount') }} <span class="text-red-500">*</span>
+                </label>
                 <div class="relative">
-                  <span class="absolute left-4 top-3 text-gray-500 dark:text-gray-400 text-sm font-medium">تومان</span>
-                  <input 
+                  <span class="absolute left-4 top-3 text-gray-500 dark:text-gray-400 text-sm font-medium">{{ $t('common.currency') }}</span>
+                  <Input
                     v-model="formData.cost"
-                    class="form-input w-full rounded-xl border border-[#dcdfe4] dark:border-gray-700 bg-white dark:bg-gray-800 text-[#121317] dark:text-white h-12 pe-4 ps-16 focus:border-primary focus:ring-1 focus:ring-primary transition-shadow dir-ltr text-right" 
-                    :class="{ 'border-red-500': formErrors.cost }"
-                    placeholder="۰" 
-                    type="number" 
-                  />
-                  <p v-if="formErrors.cost" class="text-red-500 text-xs mt-1">{{ formErrors.cost }}</p>
-                </div>
-              </label>
-            </div>
-            
-            <div class="space-y-6">
-              <label class="flex flex-col gap-2">
-                <span class="text-[#121317] dark:text-gray-200 text-sm font-medium leading-normal">{{ $t('services.add.shopName') }} <span class="text-gray-400 font-normal">({{ $t('common.optional') }})</span></span>
-                <div class="relative">
-                  <span class="material-symbols-outlined absolute start-4 top-3 text-gray-400 text-[20px]">storefront</span>
-                  <input 
-                    v-model="formData.shopName"
-                    class="form-input w-full rounded-xl border border-[#dcdfe4] dark:border-gray-700 bg-white dark:bg-gray-800 text-[#121317] dark:text-white h-12 ps-11 pe-4 focus:border-primary focus:ring-1 focus:ring-primary transition-shadow" 
-                    :placeholder="$t('services.add.shopNamePlaceholder')" 
-                    type="text" 
+                    type="number"
+                    placeholder="۰"
+                    :error="formErrors.cost"
+                    required
+                    dir="ltr"
+                    class="text-right ps-16"
                   />
                 </div>
-              </label>
-              <label class="flex flex-col gap-2">
-                <span class="text-[#121317] dark:text-gray-200 text-sm font-medium leading-normal">{{ $t('services.add.note') }}</span>
-                <textarea 
-                  v-model="formData.note"
-                  class="form-textarea w-full rounded-xl border border-[#dcdfe4] dark:border-gray-700 bg-white dark:bg-gray-800 text-[#121317] dark:text-white min-h-[100px] p-4 focus:border-primary focus:ring-1 focus:ring-primary transition-shadow resize-y" 
-                  :placeholder="$t('services.add.notePlaceholder')"
-                ></textarea>
-              </label>
+              </div>
             </div>
+          </div>
             
-            <!-- Error display -->
-            <div v-if="serviceStore.error" class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-              <p class="text-red-700 dark:text-red-400 text-sm">{{ serviceStore.error }}</p>
-            </div>
-            
-            <div class="pt-4 flex flex-col sm:flex-row justify-end gap-4">
-              <button 
-                @click="handleCancel"
-                class="w-full sm:w-auto px-6 py-3 rounded-xl border border-[#dcdfe4] dark:border-gray-600 text-[#121317] dark:text-white font-bold text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors" 
-                type="button"
-                :disabled="isSubmitting"
-              >
-                {{ $t('services.add.cancel') }}
-              </button>
-              <button 
-                class="w-full sm:w-auto px-8 py-3 rounded-xl bg-primary hover:bg-blue-900 text-white font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed" 
-                type="submit"
-                :disabled="!isFormValid || isSubmitting"
-              >
-                <span v-if="isSubmitting" class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
-                <span v-else class="material-symbols-outlined text-[18px]">save</span>
-                {{ isSubmitting ? $t('services.add.submitting') : $t('services.add.submit') }}
-              </button>
-            </div>
-          </form>
-        </div>
-        <div class="text-center py-4">
-          <p class="text-sm text-gray-400 dark:text-gray-600">{{ $t('services.add.helpText') }} <button @click="openServiceTypeModal" class="text-primary dark:text-blue-400 hover:underline">{{ $t('services.add.helpLink') }}</button></p>
-        </div>
+          <div class="space-y-6">
+            <Input
+              v-model="formData.shopName"
+              :label="$t('services.add.shopName') + ' (' + $t('common.optional') + ')'"
+              :placeholder="$t('services.add.shopNamePlaceholder')"
+              icon="storefront"
+            />
+            <label class="flex flex-col gap-2">
+              <span class="text-[#121317] dark:text-gray-200 text-sm font-medium leading-normal">{{ $t('services.add.note') }}</span>
+              <textarea 
+                v-model="formData.note"
+                class="form-textarea w-full rounded-xl border border-[#dcdfe4] dark:border-gray-700 bg-white dark:bg-gray-800 text-[#121317] dark:text-white min-h-[100px] p-4 focus:border-primary focus:ring-1 focus:ring-primary transition-shadow resize-y" 
+                :placeholder="$t('services.add.notePlaceholder')"
+              ></textarea>
+            </label>
+          </div>
+          
+          <!-- Error display -->
+          <div v-if="serviceStore.error || expenseStore.error" class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+            <p class="text-red-700 dark:text-red-400 text-sm">{{ serviceStore.error || expenseStore.error }}</p>
+          </div>
+          
+          <div class="pt-4 flex flex-col sm:flex-row justify-end gap-4">
+            <Button 
+              @click="handleCancel"
+              variant="outline"
+              :disabled="isSubmitting"
+              :aria-label="$t('services.add.cancel')"
+            >
+              {{ $t('services.add.cancel') }}
+            </Button>
+            <Button 
+              type="submit"
+              :loading="isSubmitting"
+              :disabled="!isFormValid || isSubmitting"
+              icon="save"
+              :aria-label="isSubmitting ? $t('services.add.submitting') : $t('services.add.submit')"
+            >
+              {{ isSubmitting ? $t('services.add.submitting') : $t('services.add.submit') }}
+            </Button>
+          </div>
+        </form>
+      </Card>
+      
+      <div class="text-center py-4">
+        <p class="text-sm text-gray-400 dark:text-gray-600">
+          {{ $t('services.add.helpText') }} 
+          <button @click="openServiceTypeModal" class="text-primary dark:text-blue-400 hover:underline">
+            {{ $t('services.add.helpLink') }}
+          </button>
+        </p>
       </div>
-    </main>
+    </div>
     
     <!-- Service Type Selection Modal -->
     <Modal
-      :open="showServiceTypeModal"
-      @update:open="showServiceTypeModal = $event"
-      @close="handleServiceTypeCancel"
+      v-model:open="showServiceTypeModal"
       size="lg"
       :title="$t('services.selectType.title')"
     >
@@ -699,7 +762,7 @@ onMounted(async () => {
         @cancel="handleServiceTypeCancel"
       />
     </Modal>
-  </div>
+  </MainLayout>
 </template>
 
 <style scoped>
