@@ -115,10 +115,17 @@
 
 ## 🛠️ ابزارهای مفید
 
-1. **GitHub Projects:** برای Kanban board
-2. **GitHub Milestones:** برای گروه‌بندی TODOها
-3. **GitHub Actions:** برای auto-check TODOها در PRها
-4. **VS Code Extensions:**
+1. **Linear:** ابزار مدیریت پروژه پیشرفته با AI
+   - راهنمای کامل: [LINEAR_GUIDE.md](./LINEAR_GUIDE.md)
+   - یکپارچگی با Cursor برای مدیریت issues
+   - AI-assisted features برای پیشنهادات و خودکارسازی
+   - مناسب برای مدیریت روزانه و tracking پیشرفت
+2. **GitHub Projects:** برای Kanban board
+   - راهنمای کامل: [GITHUB_PROJECTS_GUIDE.md](./GITHUB_PROJECTS_GUIDE.md)
+   - برای مدیریت بصری کارها و tracking پیشرفت
+3. **GitHub Milestones:** برای گروه‌بندی TODOها
+4. **GitHub Actions:** برای auto-check TODOها در PRها
+5. **VS Code Extensions:**
    - TODO Highlight
    - Todo Tree
    - Better Comments
